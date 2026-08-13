@@ -27,9 +27,12 @@ export default function MobileDrawer({ isOpen, onClose, cartCount, wishlistCount
         
         {/* Header */}
         <div className="p-4 border-b flex items-center justify-between bg-slate-900 text-white">
-          <div className="flex items-center space-x-1">
-            <span className="font-extrabold text-xl tracking-tight text-white">Apna Bazarr</span>
-            <span className="w-2 h-2 rounded-full bg-[#0066cc]"></span>
+          <div className="flex items-center">
+            <img 
+              src="/logo.png" 
+              alt="Apna Bazarr Logo" 
+              className="h-8 w-auto object-contain" 
+            />
           </div>
           <button 
             onClick={onClose}

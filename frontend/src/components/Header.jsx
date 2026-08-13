@@ -82,11 +82,12 @@ export default function Header({
               <Menu className="w-6 h-6" />
             </button>
 
-            <Link to="/" className="flex items-center space-x-1 group">
-              <span className="font-black text-2xl sm:text-3xl tracking-tight text-slate-900 group-hover:text-[#0066cc] transition-colors">
-                Apna Bazarr
-              </span>
-              <span className="w-2.5 h-2.5 rounded-full bg-[#0066cc] inline-block mb-1 group-hover:scale-125 transition-transform"></span>
+            <Link to="/" className="flex items-center space-x-2 group">
+              <img 
+                src="/logo.png" 
+                alt="Apna Bazarr Logo" 
+                className="h-10 sm:h-12 w-auto object-contain transition-transform group-hover:scale-105" 
+              />
             </Link>
           </div>
 

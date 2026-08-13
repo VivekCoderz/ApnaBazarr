@@ -26,10 +26,13 @@ export default function Footer() {
           
           {/* Column 1: Brand Info (2 Cols on lg) */}
           <div className="lg:col-span-2 space-y-4">
-            <a href="#" className="flex items-center space-x-1">
-              <span className="font-black text-2xl tracking-tight text-white">Apna Bazarr</span>
-              <span className="w-2.5 h-2.5 rounded-full bg-[#0066cc]"></span>
-            </a>
+            <Link to="/" className="flex items-center space-x-2">
+              <img 
+                src="/logo.png" 
+                alt="Apna Bazarr Logo" 
+                className="h-10 w-auto object-contain" 
+              />
+            </Link>
             <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
               Apna Bazarr is your ultimate destination for luxury fashion, premium footwear, sleek watches, and handpicked accessories. We deliver unmatched quality straight to your doorstep.
             </p>

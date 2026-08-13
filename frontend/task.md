@@ -1,4 +1,4 @@
-# Task List — Feedback & Review System, Cookie Auth, & Policy Pages
+# Task List — Feedback & Review System, Cookie Auth, Policy Pages, & Branding Logo
 
 ## Backend
 - [x] models/Feedback.js — MongoDB model
@@ -21,4 +21,7 @@
 - [x] WishlistPage.jsx — created dedicated wishlist page with direct cart add/remove actions
 - [x] ProtectedAdminRoute.jsx — secure route to block regular customers from accessing admin page
 - [x] PolicyPage.jsx — created dynamic policy page for T&C, privacy, shipping, refunds, and contact us
-- [x] Footer.jsx — updated footer Quick Links with real Active Policy links
+- [x] Footer.jsx — updated footer Quick Links with real Active Policy links and brand logo image
+- [x] Header.jsx — updated brand logo image
+- [x] MobileDrawer.jsx — updated brand logo image
+- [x] index.html — set tab title and favicon to logo.png
