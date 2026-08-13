@@ -42,7 +42,9 @@ module.exports.signup = async (req, res) => {
         id: newUser._id,
         name: newUser.name,
         email: newUser.email,
-        phone: newUser.phone
+        phone: newUser.phone,
+        cart: [],
+        wishlist: []
       }
     });
   } catch (error) {
@@ -84,7 +86,9 @@ module.exports.login = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        phone: user.phone
+        phone: user.phone,
+        cart: user.cart || [],
+        wishlist: user.wishlist || []
       }
     });
   } catch (error) {
@@ -114,5 +118,47 @@ module.exports.getme = async (req, res) => {
     res.json({ success: true, user });
   } catch (error) {
     res.status(401).json({ success: false, message: 'Invalid or expired token' });
+  }
+};
+
+module.exports.updateCart = async (req, res) => {
+  try {
+    const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ success: false, message: 'Not authenticated' });
+
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const { cart } = req.body;
+
+    const user = await User.findByIdAndUpdate(
+      decoded.id,
+      { cart },
+      { new: true }
+    ).select('-password');
+
+    return res.json({ success: true, cart: user.cart });
+  } catch (error) {
+    console.error('Update cart error:', error);
+    res.status(500).json({ success: false, message: 'Server error updating cart.' });
+  }
+};
+
+module.exports.updateWishlist = async (req, res) => {
+  try {
+    const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ success: false, message: 'Not authenticated' });
+
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const { wishlist } = req.body;
+
+    const user = await User.findByIdAndUpdate(
+      decoded.id,
+      { wishlist },
+      { new: true }
+    ).select('-password');
+
+    return res.json({ success: true, wishlist: user.wishlist });
+  } catch (error) {
+    console.error('Update wishlist error:', error);
+    res.status(500).json({ success: false, message: 'Server error updating wishlist.' });
   }
 };

@@ -1,5 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { X, TrendingUp, Package, ShoppingBag, Plus, Trash2, CheckCircle, ShieldCheck, Tag, MessageSquare, Star, Video } from 'lucide-react';
+import { X, TrendingUp, Package, ShoppingBag, Plus, Trash2, CheckCircle, ShieldCheck, Tag, MessageSquare, Star, Video, Upload, Loader2 } from 'lucide-react';
+
+async function uploadToCloudinary(file, endpoint) {
+  const formData = new FormData();
+  formData.append('file', file);
+  const res = await fetch(`${BASE_URL}/api/upload/${endpoint}`, {
+    method: 'POST',
+    body: formData,
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || 'Upload failed');
+  return data.url;
+}
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'https://apnabazarr-backend.onrender.com';
 
@@ -48,6 +60,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
   });
 
   const [successToast, setSuccessToast] = useState('');
+  const [imageUploading, setImageUploading] = useState(false);
 
   // Revenue & Profit Calculations across all orders
   const totalRevenue = orders.reduce((sum, ord) => sum + ord.totalAmount, 0);
@@ -439,15 +452,51 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Product Image URL *</label>
-                  <input
-                    type="url"
-                    required
-                    value={newProd.image}
-                    onChange={(e) => setNewProd({ ...newProd, image: e.target.value })}
-                    placeholder="https://images.unsplash.com/photo-..."
-                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-[#0066cc]"
-                  />
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Product Image *</label>
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        setImageUploading(true);
+                        try {
+                          const url = await uploadToCloudinary(file, 'image');
+                          setNewProd(prev => ({ ...prev, image: url }));
+                        } catch (err) {
+                          alert("Image upload failed: " + err.message);
+                        } finally {
+                          setImageUploading(false);
+                        }
+                      }}
+                      className="hidden"
+                      id="admin-image-upload"
+                    />
+                    <label
+                      htmlFor="admin-image-upload"
+                      className="cursor-pointer px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl border border-slate-300 transition-colors flex items-center space-x-1.5 shrink-0"
+                    >
+                      {imageUploading ? (
+                        <><Loader2 className="w-4 h-4 animate-spin text-slate-700" /><span>Uploading...</span></>
+                      ) : (
+                        <><Upload className="w-4 h-4 text-slate-700" /><span>Upload Image File</span></>
+                      )}
+                    </label>
+                    <input
+                      type="url"
+                      value={newProd.image}
+                      onChange={(e) => setNewProd({ ...newProd, image: e.target.value })}
+                      placeholder="Or enter image URL manually..."
+                      className="flex-1 px-3 py-2.5 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-[#0066cc]"
+                    />
+                  </div>
+                  {newProd.image && (
+                    <div className="mt-2 flex items-center space-x-2">
+                      <img src={newProd.image} alt="Preview" className="w-12 h-12 object-cover rounded-lg border" />
+                      <span className="text-[10px] text-emerald-600 font-bold">Image loaded successfully!</span>
+                    </div>
+                  )}
                 </div>
 
                 <div>

@@ -24,7 +24,7 @@ const orderSchema = new mongoose.Schema({
   userEmail: { type: String, required: true },
   items: [orderItemSchema],
   shippingAddress: shippingAddressSchema,
-  paymentMethod: { type: String, enum: ['UPI', 'COD', 'Card', 'Netbanking'], required: true },
+  paymentMethod: { type: String, required: true },
   paymentStatus: { type: String, default: 'Completed' },
   orderStatus: { 
     type: String, 
@@ -32,7 +32,9 @@ const orderSchema = new mongoose.Schema({
     default: 'Order Placed' 
   },
   totalAmount: { type: Number, required: true },
-  estimatedDelivery: { type: String }
+  estimatedDelivery: { type: String },
+  paymentId: { type: String },
+  razorpayOrderId: { type: String }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Order', orderSchema);

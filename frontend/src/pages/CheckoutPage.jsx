@@ -48,50 +48,151 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
     setStep(2);
   };
 
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
   const handlePlaceOrder = async () => {
     setOrderLoading(true);
     setOrderError('');
+
     try {
-      const token = getToken();
-      const headers = { 'Content-Type': 'application/json' };
-      if (token) headers['Authorization'] = `Bearer ${token}`;
+      if (paymentMethod === 'UPI') {
+        // Online Payment Flow (Razorpay)
+        const scriptLoaded = await loadRazorpayScript();
+        if (!scriptLoaded) {
+          throw new Error("Failed to load Razorpay SDK. Please check your internet connection.");
+        }
 
-      const res = await fetch(`${BASE_URL}/orders`, {
-        method: 'POST',
-        headers,
-        credentials: 'include',
-        body: JSON.stringify({
-          userEmail: currentUser?.email || 'guest@apnabazarr.com',
-          items: cartItems.map(item => ({
-            id: item.id,
-            name: item.name,
-            image: item.image,
-            price: item.price,
-            quantity: item.quantity,
-          })),
-          shippingAddress: { ...address },
-          paymentMethod,
-          totalAmount: total,
-        }),
-      });
-      const result = await res.json();
-      if (!res.ok) throw new Error(result.message || `Request failed: ${res.status}`);
+        // 1. Create Razorpay order on backend
+        const orderRes = await fetch(`${BASE_URL}/orders/razorpay`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount: total }),
+        });
+        const orderData = await orderRes.json();
+        if (!orderData.success) {
+          throw new Error(orderData.message || "Failed to create payment order.");
+        }
 
-      const savedOrder = result.order;
-      // Normalise to match the shape the rest of the app expects
-      const normalisedOrder = {
-        ...savedOrder,
-        paymentStatus: paymentMethod === 'COD' ? 'Pending (COD)' : 'Paid Online',
-        createdAt: savedOrder.createdAt || new Date().toISOString(),
-      };
+        // 2. Open Razorpay Checkout Modal
+        const options = {
+          key: orderData.key,
+          amount: orderData.amount,
+          currency: 'INR',
+          name: 'Apna Bazarr',
+          description: 'Secure Payment Gateway',
+          image: '/logo.png',
+          order_id: orderData.order_id,
+          handler: async function (response) {
+            try {
+              setOrderLoading(true);
+              // 3. Verify payment signature on backend and save order
+              const verifyRes = await fetch(`${BASE_URL}/orders/verify`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_signature: response.razorpay_signature,
+                  email: currentUser?.email || 'guest@apnabazarr.com',
+                  items: cartItems.map(item => ({
+                    productId: item.id,
+                    name: item.name,
+                    image: item.image,
+                    price: item.price,
+                    quantity: item.quantity,
+                  })),
+                  shippingAddress: { ...address },
+                  totalAmount: total
+                }),
+              });
+              const verifyResult = await verifyRes.json();
+              if (!verifyResult.success) {
+                throw new Error(verifyResult.message || "Payment verification failed.");
+              }
 
-      setPlacedOrder(normalisedOrder);
-      setStep(3);
-      onOrderComplete(normalisedOrder);
+              const savedOrder = verifyResult.order;
+              const normalisedOrder = {
+                ...savedOrder,
+                createdAt: savedOrder.createdAt || new Date().toISOString(),
+              };
+
+              setPlacedOrder(normalisedOrder);
+              setStep(3);
+              onOrderComplete(normalisedOrder);
+            } catch (err) {
+              setOrderError(err.message || 'Payment verification failed.');
+            } finally {
+              setOrderLoading(false);
+            }
+          },
+          prefill: {
+            name: address.fullName,
+            contact: address.phone,
+            email: currentUser?.email || 'guest@apnabazarr.com'
+          },
+          theme: {
+            color: '#0066cc'
+          },
+          modal: {
+            ondismiss: function () {
+              setOrderLoading(false);
+            }
+          }
+        };
+
+        const rzp = new window.Razorpay(options);
+        rzp.open();
+      } else {
+        // Cash on Delivery (COD) Flow
+        const token = getToken();
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
+        const res = await fetch(`${BASE_URL}/orders`, {
+          method: 'POST',
+          headers,
+          credentials: 'include',
+          body: JSON.stringify({
+            userEmail: currentUser?.email || 'guest@apnabazarr.com',
+            items: cartItems.map(item => ({
+              productId: item.id,
+              name: item.name,
+              image: item.image,
+              price: item.price,
+              quantity: item.quantity,
+            })),
+            shippingAddress: { ...address },
+            paymentMethod: 'COD',
+            totalAmount: total,
+          }),
+        });
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.message || `Request failed: ${res.status}`);
+
+        const savedOrder = result.order;
+        const normalisedOrder = {
+          ...savedOrder,
+          createdAt: savedOrder.createdAt || new Date().toISOString(),
+        };
+
+        setPlacedOrder(normalisedOrder);
+        setStep(3);
+        onOrderComplete(normalisedOrder);
+      }
     } catch (err) {
       setOrderError(err.message || 'Failed to place order. Please try again.');
     } finally {
-      setOrderLoading(false);
+      if (paymentMethod !== 'UPI') {
+        setOrderLoading(false);
+      }
     }
   };
 

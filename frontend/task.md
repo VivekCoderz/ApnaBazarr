@@ -1,17 +1,18 @@
-# Task List — Feedback & Review System, Cookie Auth, Policy Pages, & Branding Logo
+# Task List — Feedback & Review System, Cookie Auth, Policy Pages, Branding Logo, & Razorpay
 
 ## Backend
 - [x] models/Feedback.js — MongoDB model
 - [x] models/Review.js — MongoDB model
 - [x] controllers/feedback.js — POST + GET handlers
 - [x] controllers/review.js — POST + GET handlers
-- [x] routes/feedback.js — route file
-- [x] routes/review.js — route file
 - [x] middlewares/cloudinaryUpload.js — add video support
 - [x] routes/upload.js — add video upload endpoints
 - [x] server.js — register new routes
 - [x] routes/products.js — connect to real MongoDB Product database and seed initial items
 - [x] controllers/auth.js — updated res.cookie settings with secure: true, sameSite: 'none' for production
+- [x] models/Order.js — removed strict paymentMethod enum, added paymentId and razorpayOrderId fields
+- [x] controllers/order.js — implemented createRazorpayOrder and verifyRazorpayPayment controllers using live keys
+- [x] routes/order.js — added POST /orders/razorpay and POST /orders/verify endpoints
 
 ## Frontend
 - [x] FeedbackForm.jsx — real Cloudinary upload (photo + video) + DB save
@@ -25,3 +26,4 @@
 - [x] Header.jsx — updated brand logo image
 - [x] MobileDrawer.jsx — updated brand logo image
 - [x] index.html — set tab title and favicon to logo.png
+- [x] CheckoutPage.jsx — integrated dynamic script loading and full Razorpay order + verify flow on "Pay Now"

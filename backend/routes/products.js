@@ -73,6 +73,7 @@ router.get('/', async (req, res) => {
       gender: p.gender,
       price: p.price,
       originalPrice: p.originalPrice,
+      costPrice: p.costPrice,
       discount: p.discount,
       badge: p.badge,
       stock: p.stock,
@@ -104,6 +105,7 @@ router.get('/:id', async (req, res) => {
       gender: product.gender,
       price: product.price,
       originalPrice: product.originalPrice,
+      costPrice: product.costPrice,
       discount: product.discount,
       badge: product.badge,
       stock: product.stock,
@@ -123,9 +125,9 @@ router.get('/:id', async (req, res) => {
 // POST /products - add new product to MongoDB
 router.post('/', async (req, res) => {
   try {
-    const { name, category, gender, price, originalPrice, discount, badge, stock, image, description, tags } = req.body;
+    const { name, category, gender, price, originalPrice, costPrice, discount, badge, stock, image, description, tags } = req.body;
     const newProduct = await Product.create({
-      name, category, gender, price, originalPrice, discount, badge, stock, image, description, tags, inStock: true
+      name, category, gender, price, originalPrice, costPrice, discount, badge, stock, image, description, tags, inStock: true
     });
     const formatted = {
       id: newProduct._id,
@@ -134,6 +136,7 @@ router.post('/', async (req, res) => {
       gender: newProduct.gender,
       price: newProduct.price,
       originalPrice: newProduct.originalPrice,
+      costPrice: newProduct.costPrice,
       discount: newProduct.discount,
       badge: newProduct.badge,
       stock: newProduct.stock,
@@ -164,6 +167,7 @@ router.put('/:id', async (req, res) => {
       gender: updated.gender,
       price: updated.price,
       originalPrice: updated.originalPrice,
+      costPrice: updated.costPrice,
       discount: updated.discount,
       badge: updated.badge,
       stock: updated.stock,

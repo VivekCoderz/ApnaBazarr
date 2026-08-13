@@ -84,6 +84,24 @@ function AppContent() {
         const result = await res.json();
         if (result.success && result.user) {
           setCurrentUser(result.user);
+          // Set database cart & wishlist
+          if (result.user.cart && result.user.cart.length > 0) {
+            setCartItems(result.user.cart.map(c => ({
+              id: c.productId,
+              name: c.name,
+              price: c.price,
+              quantity: c.quantity,
+              image: c.image
+            })));
+          }
+          if (result.user.wishlist && result.user.wishlist.length > 0) {
+            setWishlistItems(result.user.wishlist.map(w => ({
+              id: w.productId,
+              name: w.name,
+              price: w.price,
+              image: w.image
+            })));
+          }
           // Load their orders from backend
           loadUserOrders(result.user.email);
         }
@@ -127,6 +145,63 @@ function AppContent() {
       // Silently ignore — orders page will just be empty
     }
   };
+
+  // Sync Cart to database when it changes
+  useEffect(() => {
+    if (!currentUser) return;
+    const syncCart = async () => {
+      try {
+        await fetch(`${BASE_URL}/auth/cart`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            cart: cartItems.map(item => ({
+              productId: item.id,
+              name: item.name,
+              price: item.price,
+              quantity: item.quantity,
+              image: item.image
+            }))
+          })
+        });
+      } catch (err) {
+        console.warn("Failed to sync cart to database:", err);
+      }
+    };
+    const timer = setTimeout(() => {
+      syncCart();
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [cartItems, currentUser]);
+
+  // Sync Wishlist to database when it changes
+  useEffect(() => {
+    if (!currentUser) return;
+    const syncWishlist = async () => {
+      try {
+        await fetch(`${BASE_URL}/auth/wishlist`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            wishlist: wishlistItems.map(item => ({
+              productId: item.id,
+              name: item.name,
+              price: item.price,
+              image: item.image
+            }))
+          })
+        });
+      } catch (err) {
+        console.warn("Failed to sync wishlist to database:", err);
+      }
+    };
+    const timer = setTimeout(() => {
+      syncWishlist();
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [wishlistItems, currentUser]);
 
   // Modal States
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -298,6 +373,23 @@ function AppContent() {
   const handleAuthSuccess = (userObj) => {
     setCurrentUser(userObj);
     showToast(`Welcome back, ${userObj.name}!`);
+    if (userObj.cart && userObj.cart.length > 0) {
+      setCartItems(userObj.cart.map(c => ({
+        id: c.productId,
+        name: c.name,
+        price: c.price,
+        quantity: c.quantity,
+        image: c.image
+      })));
+    }
+    if (userObj.wishlist && userObj.wishlist.length > 0) {
+      setWishlistItems(userObj.wishlist.map(w => ({
+        id: w.productId,
+        name: w.name,
+        price: w.price,
+        image: w.image
+      })));
+    }
     // Load their orders after login
     if (userObj.email) loadUserOrders(userObj.email);
   };
