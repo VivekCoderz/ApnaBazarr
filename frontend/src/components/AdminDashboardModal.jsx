@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, TrendingUp, Package, ShoppingBag, Plus, Trash2, CheckCircle, ShieldCheck, Tag, MessageSquare, Star, Video } from 'lucide-react';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://apnabazarr-backend.onrender.com';
 
 export default function AdminDashboardModal({ isOpen, onClose, products, orders, onAddProduct, onDeleteProduct, onUpdateOrderStatus, onToggleStock }) {
   if (!isOpen) return null;

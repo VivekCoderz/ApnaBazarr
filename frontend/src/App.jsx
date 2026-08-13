@@ -26,7 +26,7 @@ import PolicyPage from './pages/PolicyPage';
 
 import { Check } from 'lucide-react';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://apnabazarr-backend.onrender.com';
 const getToken = () => localStorage.getItem('apna_token');
 const clearToken = () => localStorage.removeItem('apna_token');
 
