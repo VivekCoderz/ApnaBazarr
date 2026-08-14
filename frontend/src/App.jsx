@@ -35,20 +35,8 @@ function AppContent() {
 
   const [products, setProducts] = useState([]);
   const [productsLoading, setProductsLoading] = useState(true);
-  const [cartItems, setCartItems] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem('apna_cart') || '[]');
-    } catch {
-      return [];
-    }
-  });
-  const [wishlistItems, setWishlistItems] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem('apna_wishlist') || '[]');
-    } catch {
-      return [];
-    }
-  });
+  const [cartItems, setCartItems] = useState([]);
+  const [wishlistItems, setWishlistItems] = useState([]);
   const [orders, setOrders] = useState([]);
   
   // Customer Feedbacks State
@@ -59,15 +47,6 @@ function AppContent() {
 
   const [currentUser, setCurrentUser] = useState(null);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
-
-  // Sync Cart and Wishlist to localStorage when updated
-  useEffect(() => {
-    localStorage.setItem('apna_cart', JSON.stringify(cartItems));
-  }, [cartItems]);
-
-  useEffect(() => {
-    localStorage.setItem('apna_wishlist', JSON.stringify(wishlistItems));
-  }, [wishlistItems]);
 
   // ─── On Mount: restore session + load products ──────────────────────
   useEffect(() => {
