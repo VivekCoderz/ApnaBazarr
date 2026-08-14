@@ -1,6 +1,5 @@
 import React from 'react';
 import HeroBanner from '../components/HeroBanner';
-import FeatureBadges from '../components/FeatureBadges';
 import CategoryGrid from '../components/CategoryGrid';
 import FeaturedProducts from '../components/FeaturedProducts';
 import PromoBanners from '../components/PromoBanners';
@@ -24,9 +23,6 @@ export default function HomePage({
     <div className="space-y-4">
       {/* Main Top Hero Banner Carousel (3-sec auto scroll) */}
       <HeroBanner />
-
-      {/* 4 Service Badges */}
-      <FeatureBadges />
 
       {/* Asymmetric Promo Grid */}
       <CategoryGrid onSelectCategory={onSelectCategory} />

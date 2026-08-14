@@ -7,7 +7,8 @@ export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem }) 
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const freeShippingThreshold = 999;
-  const shipping = subtotal >= freeShippingThreshold || subtotal === 0 ? 0 : 99.00;
+//   const shipping = subtotal >= freeShippingThreshold || subtotal === 0 ? 0 : 99.00;
+     const shipping = 0;
   const total = subtotal + shipping;
 
   return (

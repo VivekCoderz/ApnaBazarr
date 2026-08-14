@@ -27,7 +27,8 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
   const [placedOrder, setPlacedOrder] = useState(null);
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
-  const shipping = subtotal >= 999 ? 0 : 99.00;
+//   const shipping = subtotal >= 999 ? 0 : 99.00;
+  const shipping = 0;
   const total = subtotal + shipping;
 
   const indianStates = ["Delhi", "Maharashtra", "Karnataka", "Uttar Pradesh", "Tamil Nadu", "Gujarat", "West Bengal", "Rajasthan", "Haryana", "Punjab"];
