@@ -45,7 +45,9 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
       const result = await res.json();
       if (!res.ok) throw new Error(result.message || `Request failed: ${res.status}`);
 
-
+      if (result.token) {
+        localStorage.setItem('apna_token', result.token);
+      }
 
       onAuthSuccess(result.user);
       onClose();

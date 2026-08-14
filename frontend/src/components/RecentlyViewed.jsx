@@ -15,7 +15,7 @@ export default function RecentlyViewed({ items, onAddToCart, onQuickView, onTogg
   };
 
   return (
-    <section className="py-10 bg-slate-50 border-t border-slate-200">
+    <section className="py-6 md:py-10 bg-slate-50 border-y border-slate-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
         
         {/* Header & Scroll Controls */}
@@ -55,7 +55,7 @@ export default function RecentlyViewed({ items, onAddToCart, onQuickView, onTogg
           {items.map((product) => (
             <div
               key={product.id}
-              className="w-64 sm:w-72 shrink-0 snap-start"
+              className="w-[200px] sm:w-64 shrink-0 snap-start"
             >
               <ProductCard
                 product={product}

@@ -7,5 +7,6 @@ router.post("/logout", authController.logout);
 router.get("/me", authController.getme);
 router.post("/cart", authController.updateCart);
 router.post("/wishlist", authController.updateWishlist);
+router.post("/recently-viewed", authController.updateRecentlyViewed);
 
 module.exports = router;

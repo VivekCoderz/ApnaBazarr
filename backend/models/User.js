@@ -35,6 +35,14 @@ const userSchema = new mongoose.Schema({
       price: { type: Number, required: true },
       image: { type: String }
     }
+  ],
+  recentlyViewed: [
+    {
+      productId: { type: String, required: true },
+      name: { type: String, required: true },
+      price: { type: Number, required: true },
+      image: { type: String }
+    }
   ]
 }, { timestamps: true });
 

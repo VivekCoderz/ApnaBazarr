@@ -32,7 +32,8 @@ module.exports.signup = async (req, res) => {
     res.cookie('token', token, {
       httpOnly: true,
       secure: true,
-      sameSite: 'none'
+      sameSite: 'none',
+      path: '/'
     });
     return res.status(201).json({
       success: true,
@@ -44,7 +45,8 @@ module.exports.signup = async (req, res) => {
         email: newUser.email,
         phone: newUser.phone,
         cart: [],
-        wishlist: []
+        wishlist: [],
+        recentlyViewed: []
       }
     });
   } catch (error) {
@@ -76,7 +78,8 @@ module.exports.login = async (req, res) => {
     res.cookie('token', token, {
       httpOnly: true,
       secure: true,
-      sameSite: 'none'
+      sameSite: 'none',
+      path: '/'
     });
     return res.json({
       success: true,
@@ -88,7 +91,8 @@ module.exports.login = async (req, res) => {
         email: user.email,
         phone: user.phone,
         cart: user.cart || [],
-        wishlist: user.wishlist || []
+        wishlist: user.wishlist || [],
+        recentlyViewed: user.recentlyViewed || []
       }
     });
   } catch (error) {
@@ -98,10 +102,18 @@ module.exports.login = async (req, res) => {
 };
 
 module.exports.logout = (req, res) => {
-  res.clearCookie('token', {
+  // 1. Clear secure sameSite=none cookie (for Production/HTTPS)
+  res.cookie('token', '', {
     httpOnly: true,
     secure: true,
-    sameSite: 'none'
+    sameSite: 'none',
+    expires: new Date(0)
+  });
+  // 2. Clear standard cookie (for Local HTTP testing)
+  res.cookie('token', '', {
+    path: '/',
+    httpOnly: true,
+    expires: new Date(0)
   });
   res.json({ success: true, message: 'Logged out successfully.' });
 };
@@ -164,5 +176,26 @@ module.exports.updateWishlist = async (req, res) => {
   } catch (error) {
     console.error('Update wishlist error:', error);
     res.status(500).json({ success: false, message: 'Server error updating wishlist.' });
+  }
+};
+
+module.exports.updateRecentlyViewed = async (req, res) => {
+  try {
+    const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ success: false, message: 'Not authenticated' });
+
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const { recentlyViewed } = req.body;
+
+    const user = await User.findByIdAndUpdate(
+      decoded.id,
+      { recentlyViewed },
+      { new: true }
+    ).select('-password');
+
+    return res.json({ success: true, recentlyViewed: user.recentlyViewed });
+  } catch (error) {
+    console.error('Update recently viewed error:', error);
+    res.status(500).json({ success: false, message: 'Server error updating recently viewed.' });
   }
 };

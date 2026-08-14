@@ -24,6 +24,18 @@ export default function HomePage({
       {/* Main Top Hero Banner Carousel (3-sec auto scroll) */}
       <HeroBanner />
 
+      {/* Recently Viewed Products Section */}
+      {recentlyViewed.length > 0 && (
+        <RecentlyViewed
+          items={recentlyViewed}
+          onAddToCart={onAddToCart}
+          onQuickView={onQuickView}
+          onToggleWishlist={onToggleWishlist}
+          wishlistItems={wishlistItems}
+          cartItems={cartItems}
+        />
+      )}
+
       {/* Asymmetric Promo Grid */}
       <CategoryGrid onSelectCategory={onSelectCategory} />
 
@@ -42,18 +54,6 @@ export default function HomePage({
 
       {/* Featured Categories Carousel Showcase */}
       <FeaturedCategories onSelectCategory={onSelectCategory} />
-
-      {/* Recently Viewed Products Section */}
-      {recentlyViewed.length > 0 && (
-        <RecentlyViewed
-          items={recentlyViewed}
-          onAddToCart={onAddToCart}
-          onQuickView={onQuickView}
-          onToggleWishlist={onToggleWishlist}
-          wishlistItems={wishlistItems}
-          cartItems={cartItems}
-        />
-      )}
 
       {/* Customer Feedback Form */}
       <section className="py-12 bg-slate-100">

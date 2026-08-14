@@ -63,8 +63,12 @@ function AppContent() {
     // Restore user session from cookie on refresh/mount
     const restoreSession = async () => {
       try {
+        const token = getToken();
+        if (!token) return; // If logged out, do not restore session
+
         const res = await fetch(`${BASE_URL}/auth/me`, {
           credentials: 'include',
+          headers: { 'Authorization': `Bearer ${token}` }
         });
         const result = await res.json();
         if (result.success && result.user) {
@@ -85,6 +89,14 @@ function AppContent() {
               name: w.name,
               price: w.price,
               image: w.image
+            })));
+          }
+          if (result.user.recentlyViewed && result.user.recentlyViewed.length > 0) {
+            setRecentlyViewed(result.user.recentlyViewed.map(r => ({
+              id: r.productId,
+              name: r.name,
+              price: r.price,
+              image: r.image
             })));
           }
           // Load their orders from backend
@@ -206,6 +218,38 @@ function AppContent() {
     }, 500);
     return () => clearTimeout(timer);
   }, [wishlistItems, currentUser]);
+
+  // Sync Recently Viewed to database when it changes
+  useEffect(() => {
+    if (!currentUser) return;
+    const syncRecentlyViewed = async () => {
+      try {
+        const token = getToken();
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
+        await fetch(`${BASE_URL}/auth/recently-viewed`, {
+          method: 'POST',
+          headers,
+          credentials: 'include',
+          body: JSON.stringify({
+            recentlyViewed: recentlyViewed.map(item => ({
+              productId: item.id,
+              name: item.name,
+              price: item.price,
+              image: item.image
+            }))
+          })
+        });
+      } catch (err) {
+        console.warn("Failed to sync recently viewed to database:", err);
+      }
+    };
+    const timer = setTimeout(() => {
+      syncRecentlyViewed();
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [recentlyViewed, currentUser]);
 
   // Modal States
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -394,6 +438,14 @@ function AppContent() {
         image: w.image
       })));
     }
+    if (userObj.recentlyViewed && userObj.recentlyViewed.length > 0) {
+      setRecentlyViewed(userObj.recentlyViewed.map(r => ({
+        id: r.productId,
+        name: r.name,
+        price: r.price,
+        image: r.image
+      })));
+    }
     // Load their orders after login
     if (userObj.email) loadUserOrders(userObj.email);
   };
@@ -410,6 +462,7 @@ function AppContent() {
     setOrders([]);
     setCartItems([]);
     setWishlistItems([]);
+    setRecentlyViewed([]);
     showToast('Logged out successfully');
   };
 
