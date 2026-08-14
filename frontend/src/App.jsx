@@ -34,16 +34,32 @@ function AppContent() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
-  // Automatically scroll to the top of the page on route/path changes
-  useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-  }, [pathname]);
-
   const [products, setProducts] = useState([]);
   const [productsLoading, setProductsLoading] = useState(true);
   const [cartItems, setCartItems] = useState([]);
   const [wishlistItems, setWishlistItems] = useState([]);
   const [orders, setOrders] = useState([]);
+
+  // Fetch products from backend
+  const loadProducts = async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/products`);
+      const result = await res.json();
+      if (result.success && result.data && result.data.length > 0) {
+        setProducts(result.data);
+      }
+    } catch {
+      console.warn('Could not reach backend for products.');
+    } finally {
+      setProductsLoading(false);
+    }
+  };
+
+  // Automatically scroll to the top of the page on route/path changes + fetch fresh products
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    loadProducts();
+  }, [pathname]);
   
   // Customer Feedbacks State
   const [feedbacks, setFeedbacks] = useState([]);
@@ -104,23 +120,6 @@ function AppContent() {
         }
       } catch {
         // Silently ignore if not logged in
-      }
-    };
-
-    // Fetch products from backend
-    const loadProducts = async () => {
-      try {
-        const res = await fetch(`${BASE_URL}/products`);
-        const result = await res.json();
-        if (result.success && result.data && result.data.length > 0) {
-          setProducts(result.data);
-        }
-        // If backend returns empty, PRODUCTS fallback stays in state
-      } catch {
-        // Network error — keep static fallback
-        console.warn('Could not reach backend for products — using local data.');
-      } finally {
-        setProductsLoading(false);
       }
     };
 
@@ -368,10 +367,10 @@ function AppContent() {
     if (window.confirm("Are you sure you want to delete this product?")) {
       try {
         const res = await fetch(`${BASE_URL}/products/${productId}`, { method: 'DELETE' });
-        const data = await res.json();
-        if (data.success) {
-          setProducts(prev => prev.filter(p => p.id !== productId));
-          showToast("Product deleted from database");
+        const result = await res.json();
+        if (result.success) {
+          setProducts(prev => prev.filter(p => String(p.id) !== String(productId)));
+          showToast("Product deleted successfully");
         }
       } catch {
         showToast("Failed to delete product from database.");
@@ -380,7 +379,7 @@ function AppContent() {
   };
 
   const handleToggleStock = async (productId) => {
-    const targetProduct = products.find(p => p.id === productId);
+    const targetProduct = products.find(p => String(p.id) === String(productId));
     if (!targetProduct) return;
     const currentStockStatus = targetProduct.inStock !== false;
     const nextStatus = !currentStockStatus;
@@ -392,19 +391,31 @@ function AppContent() {
       });
       const data = await res.json();
       if (data.success) {
-        setProducts(prev => prev.map(p => p.id === productId ? data.data : p));
-        showToast("Product stock status updated in database!");
+        setProducts(prev => prev.map(p => String(p.id) === String(productId) ? data.data : p));
+        showToast(`Stock updated to: ${nextStatus ? 'In Stock' : 'Out of Stock'}`);
       }
     } catch {
       showToast("Failed to update stock status in database.");
     }
   };
 
-  const handleUpdateOrderStatus = (orderId, newStatus) => {
-    setOrders(prev =>
-      prev.map(ord => (ord.orderId === orderId ? { ...ord, orderStatus: newStatus } : ord))
-    );
-    showToast(`Order ${orderId} updated to: ${newStatus}`);
+  const handleUpdateOrderStatus = async (orderId, newStatus) => {
+    try {
+      const res = await fetch(`${BASE_URL}/orders/${orderId}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+      const result = await res.json();
+      if (result.success) {
+        setOrders(prev =>
+          prev.map(ord => (ord.orderId === orderId ? { ...ord, orderStatus: newStatus } : ord))
+        );
+        showToast(`Order ${orderId} updated to: ${newStatus}`);
+      }
+    } catch {
+      showToast("Failed to update status in database.");
+    }
   };
 
   const handleAdminLogin = (adminData) => {

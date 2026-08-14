@@ -1,17 +1,16 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { X, Search, Heart, ShoppingBag, User, Phone, Mail, ChevronRight } from 'lucide-react';
 
 export default function MobileDrawer({ isOpen, onClose, cartCount, wishlistCount, onOpenCart, onOpenWishlist, onOpenSearch }) {
   if (!isOpen) return null;
 
   const navLinks = [
-    { label: 'Home', href: '#' },
-    { label: 'Shop', href: '#shop' },
-    { label: 'Categories', href: '#categories' },
-    { label: 'Men\'s Fashion', href: '#featured' },
-    { label: 'Women\'s Wear', href: '#featured' },
-    { label: 'Deals & Offers', href: '#deals' },
-    { label: 'Blog', href: '#' },
+    { label: 'Home', to: '/' },
+    { label: 'Shop All Products', to: '/shop' },
+    { label: 'My Placed Orders', to: '/orders' },
+    { label: 'Shopping Cart', to: '/cart' },
+    { label: 'My Wishlist', to: '/wishlist' },
   ];
 
   return (
@@ -80,15 +79,15 @@ export default function MobileDrawer({ isOpen, onClose, cartCount, wishlistCount
         {/* Navigation List */}
         <nav className="flex-1 overflow-y-auto p-4 space-y-1">
           {navLinks.map((link, idx) => (
-            <a
+            <Link
               key={idx}
-              href={link.href}
+              to={link.to}
               onClick={onClose}
               className="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-semibold text-slate-700 hover:bg-blue-50 hover:text-[#0066cc] transition-colors"
             >
               <span>{link.label}</span>
               <ChevronRight className="w-4 h-4 text-slate-400" />
-            </a>
+            </Link>
           ))}
         </nav>
 

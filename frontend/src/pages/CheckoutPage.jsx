@@ -26,6 +26,40 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
   const [upiId, setUpiId] = useState('');
   const [placedOrder, setPlacedOrder] = useState(null);
 
+  // COD configurations
+  const [codCodeInput, setCodCodeInput] = useState('');
+  const [isCodEnabled, setIsCodEnabled] = useState(false);
+  const [codVerificationError, setCodVerificationError] = useState('');
+  const [codVerificationSuccess, setCodVerificationSuccess] = useState('');
+  const [verifyingCodCode, setVerifyingCodCode] = useState(false);
+
+  const handleVerifyCodCode = async () => {
+    if (!codCodeInput.trim()) return;
+    setVerifyingCodCode(true);
+    setCodVerificationError('');
+    setCodVerificationSuccess('');
+
+    try {
+      const res = await fetch(`${BASE_URL}/settings/verify-cod`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: codCodeInput })
+      });
+      const data = await res.json();
+      if (data.success && data.isValid) {
+        setIsCodEnabled(true);
+        setCodVerificationSuccess('✅ Secret COD Code accepted! Cash on Delivery option is now available.');
+      } else {
+        setIsCodEnabled(false);
+        setCodVerificationError('❌ Invalid Secret COD Code. Please contact admin.');
+      }
+    } catch (err) {
+      setCodVerificationError('Failed to verify code. Please try again.');
+    } finally {
+      setVerifyingCodCode(false);
+    }
+  };
+
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
 //   const shipping = subtotal >= 999 ? 0 : 99.00;
   const shipping = 0;
@@ -283,14 +317,57 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
                   <span className="bg-emerald-100 text-emerald-700 font-extrabold text-[10px] px-2 py-0.5 rounded">FASTEST</span>
                 </div>
 
-                <div onClick={() => setPaymentMethod('COD')} className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex items-center justify-between ${paymentMethod === 'COD' ? 'border-[#0066cc] bg-blue-50/50' : 'border-slate-200'}`}>
-                  <div className="flex items-center space-x-3">
-                    <Banknote className="w-5 h-5 text-emerald-600" />
-                    <div>
-                      <h4 className="text-xs font-bold text-slate-800">Cash on Delivery (COD)</h4>
-                      <p className="text-[11px] text-slate-500">Pay cash upon delivery</p>
+                {isCodEnabled && (
+                  <div onClick={() => setPaymentMethod('COD')} className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex items-center justify-between ${paymentMethod === 'COD' ? 'border-[#0066cc] bg-blue-50/50' : 'border-slate-200'}`}>
+                    <div className="flex items-center space-x-3">
+                      <Banknote className="w-5 h-5 text-emerald-600" />
+                      <div>
+                        <h4 className="text-xs font-bold text-slate-800">Cash on Delivery (COD)</h4>
+                        <p className="text-[11px] text-slate-500">Pay cash upon delivery</p>
+                      </div>
                     </div>
                   </div>
+                )}
+              </div>
+
+              {/* COD note and Verification */}
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3 text-xs mt-4">
+                <div className="text-slate-700 font-bold text-center leading-relaxed space-y-1.5">
+                  <p>
+                    📢 <span className="text-rose-700 font-extrabold">English Note:</span> If you want <span className="font-extrabold text-slate-900">Cash on Delivery (COD)</span>, please contact us at <span className="font-black text-rose-700 text-sm">9306810726</span>.
+                  </p>
+                  <p className="border-t border-slate-200/50 pt-1.5 mt-1.5">
+                    📢 <span className="text-rose-700 font-extrabold">Hindi Note:</span> अगर आपको <span className="font-extrabold text-slate-900">Cash on Delivery (COD)</span> चाहिए, तो कृपया हमसे <span className="font-black text-rose-700 text-sm">9306810726</span> पर संपर्क करें।
+                  </p>
+                </div>
+                
+                <div className="border-t border-slate-200/80 pt-3 space-y-2">
+                  <label className="block text-[11px] font-extrabold text-slate-650 uppercase">
+                    Have a Secret COD Code?
+                  </label>
+                  <div className="flex space-x-2">
+                    <input 
+                      type="text"
+                      value={codCodeInput}
+                      onChange={(e) => setCodCodeInput(e.target.value)}
+                      placeholder="Enter secret COD code..."
+                      className="flex-1 px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-[#0066cc] bg-white text-slate-850 uppercase font-bold"
+                    />
+                    <button 
+                      onClick={handleVerifyCodCode}
+                      disabled={verifyingCodCode || !codCodeInput.trim()}
+                      className="px-4 py-2 bg-[#0066cc] hover:bg-blue-700 text-white font-extrabold text-xs uppercase rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shrink-0 flex items-center space-x-1 cursor-pointer"
+                    >
+                      {verifyingCodCode && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                      <span>Verify</span>
+                    </button>
+                  </div>
+                  {codVerificationError && (
+                    <p className="text-[10px] text-red-600 font-bold mt-1">{codVerificationError}</p>
+                  )}
+                  {codVerificationSuccess && (
+                    <p className="text-[10px] text-emerald-600 font-bold mt-1">{codVerificationSuccess}</p>
+                  )}
                 </div>
               </div>
 

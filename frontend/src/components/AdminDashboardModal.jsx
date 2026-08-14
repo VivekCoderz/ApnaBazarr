@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, TrendingUp, Package, ShoppingBag, Plus, Trash2, CheckCircle, ShieldCheck, Tag, MessageSquare, Star, Video, Upload, Loader2 } from 'lucide-react';
+import { X, TrendingUp, Package, ShoppingBag, Plus, Trash2, CheckCircle, ShieldCheck, Tag, MessageSquare, Star, Video, Upload, Loader2, Settings } from 'lucide-react';
 
 async function uploadToCloudinary(file, endpoint) {
   const formData = new FormData();
@@ -18,7 +18,7 @@ const BASE_URL = import.meta.env.VITE_API_URL || 'https://apnabazarr-backend.onr
 export default function AdminDashboardModal({ isOpen, onClose, products, orders, onAddProduct, onDeleteProduct, onUpdateOrderStatus, onToggleStock }) {
   if (!isOpen) return null;
 
-  const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'addProduct', 'inventory', 'orders', 'feedbacks', 'reviews'
+  const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'addProduct', 'inventory', 'orders', 'feedbacks', 'reviews', 'settings'
 
   // Fetch feedbacks from DB
   const [feedbacks, setFeedbacks] = useState([]);
@@ -27,6 +27,40 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
   // Fetch product reviews from DB
   const [allReviews, setAllReviews] = useState([]);
   const [reviewsLoading, setReviewsLoading] = useState(false);
+
+  // Settings configuration state
+  const [settings, setSettings] = useState({ secret_cod_code: 'APNACOD' });
+  const [newCodCode, setNewCodCode] = useState('');
+  const [settingsLoading, setSettingsLoading] = useState(false);
+  const [settingsSuccess, setSettingsSuccess] = useState('');
+  const [settingsError, setSettingsError] = useState('');
+
+  const handleSaveSettings = async (e) => {
+    e.preventDefault();
+    if (!newCodCode.trim()) return;
+    setSettingsLoading(true);
+    setSettingsError('');
+    setSettingsSuccess('');
+    try {
+      const res = await fetch(`${BASE_URL}/settings`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ secret_cod_code: newCodCode })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSettings(data.settings);
+        setNewCodCode(data.settings.secret_cod_code);
+        setSettingsSuccess('✅ Secret COD Code updated successfully!');
+      } else {
+        throw new Error(data.message || 'Failed to update settings');
+      }
+    } catch (err) {
+      setSettingsError(err.message || 'Something went wrong');
+    } finally {
+      setSettingsLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!isOpen) return;
@@ -44,6 +78,16 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
       .then(d => { if (d.success) setAllReviews(d.reviews || []); })
       .catch(() => {})
       .finally(() => setReviewsLoading(false));
+    // Load settings
+    fetch(`${BASE_URL}/settings`)
+      .then(r => r.json())
+      .then(d => {
+        if (d.success && d.settings) {
+          setSettings(d.settings);
+          setNewCodCode(d.settings.secret_cod_code);
+        }
+      })
+      .catch(() => {});
   }, [isOpen]);
 
   // New Product Form State
@@ -241,6 +285,13 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
           >
             <Star className="w-4 h-4" />
             <span>Product Reviews ({allReviews.length})</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('settings')}
+            className={`py-3.5 transition-colors border-b-2 flex items-center space-x-1.5 ${activeTab === 'settings' ? 'border-[#0066cc] text-[#0066cc]' : 'border-transparent text-slate-600 hover:text-slate-900'}`}
+          >
+            <Settings className="w-4 h-4" />
+            <span>Store Settings</span>
           </button>
         </div>
 
@@ -610,7 +661,15 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                       <div className="flex items-center justify-between text-xs border-b border-slate-200 pb-2">
                         <div>
                           <span className="font-extrabold text-slate-900">{ord.orderId}</span>
-                          <span className="text-slate-400 text-[11px] ml-2">Payment: {ord.paymentMethod}</span>
+                          {ord.paymentMethod === 'COD' ? (
+                            <span className="bg-rose-100 text-rose-700 font-extrabold text-[10px] px-2.5 py-0.5 rounded-lg ml-2 border border-rose-200">
+                              Cash on Delivery (COD)
+                            </span>
+                          ) : (
+                            <span className="bg-emerald-100 text-emerald-700 font-extrabold text-[10px] px-2.5 py-0.5 rounded-lg ml-2 border border-emerald-200">
+                              Online Payment (Razorpay/UPI)
+                            </span>
+                          )}
                         </div>
 
                         {/* Status Updater Dropdown */}
@@ -768,6 +827,55 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* TAB 7: STORE SETTINGS */}
+          {activeTab === 'settings' && (
+            <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-6 max-w-2xl mx-auto">
+              <div>
+                <h4 className="text-sm font-extrabold text-slate-900 border-b pb-3">Store Configurations</h4>
+                <p className="text-xs text-slate-500 mt-1">Manage global website options and secret codes.</p>
+              </div>
+
+              <form onSubmit={handleSaveSettings} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="block text-[11px] font-extrabold text-slate-650 uppercase">
+                    Secret COD Unlock Code
+                  </label>
+                  <input 
+                    type="text"
+                    value={newCodCode}
+                    onChange={(e) => setNewCodCode(e.target.value)}
+                    placeholder="Enter new secret code (e.g. APNACOD)..."
+                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-[#0066cc] bg-white text-slate-850 uppercase font-bold"
+                  />
+                  <p className="text-[10px] text-slate-400">
+                    If a customer enters this code on checkout, the Cash on Delivery (COD) payment option will be unlocked.
+                  </p>
+                </div>
+
+                {settingsError && (
+                  <p className="text-xs text-red-655 font-semibold bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                    ⚠️ {settingsError}
+                  </p>
+                )}
+
+                {settingsSuccess && (
+                  <p className="text-xs text-emerald-700 font-semibold bg-emerald-50 border border-emerald-250 rounded-lg px-3 py-2">
+                    {settingsSuccess}
+                  </p>
+                )}
+
+                <button 
+                  type="submit"
+                  disabled={settingsLoading || !newCodCode.trim()}
+                  className="px-6 py-2.5 bg-[#0066cc] hover:bg-blue-700 text-white font-extrabold text-xs uppercase rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1 cursor-pointer"
+                >
+                  {settingsLoading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  <span>Save Settings</span>
+                </button>
+              </form>
             </div>
           )}
 

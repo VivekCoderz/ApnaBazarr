@@ -175,3 +175,29 @@ module.exports.verifyRazorpayPayment = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error verifying Razorpay payment.' });
   }
 };
+
+exports.updateOrderStatus = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { status } = req.body;
+
+    if (!status) {
+      return res.status(400).json({ success: false, message: 'Status is required.' });
+    }
+
+    const order = await Order.findOneAndUpdate(
+      { orderId },
+      { orderStatus: status },
+      { new: true }
+    );
+
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found.' });
+    }
+
+    res.json({ success: true, message: 'Order status updated successfully.', order });
+  } catch (error) {
+    console.error('Update order status error:', error);
+    res.status(500).json({ success: false, message: 'Server error updating order status.' });
+  }
+};

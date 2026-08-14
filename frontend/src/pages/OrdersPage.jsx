@@ -46,14 +46,25 @@ export default function OrdersPage({ orders }) {
 
                 {/* Progress Bar Timeline */}
                 <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-2">
-                  <div className="flex items-center justify-between text-xs text-slate-600 font-bold">
-                    <span className="text-[#0066cc]">1. Ordered</span>
-                    <span>2. Processing</span>
-                    <span>3. Shipped</span>
-                    <span>4. Delivered</span>
+                  <div className="flex items-center justify-between text-[10px] sm:text-xs text-slate-500 font-extrabold uppercase">
+                    <span className={ord.orderStatus === 'Order Placed' ? 'text-[#0066cc]' : ''}>Ordered</span>
+                    <span className={ord.orderStatus === 'Processing' || ord.orderStatus === 'Packed' ? 'text-[#0066cc]' : ''}>Processing</span>
+                    <span className={ord.orderStatus === 'Shipped' ? 'text-[#0066cc]' : ''}>Shipped</span>
+                    <span className={ord.orderStatus === 'Out for Delivery' ? 'text-[#0066cc]' : ''}>Out for Delivery</span>
+                    <span className={ord.orderStatus === 'Delivered' ? 'text-emerald-600' : ''}>Delivered</span>
                   </div>
                   <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                    <div className="bg-[#0066cc] h-full w-3/4 rounded-full" />
+                    <div 
+                      className={`h-full rounded-full transition-all duration-500 ${ord.orderStatus === 'Delivered' ? 'bg-emerald-500' : 'bg-[#0066cc]'}`}
+                      style={{ 
+                        width: ord.orderStatus === 'Order Placed' ? '15%' :
+                               ord.orderStatus === 'Processing' ? '35%' :
+                               ord.orderStatus === 'Packed' ? '55%' :
+                               ord.orderStatus === 'Shipped' ? '70%' :
+                               ord.orderStatus === 'Out for Delivery' ? '85%' :
+                               ord.orderStatus === 'Delivered' ? '100%' : '15%'
+                      }}
+                    />
                   </div>
                 </div>
 
