@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 
 import Header from './components/Header';
 import TopBar from './components/TopBar';
@@ -32,6 +32,12 @@ const clearToken = () => localStorage.removeItem('apna_token');
 
 function AppContent() {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+
+  // Automatically scroll to the top of the page on route/path changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [pathname]);
 
   const [products, setProducts] = useState([]);
   const [productsLoading, setProductsLoading] = useState(true);
@@ -109,6 +115,25 @@ function AppContent() {
     restoreSession();
     loadProducts();
   }, []);
+
+  // Load feedbacks for admin from backend
+  const loadFeedbacks = async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/feedbacks`);
+      const data = await res.json();
+      if (data.success) setFeedbacks(data.feedbacks || []);
+    } catch (err) {
+      console.warn("Failed to load feedbacks:", err);
+    }
+  };
+
+  // Load all admin data when admin is authenticated
+  useEffect(() => {
+    if (isAdminAuthenticated) {
+      loadUserOrders(); // loads all orders
+      loadFeedbacks(); // loads all feedbacks
+    }
+  }, [isAdminAuthenticated]);
 
   // Load orders for a given user email from the backend
   const loadUserOrders = async (email) => {
@@ -194,13 +219,13 @@ function AppContent() {
   };
 
   // Track Recently Viewed Products
-  const handleProductViewed = (product) => {
+  const handleProductViewed = useCallback((product) => {
     if (!product) return;
     setRecentlyViewed(prev => {
       const filtered = prev.filter(p => p.id !== product.id);
       return [product, ...filtered].slice(0, 5); // Keep top 5 recently viewed
     });
-  };
+  }, []);
 
   // Customer Feedback Submit Handler
   const handleSubmitFeedback = (newFeedback) => {

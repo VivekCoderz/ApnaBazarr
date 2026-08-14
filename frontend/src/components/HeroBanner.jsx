@@ -3,7 +3,7 @@ import { ArrowRight, Gift, Sparkles, ChevronLeft, ChevronRight, ShieldCheck, Tru
 
 export default function HeroBanner() {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [isHovered, setIsHovered] = useState(false);
+
   const timerRef = useRef(null);
 
   const slides = [
@@ -53,15 +53,13 @@ export default function HeroBanner() {
   ];
 
   useEffect(() => {
-    if (!isHovered) {
       timerRef.current = setInterval(() => {
         setCurrentSlide(prev => (prev + 1) % slides.length);
       }, 4000);
-    }
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [isHovered, slides.length]);
+  }, [slides.length]);
 
   const handlePrev = () => {
     setCurrentSlide(prev => (prev - 1 + slides.length) % slides.length);
@@ -74,8 +72,6 @@ export default function HeroBanner() {
   return (
     <section 
       className="relative bg-[#fffbeb] bg-gradient-to-r from-[#fffbeb] via-[#fef3c7] to-[#fde68a] overflow-hidden py-12 md:py-16 lg:py-20 border-b border-amber-200 group/banner"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
     >
       {/* Background Decorative Shapes */}
       <div className="absolute top-0 right-0 w-48 h-48 sm:w-64 sm:h-64 lg:w-96 lg:h-96 bg-[#0a2540] rounded-bl-[160px] sm:rounded-bl-[240px] lg:rounded-bl-[320px] pointer-events-none -z-0 transition-all duration-500" />

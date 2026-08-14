@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Star, ShoppingBag, Heart, ShieldCheck, Truck, RotateCcw, Upload, CheckCircle, Sparkles, ArrowLeft, Video, Loader2 } from 'lucide-react';
+import { Star, ShoppingBag, Heart, ShieldCheck, Truck, RotateCcw, Upload, CheckCircle, Sparkles, ArrowLeft, Video, Loader2, ThumbsUp, ThumbsDown, CornerDownRight, MessageSquare } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'https://apnabazarr-backend.onrender.com';
@@ -39,6 +39,10 @@ export default function ProductDetailPage({
   const [reviews, setReviews] = useState([]);
   const [reviewsLoading, setReviewsLoading] = useState(true);
 
+  // Expanded replies list and input text states
+  const [expandedReplies, setExpandedReplies] = useState({});
+  const [replyTexts, setReplyTexts] = useState({});
+
   // New Review Form State
   const [reviewerName, setReviewerName] = useState('');
   const [reviewRating, setReviewRating] = useState(5);
@@ -50,6 +54,74 @@ export default function ProductDetailPage({
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
   const [reviewError, setReviewError] = useState('');
+
+  const handleLikeReview = async (reviewId) => {
+    if (!currentUser) {
+      alert("🔒 Please log in to like this review!");
+      return;
+    }
+    try {
+      const res = await fetch(`${BASE_URL}/reviews/${reviewId}/like`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: currentUser.email })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setReviews(prev => prev.map(r => r._id === reviewId ? data.review : r));
+      }
+    } catch (err) {
+      console.error("Like review error:", err);
+    }
+  };
+
+  const handleDislikeReview = async (reviewId) => {
+    if (!currentUser) {
+      alert("🔒 Please log in to dislike this review!");
+      return;
+    }
+    try {
+      const res = await fetch(`${BASE_URL}/reviews/${reviewId}/dislike`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: currentUser.email })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setReviews(prev => prev.map(r => r._id === reviewId ? data.review : r));
+      }
+    } catch (err) {
+      console.error("Dislike review error:", err);
+    }
+  };
+
+  const handleCommentReview = async (reviewId) => {
+    if (!currentUser) {
+      alert("🔒 Please log in to comment on this review!");
+      return;
+    }
+    const text = replyTexts[reviewId];
+    if (!text || !text.trim()) return;
+
+    try {
+      const res = await fetch(`${BASE_URL}/reviews/${reviewId}/comment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userName: currentUser.name,
+          userEmail: currentUser.email,
+          text: text.trim()
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setReviews(prev => prev.map(r => r._id === reviewId ? data.review : r));
+        setReplyTexts(prev => ({ ...prev, [reviewId]: '' }));
+      }
+    } catch (err) {
+      console.error("Comment review error:", err);
+    }
+  };
 
   if (!product) {
     return (
@@ -357,6 +429,85 @@ export default function ProductDetailPage({
                       <video src={rev.videoUrl} controls className="w-32 h-24 object-cover rounded-xl border border-slate-200 shadow-xs" />
                     )}
                   </div>
+
+                  {/* Likes, Dislikes and Comment toggle row */}
+                  <div className="flex items-center space-x-4 pt-2 border-t border-slate-200/60 mt-3 text-xs">
+                    <button 
+                      onClick={() => handleLikeReview(rev._id)}
+                      className={`flex items-center space-x-1.5 font-bold hover:text-blue-600 transition-colors ${
+                        currentUser && rev.likes?.includes(currentUser.email) ? 'text-blue-600' : 'text-slate-500'
+                      }`}
+                    >
+                      <ThumbsUp className="w-3.5 h-3.5" />
+                      <span>{rev.likes?.length || 0}</span>
+                    </button>
+
+                    <button 
+                      onClick={() => handleDislikeReview(rev._id)}
+                      className={`flex items-center space-x-1.5 font-bold hover:text-red-600 transition-colors ${
+                        currentUser && rev.dislikes?.includes(currentUser.email) ? 'text-red-600' : 'text-slate-500'
+                      }`}
+                    >
+                      <ThumbsDown className="w-3.5 h-3.5" />
+                      <span>{rev.dislikes?.length || 0}</span>
+                    </button>
+
+                    <button 
+                      onClick={() => {
+                        setExpandedReplies(prev => ({ ...prev, [rev._id]: !prev[rev._id] }));
+                      }}
+                      className="flex items-center space-x-1.5 font-bold text-slate-500 hover:text-slate-800 transition-colors"
+                    >
+                      <MessageSquare className="w-3.5 h-3.5" />
+                      <span>{rev.comments?.length || 0} Comments</span>
+                    </button>
+                  </div>
+
+                  {/* Expanded Comments/Replies section */}
+                  {expandedReplies[rev._id] && (
+                    <div className="space-y-3 pl-4 border-l-2 border-slate-200 mt-3 transition-all duration-300">
+                      {rev.comments && rev.comments.length > 0 && (
+                        <div className="space-y-2">
+                          {rev.comments.map((comment, cIdx) => (
+                            <div key={comment._id || cIdx} className="bg-white p-3 rounded-xl border border-slate-100 space-y-1">
+                              <div className="flex items-center justify-between text-[10px]">
+                                <span className="font-extrabold text-slate-800">{comment.userName}</span>
+                                <span className="text-slate-400">
+                                  {new Date(comment.createdAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                </span>
+                              </div>
+                              <p className="text-xs text-slate-600 font-semibold">{comment.text}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Write comment box */}
+                      {currentUser ? (
+                        <div className="flex space-x-2 pt-1">
+                          <input 
+                            type="text"
+                            value={replyTexts[rev._id] || ''}
+                            onChange={(e) => setReplyTexts(prev => ({ ...prev, [rev._id]: e.target.value }))}
+                            onKeyDown={(e) => { if (e.key === 'Enter') handleCommentReview(rev._id); }}
+                            placeholder="Write a reply..."
+                            className="flex-1 px-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-[#0066cc] bg-white text-slate-800"
+                          />
+                          <button 
+                            onClick={() => handleCommentReview(rev._id)}
+                            className="px-3 py-1.5 bg-[#0066cc] hover:bg-blue-700 text-white font-extrabold text-xs uppercase rounded-lg transition-all flex items-center space-x-1 shrink-0 cursor-pointer"
+                          >
+                            <CornerDownRight className="w-3.5 h-3.5" />
+                            <span>Reply</span>
+                          </button>
+                        </div>
+                      ) : (
+                        <p className="text-[10px] text-slate-400 font-bold bg-slate-100/50 p-2 rounded-lg">
+                          🔒 Please log in to comment or reply to this review.
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
