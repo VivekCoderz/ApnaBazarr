@@ -57,6 +57,13 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
       document.body.appendChild(script);
     });
   };
+  const safeParseJSON = async (response) => {
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      throw new Error("Server is waking up or temporarily busy. Please try again in 10-15 seconds.");
+    }
+    return await response.json();
+  };
 
   const handlePlaceOrder = async () => {
     setOrderLoading(true);
@@ -76,7 +83,7 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ amount: total }),
         });
-        const orderData = await orderRes.json();
+        const orderData = await safeParseJSON(orderRes);
         if (!orderData.success) {
           throw new Error(orderData.message || "Failed to create payment order.");
         }
@@ -113,7 +120,7 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
                   totalAmount: total
                 }),
               });
-              const verifyResult = await verifyRes.json();
+              const verifyResult = await safeParseJSON(verifyRes);
               if (!verifyResult.success) {
                 throw new Error(verifyResult.message || "Payment verification failed.");
               }
@@ -174,7 +181,7 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
             totalAmount: total,
           }),
         });
-        const result = await res.json();
+        const result = await safeParseJSON(res);
         if (!res.ok) throw new Error(result.message || `Request failed: ${res.status}`);
 
         const savedOrder = result.order;
