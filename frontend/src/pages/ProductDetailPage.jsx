@@ -618,7 +618,7 @@ export default function ProductDetailPage({
               <Link to="/shop" className="text-xs font-extrabold text-[#0066cc] hover:underline">View All Catalog →</Link>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
               {relatedProducts.map((relProd) => (
                 <ProductCard
                   key={relProd.id}

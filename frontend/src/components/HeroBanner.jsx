@@ -70,19 +70,13 @@ export default function HeroBanner() {
   };
 
   return (
-    <section 
-      className="relative bg-[#fffbeb] bg-gradient-to-r from-[#fffbeb] via-[#fef3c7] to-[#fde68a] overflow-hidden py-12 md:py-16 lg:py-20 border-b border-amber-200 group/banner"
-    >
+    <section className="relative overflow-hidden bg-gradient-to-br from-[#fff6e6] via-white to-[#fff0f5] py-6 sm:py-12 md:py-16 lg:py-20 group/banner">
       {/* Background Decorative Shapes */}
       <div className="absolute top-0 right-0 w-48 h-48 sm:w-64 sm:h-64 lg:w-96 lg:h-96 bg-[#0a2540] rounded-bl-[160px] sm:rounded-bl-[240px] lg:rounded-bl-[320px] pointer-events-none -z-0 transition-all duration-500" />
       <div className="absolute bottom-0 right-0 w-16 h-48 sm:w-24 sm:h-72 lg:w-32 lg:h-[450px] bg-orange-600 rounded-tl-[80px] sm:rounded-tl-[120px] lg:rounded-tl-[160px] pointer-events-none -z-0 transition-all duration-500" />
       
-      {/* Background Glow Orbs */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-amber-300/20 rounded-full blur-3xl -z-0 pointer-events-none" />
-      <div className="absolute bottom-0 left-10 w-72 h-72 bg-rose-400/10 rounded-full blur-3xl -z-0 pointer-events-none" />
-
-      {/* Main Sliding Viewport */}
-      <div className="relative z-10 w-full overflow-hidden">
+      {/* Slides wrapper */}
+      <div className="overflow-hidden relative w-full">
         <div 
           className="flex transition-transform duration-700 ease-in-out"
           style={{ transform: `translateX(-${currentSlide * 100}%)` }}
@@ -93,46 +87,46 @@ export default function HeroBanner() {
                 <div className="grid grid-cols-1 lg:grid-cols-12 items-center gap-8 lg:gap-12">
                   
                   {/* Left Text Column */}
-                  <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
+                  <div className="lg:col-span-7 space-y-4 sm:space-y-6 text-center lg:text-left">
                     
                     {/* Brand Logo inside slide */}
-                    <div className="flex justify-center lg:justify-start items-center space-x-2 mb-4">
+                    <div className="flex justify-center lg:justify-start items-center space-x-2 mb-2 sm:mb-4">
                       <img 
                         src="/logo.png" 
                         alt="Apna Bazarr Logo" 
-                        className="h-10 sm:h-12 w-auto object-contain"
+                        className="h-8 sm:h-12 w-auto object-contain"
                       />
                     </div>
 
                     {/* Script Subtitle */}
-                    <div className="inline-flex items-center space-x-2 bg-rose-950/5 border border-rose-950/10 px-4 py-1.5 rounded-full">
-                      <Sparkles className="w-4 h-4 text-rose-700" />
-                      <span className="font-script text-3xl sm:text-4xl md:text-5xl text-rose-800 font-bold tracking-wide">
+                    <div className="inline-flex items-center space-x-2 bg-rose-950/5 border border-rose-950/10 px-3 py-1 sm:px-4 sm:py-1.5 rounded-full">
+                      <Sparkles className="w-3.5 h-3.5 text-rose-700" />
+                      <span className="font-script text-xl sm:text-4xl md:text-5xl text-rose-800 font-bold tracking-wide">
                         {slide.subtitleScript}
                       </span>
                     </div>
 
                     {/* Headline */}
-                    <h1 className="text-3xl sm:text-5xl lg:text-[54px] font-black text-[#0a2540] tracking-tight leading-none uppercase">
+                    <h1 className="text-2xl sm:text-5xl lg:text-[54px] font-black text-[#0a2540] tracking-tight leading-none uppercase">
                       {slide.title}
                     </h1>
 
                     {/* Discount Tagline */}
-                    <div className="inline-flex items-center space-x-2 bg-[#0a2540] text-white font-extrabold text-sm sm:text-lg px-4 py-2 rounded-xl shadow-md border border-[#1e3a5f]">
-                      <Gift className="w-4 h-4 text-orange-400 animate-bounce" />
+                    <div className="inline-flex items-center space-x-2 bg-[#0a2540] text-white font-extrabold text-xs sm:text-lg px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl shadow-md border border-[#1e3a5f]">
+                      <Gift className="w-3.5 h-3.5 text-orange-400 animate-bounce" />
                       <span>{slide.discount}</span>
                     </div>
 
                     {/* Tagline Paragraph */}
-                    <p className="text-slate-700 max-w-xl mx-auto lg:mx-0 text-sm sm:text-base font-semibold leading-relaxed">
+                    <p className="text-slate-700 max-w-xl mx-auto lg:mx-0 text-xs sm:text-base font-semibold leading-relaxed">
                       {slide.description}
                     </p>
 
                     {/* CTA Buttons */}
-                    <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-2">
+                    <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5 sm:gap-4 pt-2">
                       <a
                         href="#shop"
-                        className="px-8 py-3.5 bg-orange-600 hover:bg-orange-700 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center space-x-2 group"
+                        className="px-5 py-2.5 sm:px-8 sm:py-3.5 bg-orange-600 hover:bg-orange-700 text-white font-black text-[10px] sm:text-xs uppercase tracking-wider rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center space-x-2 group cursor-pointer"
                       >
                         <Gift className="w-4 h-4 mr-1 text-white" />
                         <span>{slide.ctaPrimary}</span>
@@ -141,7 +135,7 @@ export default function HeroBanner() {
 
                       <a
                         href="#featured"
-                        className="px-8 py-3.5 bg-white border-2 border-slate-300 hover:border-slate-800 text-slate-800 hover:text-slate-900 font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-xs hover:shadow-md transition-all flex items-center space-x-2"
+                        className="px-5 py-2.5 sm:px-8 sm:py-3.5 bg-white border-2 border-slate-300 hover:border-slate-800 text-slate-800 hover:text-slate-900 font-extrabold text-[10px] sm:text-xs uppercase tracking-wider rounded-xl shadow-xs hover:shadow-md transition-all flex items-center space-x-2 cursor-pointer"
                       >
                         <span>{slide.ctaSecondary}</span>
                         <ArrowRight className="w-4 h-4" />
@@ -149,13 +143,13 @@ export default function HeroBanner() {
                     </div>
 
                     {/* Integrated Service Badges */}
-                    <div className="flex flex-wrap items-center justify-center lg:justify-start gap-x-6 gap-y-3 pt-6 border-t border-amber-300/40 mt-8">
+                    <div className="flex flex-wrap items-center justify-center lg:justify-start gap-x-4 sm:gap-x-6 gap-y-2 pt-4 sm:pt-6 border-t border-amber-300/40 mt-6 sm:mt-8">
                       {features.map((feat, fidx) => {
                         const Icon = feat.icon;
                         return (
-                          <div key={fidx} className="flex items-center space-x-2 text-slate-800">
-                            <Icon className="w-4 h-4 text-[#0a2540] shrink-0" />
-                            <span className="text-xs sm:text-[13px] font-bold tracking-tight">{feat.text}</span>
+                          <div key={fidx} className="flex items-center space-x-1.5 text-slate-800">
+                            <Icon className="w-3.5 h-3.5 text-[#0a2540] shrink-0" />
+                            <span className="text-[10px] sm:text-[13px] font-bold tracking-tight">{feat.text}</span>
                           </div>
                         );
                       })}
@@ -164,29 +158,29 @@ export default function HeroBanner() {
                   </div>
 
                   {/* Right Image Frame Column */}
-                  <div className="lg:col-span-5 flex justify-center relative py-6">
-                    <div className="relative w-full max-w-md lg:max-w-none">
+                  <div className="lg:col-span-5 flex justify-center relative py-4 sm:py-6">
+                    <div className="relative w-full max-w-[280px] sm:max-w-md lg:max-w-none">
                       
                       {/* Double border contour wrapper */}
-                      <div className="absolute -inset-3 sm:-inset-4 rounded-tl-[80px] rounded-br-[80px] rounded-tr-[28px] rounded-bl-[28px] border-2 border-amber-400/80 -z-10 pointer-events-none" />
+                      <div className="absolute -inset-2.5 sm:-inset-4 rounded-tl-[64px] sm:rounded-tl-[80px] rounded-br-[64px] sm:rounded-br-[80px] rounded-tr-[20px] sm:rounded-tr-[28px] rounded-bl-[20px] sm:rounded-bl-[28px] border-2 border-amber-400/80 -z-10 pointer-events-none" />
 
                       {/* Image frame */}
-                      <div className="overflow-hidden rounded-tl-[76px] rounded-br-[76px] rounded-tr-[24px] rounded-bl-[24px] border-4 border-white bg-white shadow-2xl relative z-10">
+                      <div className="overflow-hidden rounded-tl-[60px] sm:rounded-tl-[76px] rounded-br-[60px] sm:rounded-br-[76px] rounded-tr-[16px] sm:rounded-tr-[24px] rounded-bl-[16px] sm:rounded-bl-[24px] border-4 border-white bg-white shadow-2xl relative z-10">
                         <img
                           src={slide.image}
                           onError={(e) => {
                             e.target.src = slide.fallbackImage;
                           }}
                           alt={slide.title}
-                          className="w-full h-[320px] sm:h-[420px] lg:h-[460px] object-cover object-center transform hover:scale-105 transition-transform duration-700"
+                          className="w-full h-[220px] sm:h-[420px] lg:h-[460px] object-cover object-center transform hover:scale-105 transition-transform duration-700"
                         />
                       </div>
 
                       {/* Blue Circular Gift Badge */}
-                      <div className="absolute -top-4 -right-4 bg-[#0a2540] text-white rounded-full p-3 w-24 h-24 sm:w-28 sm:h-28 flex flex-col items-center justify-center text-center shadow-2xl border-2 border-dashed border-white/70 z-20">
-                        <Gift className="w-5 h-5 mb-0.5 text-orange-400" />
-                        <span className="text-[9px] font-black uppercase tracking-wider text-orange-300">Free</span>
-                        <span className="text-[10px] sm:text-[11px] font-extrabold leading-tight">Roli-Chawal & Sweets Kit</span>
+                      <div className="absolute -top-3 -right-3 sm:-top-4 sm:-right-4 bg-[#0a2540] text-white rounded-full p-2 sm:p-3 w-20 h-20 sm:w-28 sm:h-28 flex flex-col items-center justify-center text-center shadow-2xl border-2 border-dashed border-white/70 z-20">
+                        <Gift className="w-4 h-4 sm:w-5 sm:h-5 mb-0.5 text-orange-400" />
+                        <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-wider text-orange-300">Free</span>
+                        <span className="text-[9px] sm:text-[11px] font-extrabold leading-tight">Roli-Chawal & Sweets Kit</span>
                       </div>
 
                       {/* Sweets Thali Overlay */}
@@ -194,7 +188,7 @@ export default function HeroBanner() {
                         <img
                           src="/images/sweets-thali.jpg"
                           alt="Sweets Thali"
-                          className="absolute -bottom-10 -left-12 w-48 h-48 sm:w-56 sm:h-56 object-contain z-20 select-none pointer-events-none mix-blend-multiply"
+                          className="absolute -bottom-6 -left-6 sm:-bottom-10 sm:-left-12 w-28 h-28 sm:w-56 sm:h-56 object-contain z-20 select-none pointer-events-none mix-blend-multiply"
                         />
                       )}
 
@@ -203,7 +197,7 @@ export default function HeroBanner() {
                         <img
                           src="/images/blue-gift-box.jpg"
                           alt="Gift Box"
-                          className="absolute -bottom-8 -right-10 w-32 h-32 sm:w-36 sm:h-36 object-contain z-20 select-none pointer-events-none mix-blend-multiply"
+                          className="absolute -bottom-4 -right-4 sm:-bottom-8 sm:-right-10 w-20 h-20 sm:w-36 sm:h-36 object-contain z-20 select-none pointer-events-none mix-blend-multiply"
                         />
                       )}
 
