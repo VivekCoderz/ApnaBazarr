@@ -18,10 +18,12 @@ export default function Header({
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [showMobileSearchDropdown, setShowMobileSearchDropdown] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [hideHeaderTop, setHideHeaderTop] = useState(false);
 
   const profileRef = useRef(null);
   const searchRef = useRef(null);
   const mobileSearchRef = useRef(null);
+  const lastScrollY = useRef(0);
 
   // Close popups on outside click
   useEffect(() => {
@@ -38,6 +40,25 @@ export default function Header({
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Listen to window scroll to collapse top navbar row on mobile
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.innerWidth >= 768) {
+        setHideHeaderTop(false);
+        return;
+      }
+      const currentScrollY = window.scrollY;
+      if (currentScrollY > 70 && currentScrollY > lastScrollY.current) {
+        setHideHeaderTop(true);
+      } else if (currentScrollY < lastScrollY.current) {
+        setHideHeaderTop(false);
+      }
+      lastScrollY.current = currentScrollY;
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const searchResults = searchQuery.trim() === ''
@@ -75,7 +96,7 @@ export default function Header({
   return (
     <header className="bg-white sticky top-0 z-40 shadow-xs border-b border-slate-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20 gap-4">
+        <div className={`flex items-center justify-between gap-4 transition-all duration-300 overflow-hidden ${hideHeaderTop ? 'h-0 opacity-0 pointer-events-none' : 'h-20 opacity-100'}`}>
           
           {/* LEFT: Logo & Mobile Hamburger */}
           <div className="flex items-center space-x-3 shrink-0">
@@ -293,7 +314,7 @@ export default function Header({
         </div>
 
         {/* Mobile Search Bar Row (Visible on mobile only) */}
-        <div className="pb-3.5 block md:hidden" ref={mobileSearchRef}>
+        <div className={`pb-3.5 block md:hidden transition-all duration-300 ${hideHeaderTop ? 'pt-3.5' : 'pt-0'}`} ref={mobileSearchRef}>
           <form onSubmit={handleSearchSubmit} className="relative">
             <input
               type="text"
