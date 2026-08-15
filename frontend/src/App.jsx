@@ -24,7 +24,7 @@ import AdminLoginPage from './pages/AdminLoginPage';
 import WishlistPage from './pages/WishlistPage';
 import PolicyPage from './pages/PolicyPage';
 
-import { Check } from 'lucide-react';
+import { Check, ShieldCheck } from 'lucide-react';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const getToken = () => localStorage.getItem('apna_token');
@@ -33,6 +33,7 @@ const clearToken = () => localStorage.removeItem('apna_token');
 function AppContent() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const isAdminRoute = pathname.startsWith('/admin');
 
   const [products, setProducts] = useState([]);
   const [productsLoading, setProductsLoading] = useState(true);
@@ -541,26 +542,28 @@ function AppContent() {
       )}
 
       {/* Top Ribbon */}
-      <TopBar />
+      {!isAdminRoute && <TopBar />}
 
       {/* Header */}
-      <Header
-        cartCount={totalCartCount}
-        wishlistCount={wishlistItems.length}
-        products={products}
-        currentUser={currentUser}
-        onOpenCart={() => {
-          if (!currentUser) setIsAuthOpen(true);
-          else navigate('/cart');
-        }}
-        onOpenWishlist={() => {
-          if (!currentUser) setIsAuthOpen(true);
-          else navigate('/wishlist');
-        }}
-        onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
-        onOpenAuth={() => setIsAuthOpen(true)}
-        onLogout={handleLogout}
-      />
+      {!isAdminRoute && (
+        <Header
+          cartCount={totalCartCount}
+          wishlistCount={wishlistItems.length}
+          products={products}
+          currentUser={currentUser}
+          onOpenCart={() => {
+            if (!currentUser) setIsAuthOpen(true);
+            else navigate('/cart');
+          }}
+          onOpenWishlist={() => {
+            if (!currentUser) setIsAuthOpen(true);
+            else navigate('/wishlist');
+          }}
+          onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
+          onOpenAuth={() => setIsAuthOpen(true)}
+          onLogout={handleLogout}
+        />
+      )}
 
       {/* Multi-Page Routes */}
       <main className="flex-1">
@@ -704,7 +707,7 @@ function AppContent() {
       </main>
 
       {/* Footer */}
-      <Footer />
+      {!isAdminRoute && <Footer />}
 
       {/* Global Modals & Drawers */}
       <MobileDrawer
@@ -736,6 +739,18 @@ function AppContent() {
         onClose={() => setIsAuthOpen(false)}
         onAuthSuccess={handleAuthSuccess}
       />
+
+      {/* Persistent Floating Switch to Admin Panel Button (Visible to admin on store pages) */}
+      {!isAdminRoute && isAdminAuthenticated && (
+        <button
+          onClick={() => navigate('/admin')}
+          className="fixed bottom-6 left-6 z-50 bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-black text-xs px-4.5 py-3.5 rounded-full shadow-2xl flex items-center space-x-2 border-2 border-slate-950 transition-all hover:shadow-amber-500/20 active:shadow-none"
+          title="Switch to Admin Dashboard"
+        >
+          <ShieldCheck className="w-4 h-4 stroke-[2.5]" />
+          <span>Switch to Admin Panel</span>
+        </button>
+      )}
 
     </div>
   );

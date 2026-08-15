@@ -200,23 +200,23 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
       <div className="w-full flex-1 bg-white flex flex-col">
         
         {/* Header Ribbon */}
-        <div className="p-4 sm:p-6 bg-slate-950 text-white flex items-center justify-between border-b border-slate-800 shrink-0">
-          <div className="flex items-center space-x-3">
-            <div className="p-2.5 bg-amber-500 text-slate-950 rounded-2xl">
-              <ShieldCheck className="w-6 h-6 stroke-[2.5]" />
+        <div className="p-4 sm:p-6 bg-slate-950 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 shrink-0">
+          <div className="flex items-start sm:items-center space-x-3">
+            <div className="p-2 bg-amber-500 text-slate-950 rounded-xl sm:rounded-2xl shrink-0 mt-1 sm:mt-0">
+              <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]" />
             </div>
             <div>
-              <div className="flex items-center space-x-2">
-                <h2 className="font-black text-lg sm:text-xl tracking-tight text-white">Single-Seller Admin Panel & Business Hub</h2>
-                <span className="bg-amber-500 text-slate-950 font-black text-[10px] px-2.5 py-0.5 rounded-full uppercase">OWNER PORTAL</span>
+              <div className="flex flex-wrap items-center gap-1.5">
+                <h2 className="font-black text-sm sm:text-lg tracking-tight text-white">Single-Seller Admin Panel & Business Hub</h2>
+                <span className="bg-amber-500 text-slate-950 font-black text-[8px] sm:text-[10px] px-2 py-0.5 rounded-full uppercase shrink-0">OWNER PORTAL</span>
               </div>
-              <p className="text-xs text-slate-400">Manage Products, Track Purchase vs Selling Prices (Kharida vs Becha), Net Profit & Customer Feedbacks</p>
+              <p className="text-[10px] sm:text-xs text-slate-400 mt-0.5">Manage Products, Track Purchase vs Selling Prices (Kharida vs Becha), Net Profit & Customer Feedbacks</p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-colors flex items-center space-x-1.5"
+            className="w-full sm:w-auto justify-center px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-colors flex items-center space-x-1.5 shrink-0"
           >
             <X className="w-4 h-4" />
             <span>Exit Dashboard</span>
@@ -226,40 +226,40 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
         {/* Analytics Top Metric Cards */}
         <div className="bg-slate-900 text-white px-4 sm:px-8 py-5 border-b border-slate-800 grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4 shrink-0">
           
-          <div className="bg-slate-800/90 p-4 rounded-2xl border border-slate-700">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Total Revenue (Becha)</span>
-            <div className="text-xl sm:text-2xl font-extrabold text-white mt-1">₹{totalRevenue.toFixed(2)}</div>
-            <span className="text-[10px] text-slate-400">{orders.length} total order(s)</span>
+          <div className="bg-slate-800/90 p-3 sm:p-4 rounded-2xl border border-slate-700">
+            <span className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Total Revenue (Becha)</span>
+            <div className="text-base sm:text-xl md:text-2xl font-extrabold text-white mt-1">₹{totalRevenue.toFixed(2)}</div>
+            <span className="text-[9px] sm:text-[10px] text-slate-400">{orders.length} total order(s)</span>
           </div>
 
-          <div className="bg-slate-800/90 p-4 rounded-2xl border border-slate-700">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Total Cost (Kharida)</span>
-            <div className="text-xl sm:text-2xl font-extrabold text-amber-300 mt-1">₹{totalCost.toFixed(2)}</div>
-            <span className="text-[10px] text-slate-400">Purchase cost</span>
+          <div className="bg-slate-800/90 p-3 sm:p-4 rounded-2xl border border-slate-700">
+            <span className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Total Cost (Kharida)</span>
+            <div className="text-base sm:text-xl md:text-2xl font-extrabold text-amber-300 mt-1">₹{totalCost.toFixed(2)}</div>
+            <span className="text-[9px] sm:text-[10px] text-slate-400">Purchase cost</span>
           </div>
 
-          <div className="bg-emerald-950/90 p-4 rounded-2xl border border-emerald-700/60">
-            <span className="text-[11px] font-bold text-emerald-300 uppercase tracking-wider block">Net Profit (Munafa)</span>
-            <div className="text-xl sm:text-2xl font-black text-emerald-400 mt-1">₹{netProfit.toFixed(2)}</div>
-            <span className="text-[10px] text-emerald-300 font-bold">{marginPercent}% profit margin</span>
+          <div className="bg-emerald-950/90 p-3 sm:p-4 rounded-2xl border border-emerald-700/60">
+            <span className="text-[10px] sm:text-[11px] font-bold text-emerald-300 uppercase tracking-wider block">Net Profit (Munafa)</span>
+            <div className="text-base sm:text-xl md:text-2xl font-black text-emerald-400 mt-1">₹{netProfit.toFixed(2)}</div>
+            <span className="text-[9px] sm:text-[10px] text-emerald-300 font-bold">{marginPercent}% margin</span>
           </div>
 
-          <div className="bg-slate-800/90 p-4 rounded-2xl border border-slate-700">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Total Products</span>
-            <div className="text-xl sm:text-2xl font-extrabold text-white mt-1">{products.length} Items</div>
-            <span className="text-[10px] text-slate-400">Active catalog</span>
+          <div className="bg-slate-800/90 p-3 sm:p-4 rounded-2xl border border-slate-700">
+            <span className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Total Products</span>
+            <div className="text-base sm:text-xl md:text-2xl font-extrabold text-white mt-1">{products.length} Items</div>
+            <span className="text-[9px] sm:text-[10px] text-slate-400">Active catalog</span>
           </div>
 
-          <div className="bg-slate-800/90 p-4 rounded-2xl border border-slate-700 col-span-2 md:col-span-1">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Feedbacks & Reviews</span>
-            <div className="text-xl sm:text-2xl font-extrabold text-amber-400 mt-1">{feedbacks.length + allReviews.length}</div>
-            <span className="text-[10px] text-slate-400">{feedbacks.length} feedback · {allReviews.length} reviews</span>
+          <div className="bg-slate-800/90 p-3 sm:p-4 rounded-2xl border border-slate-700 col-span-2 md:col-span-1">
+            <span className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Feedbacks & Reviews</span>
+            <div className="text-base sm:text-xl md:text-2xl font-extrabold text-amber-400 mt-1">{feedbacks.length + allReviews.length}</div>
+            <span className="text-[9px] sm:text-[10px] text-slate-400">{feedbacks.length} feedback · {allReviews.length} reviews</span>
           </div>
 
         </div>
 
         {/* Horizontal Navigation Tabs */}
-        <div className="bg-slate-100 px-4 sm:px-8 flex space-x-6 border-b border-slate-200 text-xs font-bold shrink-0 overflow-x-auto">
+        <div className="bg-slate-100 px-4 sm:px-6 flex space-x-4 sm:space-x-6 border-b border-slate-200 text-xs font-bold shrink-0 overflow-x-auto whitespace-nowrap scrollbar-none">
           <button
             onClick={() => setActiveTab('overview')}
             className={`py-3.5 transition-colors border-b-2 flex items-center space-x-1.5 ${activeTab === 'overview' ? 'border-[#0066cc] text-[#0066cc]' : 'border-transparent text-slate-600 hover:text-slate-900'}`}
@@ -328,7 +328,8 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
               {/* Products Margin Analysis Table */}
               <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
                 <h4 className="font-extrabold text-base text-slate-900">Live Margin Analysis Per Product</h4>
-                <div className="overflow-x-auto rounded-xl border border-slate-200">
+                {/* Desktop Margin Table (Visible on md and larger) */}
+                <div className="hidden md:block overflow-x-auto rounded-xl border border-slate-200">
                   <table className="w-full text-left text-xs">
                     <thead className="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
                       <tr>
@@ -348,7 +349,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                         return (
                           <tr key={item.id} className="hover:bg-slate-50">
                             <td className="p-3 font-bold text-slate-800 flex items-center space-x-2">
-                              <img src={item.image} alt={item.name} className="w-9 h-9 rounded object-cover" />
+                              <img src={item.image} alt={item.name} className="w-9 h-9 rounded object-cover shrink-0" />
                               <span className="truncate max-w-xs">{item.name}</span>
                             </td>
                             <td className="p-3 text-slate-500">{item.category}</td>
@@ -361,6 +362,45 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                       })}
                     </tbody>
                   </table>
+                </div>
+
+                {/* Mobile Margin Cards (Visible on mobile only) */}
+                <div className="block md:hidden space-y-3">
+                  {products.map((item) => {
+                    const cost = item.costPrice || (item.price * 0.6);
+                    const profit = item.price - cost;
+                    const margin = ((profit / item.price) * 100).toFixed(1);
+                    return (
+                      <div key={item.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-200/60 space-y-2.5">
+                        <div className="flex items-center space-x-3">
+                          <img src={item.image} alt={item.name} className="w-10 h-10 rounded-lg object-cover border bg-white shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <h5 className="text-xs font-bold text-slate-800 truncate">{item.name}</h5>
+                            <span className="text-[10px] text-slate-400 font-bold block mt-0.5">{item.category}</span>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-4 gap-2 text-[10px] border-t border-slate-205/50 pt-2">
+                          <div>
+                            <span className="text-slate-400 block font-bold">Kharida</span>
+                            <span className="font-extrabold text-amber-800">₹{cost.toFixed(2)}</span>
+                          </div>
+                          <div>
+                            <span className="text-slate-400 block font-bold">Becha</span>
+                            <span className="font-extrabold text-[#0066cc]">₹{item.price.toFixed(2)}</span>
+                          </div>
+                          <div>
+                            <span className="text-slate-400 block font-bold">Profit</span>
+                            <span className="font-extrabold text-emerald-600">+₹{profit.toFixed(2)}</span>
+                          </div>
+                          <div>
+                            <span className="text-slate-400 block font-bold">Margin</span>
+                            <span className="font-black text-slate-700">{margin}%</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -667,7 +707,8 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                 </button>
               </div>
 
-              <div className="overflow-x-auto rounded-xl border border-slate-200">
+              {/* Desktop Inventory Table (Visible on md and larger) */}
+              <div className="hidden md:block overflow-x-auto rounded-xl border border-slate-200">
                 <table className="w-full text-left text-xs">
                   <thead className="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
                     <tr>
@@ -687,7 +728,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                       return (
                         <tr key={p.id} className="hover:bg-slate-50">
                           <td className="p-3 font-bold text-slate-800 flex items-center space-x-2">
-                            <img src={p.image} alt={p.name} className="w-9 h-9 rounded-lg object-cover bg-slate-100" />
+                            <img src={p.image} alt={p.name} className="w-9 h-9 rounded-lg object-cover bg-slate-100 shrink-0" />
                             <span className="line-clamp-1 max-w-xs">{p.name}</span>
                           </td>
                           <td className="p-3 text-slate-500">{p.category}</td>
@@ -724,6 +765,64 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                     })}
                   </tbody>
                 </table>
+              </div>
+
+              {/* Mobile Inventory Cards (Visible on mobile only) */}
+              <div className="block md:hidden space-y-3">
+                {products.map((p) => {
+                  const cost = p.costPrice || (p.price * 0.6);
+                  const profit = p.price - cost;
+                  return (
+                    <div key={p.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-205/60 space-y-3">
+                      <div className="flex items-start space-x-3">
+                        <img src={p.image} alt={p.name} className="w-12 h-12 rounded-xl object-cover border bg-white shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <h5 className="text-xs font-bold text-slate-800 line-clamp-2">{p.name}</h5>
+                          <span className="text-[10px] text-slate-400 font-bold block mt-0.5">{p.category}</span>
+                        </div>
+                        <button
+                          onClick={() => onDeleteProduct(p.id)}
+                          className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors shrink-0"
+                          title="Delete Product"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-2 text-[10px] border-t border-slate-200/50 pt-2.5">
+                        <div>
+                          <span className="text-slate-400 block font-bold">Kharida (Cost)</span>
+                          <span className="font-extrabold text-amber-800">₹{cost.toFixed(2)}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 block font-bold">Becha (Sell)</span>
+                          <span className="font-extrabold text-[#0066cc]">₹{p.price.toFixed(2)}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 block font-bold">Profit</span>
+                          <span className="font-extrabold text-emerald-600">+₹{profit.toFixed(2)}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-200/50">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-[10px] font-bold text-slate-650">{p.stock || 50} in stock</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => onToggleStock(p.id)}
+                          className={`px-3 py-1 rounded-lg text-[10px] font-extrabold transition-colors ${
+                            p.inStock !== false
+                              ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
+                              : 'bg-red-100 text-red-800 hover:bg-red-200'
+                          }`}
+                        >
+                          {p.inStock !== false ? '● In Stock' : '○ Out of Stock'}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
