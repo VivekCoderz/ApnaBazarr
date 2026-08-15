@@ -544,13 +544,13 @@ function AppContent() {
       {/* Top Ribbon */}
       {!isAdminRoute && <TopBar />}
 
-      {/* Header */}
       {!isAdminRoute && (
         <Header
           cartCount={totalCartCount}
           wishlistCount={wishlistItems.length}
           products={products}
           currentUser={currentUser}
+          isAdminAuthenticated={isAdminAuthenticated}
           onOpenCart={() => {
             if (!currentUser) setIsAuthOpen(true);
             else navigate('/cart');

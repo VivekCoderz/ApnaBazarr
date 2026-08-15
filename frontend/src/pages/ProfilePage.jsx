@@ -13,8 +13,8 @@ export default function ProfilePage({ currentUser }) {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         
         {/* Profile Card Header */}
-        <div className="bg-slate-900 text-white p-6 sm:p-8 rounded-3xl flex items-center space-x-4 shadow-md">
-          <div className="w-16 h-16 rounded-full bg-[#0066cc] text-white flex items-center justify-center font-black text-2xl shadow-inner">
+        <div className="bg-slate-900 text-white p-6 sm:p-8 rounded-3xl flex flex-col sm:flex-row items-center text-center sm:text-left gap-4 shadow-md">
+          <div className="w-16 h-16 rounded-full bg-[#0066cc] text-white flex items-center justify-center font-black text-2xl shadow-inner shrink-0">
             {user.name.charAt(0)}
           </div>
           <div>

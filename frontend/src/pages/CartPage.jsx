@@ -44,60 +44,67 @@ export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem }) 
             {/* Cart Items List */}
             <div className="lg:col-span-2 space-y-4">
               {cartItems.map((item) => (
-                <div key={`${item.id}-${item.customText || ''}-${item.customImage || ''}`} className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center space-x-4">
-                  <img src={item.image} alt={item.name} className="w-20 h-20 object-cover rounded-xl bg-slate-50 border border-slate-100" />
-                  <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-bold text-slate-900 line-clamp-1">{item.name}</h4>
-                    <p className="text-xs text-slate-400 mt-0.5">{item.category} • {item.gender}</p>
-
-                    {(item.customText || item.customImage) && (
-                      <div className="mt-2 p-2.5 bg-amber-50/70 border border-amber-200/60 rounded-xl space-y-1 text-[10px] text-amber-900 font-semibold max-w-md">
-                        <span className="font-extrabold uppercase text-[9px] text-amber-700 block tracking-wider">Customization Details</span>
-                        {item.customText && (
-                          <div>
-                            <span className="text-slate-500 font-bold">Text: </span>
-                            <span className="text-slate-800 font-extrabold">"{item.customText}"</span>
-                          </div>
-                        )}
-                        {item.customImage && (
-                          <div className="flex items-center space-x-1.5 pt-0.5">
-                            <span className="text-slate-500 font-bold">Photo: </span>
-                            <img src={item.customImage} alt="Custom Preview" className="w-6 h-6 object-cover rounded border" />
-                            <a href={item.customImage} target="_blank" rel="noreferrer" className="text-[#0066cc] underline text-[9px]">View Original</a>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    <div className="flex items-center justify-between pt-3">
-                      {/* Quantity Modifier */}
-                      <div className="flex items-center border border-slate-200 rounded-lg bg-slate-50">
-                        <button
-                          onClick={() => onUpdateQuantity(item.id, item.quantity - 1, item.customText, item.customImage)}
-                          className="p-1.5 text-slate-600 hover:bg-slate-200 rounded-l-lg cursor-pointer"
-                        >
-                          <Minus className="w-3 h-3" />
-                        </button>
-                        <span className="px-3 text-xs font-extrabold text-slate-900">{item.quantity}</span>
-                        <button
-                          onClick={() => onUpdateQuantity(item.id, item.quantity + 1, item.customText, item.customImage)}
-                          className="p-1.5 text-slate-600 hover:bg-slate-200 rounded-r-lg cursor-pointer"
-                        >
-                          <Plus className="w-3 h-3" />
-                        </button>
-                      </div>
-
-                      <span className="text-base font-extrabold text-slate-900">₹{(item.price * item.quantity).toFixed(2)}</span>
+                <div key={`${item.id}-${item.customText || ''}-${item.customImage || ''}`} className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col space-y-3">
+                  
+                  {/* Top Row: Image, Info & Delete Button */}
+                  <div className="flex items-start space-x-3 w-full">
+                    <img src={item.image} alt={item.name} className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-xl bg-slate-50 border border-slate-100 shrink-0" />
+                    
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-xs sm:text-sm font-bold text-slate-900 line-clamp-2 leading-snug">{item.name}</h4>
+                      <p className="text-[10px] sm:text-xs text-slate-400 mt-0.5">{item.category} • {item.gender}</p>
                     </div>
+
+                    <button
+                      onClick={() => onRemoveItem(item.id, item.customText, item.customImage)}
+                      className="p-1.5 text-slate-400 hover:text-red-600 transition-colors cursor-pointer shrink-0"
+                      title="Remove item"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
 
-                  <button
-                    onClick={() => onRemoveItem(item.id, item.customText, item.customImage)}
-                    className="p-2 text-slate-400 hover:text-red-600 transition-colors cursor-pointer"
-                    title="Remove item"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  {/* Customization Details */}
+                  {(item.customText || item.customImage) && (
+                    <div className="p-2.5 bg-amber-50/70 border border-amber-200/60 rounded-xl space-y-1 text-[10px] text-amber-900 font-semibold w-full">
+                      <span className="font-extrabold uppercase text-[9px] text-amber-700 block tracking-wider">Customization Details</span>
+                      {item.customText && (
+                        <div>
+                          <span className="text-slate-500 font-bold">Text: </span>
+                          <span className="text-slate-800 font-extrabold">"{item.customText}"</span>
+                        </div>
+                      )}
+                      {item.customImage && (
+                        <div className="flex items-center space-x-1.5 pt-0.5">
+                          <span className="text-slate-500 font-bold">Photo: </span>
+                          <img src={item.customImage} alt="Custom Preview" className="w-6 h-6 object-cover rounded border" />
+                          <a href={item.customImage} target="_blank" rel="noreferrer" className="text-[#0066cc] underline text-[9px]">View Original</a>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Bottom Row: Quantity Controls & Subtotal */}
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-100 w-full">
+                    <div className="flex items-center border border-slate-200 rounded-lg bg-slate-50">
+                      <button
+                        onClick={() => onUpdateQuantity(item.id, item.quantity - 1, item.customText, item.customImage)}
+                        className="p-1.5 text-slate-600 hover:bg-slate-200 rounded-l-lg cursor-pointer"
+                      >
+                        <Minus className="w-3 h-3" />
+                      </button>
+                      <span className="px-3 text-xs font-extrabold text-slate-900">{item.quantity}</span>
+                      <button
+                        onClick={() => onUpdateQuantity(item.id, item.quantity + 1, item.customText, item.customImage)}
+                        className="p-1.5 text-slate-600 hover:bg-slate-200 rounded-r-lg cursor-pointer"
+                      >
+                        <Plus className="w-3 h-3" />
+                      </button>
+                    </div>
+
+                    <span className="text-sm sm:text-base font-extrabold text-slate-900">₹{(item.price * item.quantity).toFixed(2)}</span>
+                  </div>
+
                 </div>
               ))}
             </div>

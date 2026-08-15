@@ -177,27 +177,27 @@ export default function HeroBanner() {
                       </div>
 
                       {/* Blue Circular Gift Badge */}
-                      <div className="absolute -top-3 -right-3 sm:-top-4 sm:-right-4 bg-[#0a2540] text-white rounded-full p-2 sm:p-3 w-20 h-20 sm:w-28 sm:h-28 flex flex-col items-center justify-center text-center shadow-2xl border-2 border-dashed border-white/70 z-20">
-                        <Gift className="w-4 h-4 sm:w-5 sm:h-5 mb-0.5 text-orange-400" />
-                        <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-wider text-orange-300">Free</span>
-                        <span className="text-[9px] sm:text-[11px] font-extrabold leading-tight">Roli-Chawal & Sweets Kit</span>
+                      <div className="absolute -top-3 -right-3 sm:-top-4 sm:-right-4 bg-[#0a2540] text-white rounded-full p-1.5 sm:p-3 w-16 h-16 sm:w-28 sm:h-28 flex flex-col items-center justify-center text-center shadow-2xl border-2 border-dashed border-white/70 z-20">
+                        <Gift className="w-3.5 h-3.5 sm:w-5 sm:h-5 mb-0.5 text-orange-400" />
+                        <span className="text-[7px] sm:text-[9px] font-black uppercase tracking-wider text-orange-300">Free</span>
+                        <span className="text-[8px] sm:text-[11px] font-extrabold leading-tight">Roli-Chawal & Sweets Kit</span>
                       </div>
-
+ 
                       {/* Sweets Thali Overlay */}
                       {slide.showOverlays && (
                         <img
                           src="/images/sweets-thali.jpg"
                           alt="Sweets Thali"
-                          className="absolute -bottom-6 -left-6 sm:-bottom-10 sm:-left-12 w-28 h-28 sm:w-56 sm:h-56 object-contain z-20 select-none pointer-events-none mix-blend-multiply"
+                          className="absolute -bottom-6 -left-6 sm:-bottom-10 sm:-left-12 w-20 h-20 sm:w-56 sm:h-56 object-contain z-20 select-none pointer-events-none mix-blend-multiply"
                         />
                       )}
-
+ 
                       {/* Blue Gift Box Overlay */}
                       {slide.showOverlays && (
                         <img
                           src="/images/blue-gift-box.jpg"
                           alt="Gift Box"
-                          className="absolute -bottom-4 -right-4 sm:-bottom-8 sm:-right-10 w-20 h-20 sm:w-36 sm:h-36 object-contain z-20 select-none pointer-events-none mix-blend-multiply"
+                          className="absolute -bottom-4 -right-4 sm:-bottom-8 sm:-right-10 w-14 h-14 sm:w-36 sm:h-36 object-contain z-20 select-none pointer-events-none mix-blend-multiply"
                         />
                       )}
 

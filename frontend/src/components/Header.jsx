@@ -7,6 +7,7 @@ export default function Header({
   wishlistCount,
   products = [],
   currentUser,
+  isAdminAuthenticated,
   onOpenCart,
   onOpenWishlist,
   onOpenMobileMenu,
@@ -94,9 +95,9 @@ export default function Header({
   };
 
   return (
-    <header className="bg-white sticky top-0 z-40 shadow-xs border-b border-slate-100">
+    <header className={`bg-white sticky top-0 z-40 shadow-xs border-b border-slate-100 transition-transform duration-300 ease-in-out ${hideHeaderTop ? '-translate-y-20' : 'translate-y-0'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className={`flex items-center justify-between gap-4 transition-all duration-300 overflow-hidden ${hideHeaderTop ? 'h-0 opacity-0 pointer-events-none' : 'h-20 opacity-100'}`}>
+        <div className="flex items-center justify-between h-20 gap-4">
           
           {/* LEFT: Logo & Mobile Hamburger */}
           <div className="flex items-center space-x-3 shrink-0">
@@ -206,6 +207,18 @@ export default function Header({
                 </span>
               )}
             </button>
+
+            {/* Direct Admin Panel Switch button for Authenticated Admins */}
+            {isAdminAuthenticated && (
+              <Link
+                to="/admin"
+                className="p-2 sm:px-3.5 sm:py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs rounded-full sm:rounded-xl shadow-md transition-all flex items-center space-x-1.5 shrink-0 hover:scale-105 active:scale-95"
+                title="Go to Admin Panel"
+              >
+                <ShieldCheck className="w-4 h-4 text-slate-950" />
+                <span className="hidden sm:inline">Admin Panel</span>
+              </Link>
+            )}
 
             {/* CONDITIONAL AUTH / PROFILE AREA */}
             {!currentUser ? (

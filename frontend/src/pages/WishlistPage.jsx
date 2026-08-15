@@ -11,7 +11,7 @@ export default function WishlistPage({ wishlistItems, onAddToCart, onToggleWishl
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         
         {/* Header */}
-        <div className="flex items-center justify-between border-b pb-4">
+        <div className="flex flex-col sm:flex-row justify-between gap-3 items-start sm:items-center border-b pb-4">
           <div className="flex items-center space-x-2">
             <Heart className="w-6 h-6 text-red-500 fill-red-500" />
             <h1 className="text-2xl font-black text-slate-900 tracking-tight">My Wishlist</h1>

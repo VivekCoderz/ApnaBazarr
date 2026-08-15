@@ -247,12 +247,12 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         
         {/* Header */}
-        <div className="bg-slate-900 text-white p-6 rounded-2xl flex items-center justify-between shadow-md">
+        <div className="bg-slate-900 text-white p-6 rounded-2xl flex flex-col sm:flex-row justify-between gap-3 items-start sm:items-center shadow-md">
           <div className="flex items-center space-x-2">
             <ShieldCheck className="w-6 h-6 text-[#0066cc]" />
             <h1 className="text-xl font-extrabold">Secure Checkout (India)</h1>
           </div>
-          <span className="text-xs text-slate-400 font-bold">100% Encrypted Payment</span>
+          <span className="text-xs text-slate-400 font-bold shrink-0">100% Encrypted Payment</span>
         </div>
 
         {/* Form Container */}

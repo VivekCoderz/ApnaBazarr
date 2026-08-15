@@ -7,12 +7,12 @@ export default function OrdersPage({ orders }) {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         
         {/* Header */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs flex flex-col sm:flex-row justify-between gap-3 items-start sm:items-center">
           <div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">My Placed Orders</h1>
             <p className="text-xs text-slate-500 mt-1">Track active shipments and review past purchases</p>
           </div>
-          <span className="bg-[#0066cc] text-white text-xs px-3 py-1 rounded-full font-bold">
+          <span className="bg-[#0066cc] text-white text-xs px-3 py-1 rounded-full font-bold shrink-0">
             {orders.length} Total Order(s)
           </span>
         </div>

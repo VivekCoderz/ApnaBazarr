@@ -279,7 +279,7 @@ export default function ProductDetailPage({
               <img
                 src={imagesList[activeImageIndex]}
                 alt={product.name}
-                className="w-full h-[400px] sm:h-[500px] object-cover object-center"
+                className="w-full h-[300px] sm:h-[450px] md:h-[500px] object-cover object-center"
               />
               {product.discount && (
                 <span className="absolute top-4 left-4 bg-rose-700 text-white font-extrabold text-xs px-3 py-1 rounded-full shadow-md">
