@@ -73,6 +73,25 @@ router.post('/review-photo', uploadReviewPhoto.single('file'), (req, res) => {
 });
 
 /**
+ * POST /api/upload/custom-image
+ * Upload a user custom customization image to Cloudinary
+ */
+router.post('/custom-image', uploadReviewPhoto.single('file'), (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No customization image file provided' });
+    res.json({
+      success: true,
+      url: req.file.path,
+      publicId: req.file.filename,
+      folder: 'apna-bazarr/reviews',
+    });
+  } catch (err) {
+    console.error('Custom image upload error:', err);
+    res.status(500).json({ error: 'Custom image upload failed', details: err.message });
+  }
+});
+
+/**
  * POST /api/upload/feedback-photo
  * Upload a customer feedback photo to Cloudinary
  */

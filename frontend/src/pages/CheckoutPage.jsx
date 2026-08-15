@@ -150,6 +150,8 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
                     image: item.image,
                     price: item.price,
                     quantity: item.quantity,
+                    customText: item.customText || '',
+                    customImage: item.customImage || ''
                   })),
                   shippingAddress: { ...address },
                   totalAmount: total
@@ -210,6 +212,8 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
               image: item.image,
               price: item.price,
               quantity: item.quantity,
+              customText: item.customText || '',
+              customImage: item.customImage || ''
             })),
             shippingAddress: { ...address },
             paymentMethod: 'COD',

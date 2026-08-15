@@ -1,15 +1,25 @@
 import React from 'react';
 
-const CATEGORIES = [
-  { name: "Backpacks", image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=300&q=80", itemsCount: 10 },
-  { name: "Jackets", image: "https://images.unsplash.com/photo-1520975954732-35dd22299614?auto=format&fit=crop&w=300&q=80", itemsCount: 15 },
-  { name: "Footwear", image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=300&q=80", itemsCount: 20 },
-  { name: "Dresses & Tops", image: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=300&q=80", itemsCount: 12 },
-  { name: "Handbags & Bags", image: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=300&q=80", itemsCount: 8 },
-  { name: "Watches & Smartwear", image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=300&q=80", itemsCount: 14 }
-];
+export default function FeaturedCategories({ products = [], onSelectCategory }) {
+  // Dynamically extract unique categories, group product counts, and use the first product's image
+  const categoriesMap = products.reduce((acc, p) => {
+    if (!p.category) return acc;
+    const catName = p.category.trim();
+    if (!acc[catName]) {
+      acc[catName] = {
+        name: catName,
+        image: p.image || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=300&q=80",
+        itemsCount: 0
+      };
+    }
+    acc[catName].itemsCount += 1;
+    return acc;
+  }, {});
 
-export default function FeaturedCategories({ onSelectCategory }) {
+  const dynamicCategories = Object.values(categoriesMap);
+
+  if (dynamicCategories.length === 0) return null;
+
   return (
     <section id="categories" className="py-16 bg-slate-50 border-t border-slate-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -27,7 +37,7 @@ export default function FeaturedCategories({ onSelectCategory }) {
 
         {/* Category Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
-          {CATEGORIES.map((cat, idx) => (
+          {dynamicCategories.map((cat, idx) => (
             <div
               key={idx}
               onClick={() => onSelectCategory(cat.name)}
@@ -44,7 +54,7 @@ export default function FeaturedCategories({ onSelectCategory }) {
                 {cat.name}
               </h4>
               <span className="text-[11px] text-slate-400 font-semibold mt-0.5 block">
-                {cat.itemsCount} Products
+                {cat.itemsCount} {cat.itemsCount === 1 ? 'Product' : 'Products'}
               </span>
             </div>
           ))}

@@ -17,8 +17,7 @@ export default function AdminLoginPage({ onAdminLogin }) {
 
     setTimeout(() => {
       setLoading(false);
-      // Valid credentials check (admin@apnabazarr.com / admin123 or admin)
-      if ((email.toLowerCase() === 'admin@apnabazarr.com' || email.toLowerCase() === 'admin') && (password === 'admin123' || password === 'admin')) {
+      if (email.toLowerCase() === 'admin@apnabazarr.com' && password === 'admin@admin123') {
         const adminData = {
           email: 'admin@apnabazarr.com',
           role: 'admin',
@@ -28,7 +27,7 @@ export default function AdminLoginPage({ onAdminLogin }) {
         onAdminLogin(adminData);
         navigate('/admin');
       } else {
-        setErrorMsg('Invalid Admin Email or Password! (Default: admin@apnabazarr.com / admin123)');
+        setErrorMsg('Invalid Admin Email or Password!');
       }
     }, 600);
   };
@@ -99,12 +98,6 @@ export default function AdminLoginPage({ onAdminLogin }) {
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>
-
-          {/* Security Note */}
-          <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-[11px] text-slate-500 text-center space-y-1">
-            <p className="font-bold text-slate-700">🔒 Protected Seller Access</p>
-            <p>Default Credentials: <code className="bg-slate-200 px-1 py-0.5 rounded text-slate-800 font-bold">admin@apnabazarr.com</code> / <code className="bg-slate-200 px-1 py-0.5 rounded text-slate-800 font-bold">admin123</code></p>
-          </div>
         </div>
 
       </div>

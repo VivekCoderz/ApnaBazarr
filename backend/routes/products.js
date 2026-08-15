@@ -82,7 +82,10 @@ router.get('/', async (req, res) => {
       image: p.image,
       description: p.description,
       tags: p.tags,
-      inStock: p.inStock
+      inStock: p.inStock,
+      isCustomizable: p.isCustomizable,
+      customizationType: p.customizationType,
+      customizationPrompt: p.customizationPrompt
     }));
 
     res.json({ success: true, count: formatted.length, data: formatted });
@@ -114,7 +117,10 @@ router.get('/:id', async (req, res) => {
       image: product.image,
       description: product.description,
       tags: product.tags,
-      inStock: product.inStock
+      inStock: product.inStock,
+      isCustomizable: product.isCustomizable,
+      customizationType: product.customizationType,
+      customizationPrompt: product.customizationPrompt
     };
     res.json({ success: true, data: formatted });
   } catch (err) {
@@ -125,9 +131,10 @@ router.get('/:id', async (req, res) => {
 // POST /products - add new product to MongoDB
 router.post('/', async (req, res) => {
   try {
-    const { name, category, gender, price, originalPrice, costPrice, discount, badge, stock, image, description, tags } = req.body;
+    const { name, category, gender, price, originalPrice, costPrice, discount, badge, stock, image, description, tags, isCustomizable, customizationType, customizationPrompt } = req.body;
     const newProduct = await Product.create({
-      name, category, gender, price, originalPrice, costPrice, discount, badge, stock, image, description, tags, inStock: true
+      name, category, gender, price, originalPrice, costPrice, discount, badge, stock, image, description, tags, inStock: true,
+      isCustomizable, customizationType, customizationPrompt
     });
     const formatted = {
       id: newProduct._id,
@@ -145,7 +152,10 @@ router.post('/', async (req, res) => {
       image: newProduct.image,
       description: newProduct.description,
       tags: newProduct.tags,
-      inStock: newProduct.inStock
+      inStock: newProduct.inStock,
+      isCustomizable: newProduct.isCustomizable,
+      customizationType: newProduct.customizationType,
+      customizationPrompt: newProduct.customizationPrompt
     };
     res.status(201).json({ success: true, data: formatted });
   } catch (err) {
@@ -176,7 +186,10 @@ router.put('/:id', async (req, res) => {
       image: updated.image,
       description: updated.description,
       tags: updated.tags,
-      inStock: updated.inStock
+      inStock: updated.inStock,
+      isCustomizable: updated.isCustomizable,
+      customizationType: updated.customizationType,
+      customizationPrompt: updated.customizationPrompt
     };
     res.json({ success: true, data: formatted });
   } catch (err) {

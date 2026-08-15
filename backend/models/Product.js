@@ -15,7 +15,10 @@ const productSchema = new mongoose.Schema({
   costPrice: { type: Number },
   description: { type: String },
   tags: [{ type: String }],
-  inStock: { type: Boolean, default: true }
+  inStock: { type: Boolean, default: true },
+  isCustomizable: { type: Boolean, default: false },
+  customizationType: { type: String, enum: ['text', 'image', 'both', 'none'], default: 'none' },
+  customizationPrompt: { type: String, default: '' }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Product', productSchema);

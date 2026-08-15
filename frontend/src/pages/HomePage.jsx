@@ -53,7 +53,7 @@ export default function HomePage({
       <PromoBanners onSelectCategory={onSelectCategory} />
 
       {/* Featured Categories Carousel Showcase */}
-      <FeaturedCategories onSelectCategory={onSelectCategory} />
+      <FeaturedCategories products={products} onSelectCategory={onSelectCategory} />
 
       {/* Customer Feedback Form */}
       <section className="py-12 bg-slate-100">

@@ -76,6 +76,24 @@ export default function OrdersPage({ orders }) {
                       <div className="flex-1 min-w-0">
                         <h5 className="text-xs font-bold text-slate-800 truncate">{item.name}</h5>
                         <span className="text-[11px] text-slate-400">Qty: {item.quantity} × ₹{item.price}</span>
+
+                        {(item.customText || item.customImage) && (
+                          <div className="mt-1 p-1.5 bg-amber-50/70 border border-amber-200/50 rounded-lg text-[9px] text-amber-900 font-semibold space-y-0.5 max-w-[200px]">
+                            {item.customText && (
+                              <div>
+                                <span className="text-slate-500 font-bold">Text: </span>
+                                <span className="text-slate-800 font-extrabold">"{item.customText}"</span>
+                              </div>
+                            )}
+                            {item.customImage && (
+                              <div className="flex items-center space-x-1">
+                                <span className="text-slate-500 font-bold">Photo: </span>
+                                <img src={item.customImage} alt="Custom Preview" className="w-4 h-4 object-cover rounded border bg-white" />
+                                <a href={item.customImage} target="_blank" rel="noreferrer" className="text-[#0066cc] underline text-[8px]">View</a>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                       <span className="text-xs font-extrabold text-slate-900">₹{(item.price * item.quantity).toFixed(2)}</span>
                     </div>

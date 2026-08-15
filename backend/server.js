@@ -47,6 +47,15 @@ mongoose.connect(MONGODB_URI)
     console.warn("⚠️  MongoDB connection warning:", err.message);
   });
 
+// Global JSON Error Handler
+app.use((err, req, res, next) => {
+  console.error("❌ Unhandled API Error:", err);
+  res.status(err.status || 500).json({
+    success: false,
+    error: err.message || "Internal Server Error"
+  });
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Apna Bazarr Backend running`);

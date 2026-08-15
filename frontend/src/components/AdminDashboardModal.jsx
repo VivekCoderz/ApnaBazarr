@@ -8,9 +8,15 @@ async function uploadToCloudinary(file, endpoint) {
     method: 'POST',
     body: formData,
   });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.message || 'Upload failed');
-  return data.url;
+  const contentType = res.headers.get("content-type");
+  if (contentType && contentType.includes("application/json")) {
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || data.message || 'Upload failed');
+    return data.url;
+  } else {
+    const text = await res.text();
+    throw new Error(`Server returned non-JSON response (${res.status}): ${text.substring(0, 150)}`);
+  }
 }
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'https://apnabazarr-backend.onrender.com';
@@ -100,11 +106,15 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
     originalPrice: '', // M.R.P Price
     stock: 50,
     image: '',
-    description: ''
+    description: '',
+    isCustomizable: false,
+    customizationType: 'text',
+    customizationPrompt: ''
   });
 
   const [successToast, setSuccessToast] = useState('');
   const [imageUploading, setImageUploading] = useState(false);
+  const [isCustomCategory, setIsCustomCategory] = useState(false);
 
   // Revenue & Profit Calculations across all orders
   const totalRevenue = orders.reduce((sum, ord) => sum + ord.totalAmount, 0);
@@ -154,7 +164,10 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
       description: newProd.description || "High quality product from Apna Bazarr.",
       tags: ["New Arrival", "Best Selling"],
       inStock: true,
-      stock: parseInt(newProd.stock) || 50
+      stock: parseInt(newProd.stock) || 50,
+      isCustomizable: newProd.isCustomizable,
+      customizationType: newProd.isCustomizable ? newProd.customizationType : 'none',
+      customizationPrompt: newProd.isCustomizable ? newProd.customizationPrompt : ''
     };
 
     onAddProduct(createdItem);
@@ -168,7 +181,10 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
       originalPrice: '',
       stock: 50,
       image: '',
-      description: ''
+      description: '',
+      isCustomizable: false,
+      customizationType: 'text',
+      customizationPrompt: ''
     });
 
     setTimeout(() => {
@@ -377,20 +393,40 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Category *</label>
-                    <select
-                      value={newProd.category}
-                      onChange={(e) => setNewProd({ ...newProd, category: e.target.value })}
-                      className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-[#0066cc]"
-                    >
-                      <option value="Men's Fashion">Men's Fashion</option>
-                      <option value="Women's Wear">Women's Wear</option>
-                      <option value="Kids' Collection">Kids' Collection</option>
-                      <option value="Rakhi Specials">Rakhi Specials 🪔</option>
-                      <option value="Footwear & Shoes">Footwear & Shoes</option>
-                      <option value="Watches & Gadgets">Watches & Gadgets</option>
-                      <option value="Backpacks">Backpacks & Luggage</option>
-                    </select>
+                    <div className="flex justify-between items-center mb-1">
+                      <label className="block text-xs font-bold text-slate-700">Category *</label>
+                      <button
+                        type="button"
+                        onClick={() => setIsCustomCategory(!isCustomCategory)}
+                        className="text-[10px] text-[#0066cc] font-extrabold hover:underline cursor-pointer"
+                      >
+                        {isCustomCategory ? "Select from list" : "Enter custom"}
+                      </button>
+                    </div>
+                    {isCustomCategory ? (
+                      <input
+                        type="text"
+                        required
+                        value={newProd.category}
+                        onChange={(e) => setNewProd({ ...newProd, category: e.target.value })}
+                        placeholder="e.g. Sweets & Gifts"
+                        className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-[#0066cc] font-semibold bg-white text-slate-850"
+                      />
+                    ) : (
+                      <select
+                        value={newProd.category}
+                        onChange={(e) => setNewProd({ ...newProd, category: e.target.value })}
+                        className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-[#0066cc] bg-white text-slate-850"
+                      >
+                        <option value="Men's Fashion">Men's Fashion</option>
+                        <option value="Women's Wear">Women's Wear</option>
+                        <option value="Kids' Collection">Kids' Collection</option>
+                        <option value="Rakhi Specials">Rakhi Specials 🪔</option>
+                        <option value="Footwear & Shoes">Footwear & Shoes</option>
+                        <option value="Watches & Gadgets">Watches & Gadgets</option>
+                        <option value="Backpacks">Backpacks & Luggage</option>
+                      </select>
+                    )}
                   </div>
                 </div>
 
@@ -513,7 +549,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                         if (!file) return;
                         setImageUploading(true);
                         try {
-                          const url = await uploadToCloudinary(file, 'image');
+                          const url = await uploadToCloudinary(file, 'product-image');
                           setNewProd(prev => ({ ...prev, image: url }));
                         } catch (err) {
                           alert("Image upload failed: " + err.message);
@@ -546,6 +582,51 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                     <div className="mt-2 flex items-center space-x-2">
                       <img src={newProd.image} alt="Preview" className="w-12 h-12 object-cover rounded-lg border" />
                       <span className="text-[10px] text-emerald-600 font-bold">Image loaded successfully!</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Product Customization Options */}
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="admin-is-customizable"
+                      checked={newProd.isCustomizable || false}
+                      onChange={(e) => setNewProd({ ...newProd, isCustomizable: e.target.checked })}
+                      className="w-4 h-4 text-[#0066cc] border-slate-350 focus:ring-[#0066cc] rounded cursor-pointer"
+                    />
+                    <label htmlFor="admin-is-customizable" className="text-xs font-bold text-slate-800 cursor-pointer select-none">
+                      Is this product customizable? (Requires customer text or photo upload)
+                    </label>
+                  </div>
+
+                  {(newProd.isCustomizable || false) && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-slate-200 animate-fade-in">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">Customization Input Type</label>
+                        <select
+                          value={newProd.customizationType || 'text'}
+                          onChange={(e) => setNewProd({ ...newProd, customizationType: e.target.value })}
+                          className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-[#0066cc] bg-white text-slate-850 font-bold"
+                        >
+                          <option value="text">Text Input Only (Name, wish note, etc.)</option>
+                          <option value="image">Photo Upload Only (Custom user design)</option>
+                          <option value="both">Both Text & Photo Upload</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">Customization Instruction / Prompt</label>
+                        <input
+                          type="text"
+                          required={newProd.isCustomizable}
+                          value={newProd.customizationPrompt || ''}
+                          onChange={(e) => setNewProd({ ...newProd, customizationPrompt: e.target.value })}
+                          placeholder="e.g. Enter name to print / Upload your photo"
+                          className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-[#0066cc] bg-white text-slate-850 font-semibold"
+                        />
+                      </div>
                     </div>
                   )}
                 </div>
@@ -695,9 +776,46 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                         <span>{ord.shippingAddress.fullName} ({ord.shippingAddress.phone}) — {ord.shippingAddress.flatNo}, {ord.shippingAddress.city}, {ord.shippingAddress.state} - {ord.shippingAddress.pincode}</span>
                       </div>
 
-                      <div className="flex items-center justify-between text-xs pt-1">
-                        <span className="text-slate-500">{ord.items.length} item(s)</span>
-                        <span className="font-extrabold text-[#0066cc] text-sm">Total: ₹{ord.totalAmount.toFixed(2)}</span>
+                      {/* Detailed Order Items Breakdown */}
+                      <div className="pl-3 border-l-2 border-slate-300 space-y-2 mt-2">
+                        {ord.items.map((item, itemIdx) => (
+                          <div key={itemIdx} className="flex items-center justify-between text-xs bg-white p-2.5 rounded-xl border border-slate-200">
+                            <div className="flex items-center space-x-3">
+                              {item.image && (
+                                <img src={item.image} alt={item.name} className="w-9 h-9 rounded object-cover border shrink-0 bg-slate-50" />
+                              )}
+                              <div>
+                                <span className="font-bold text-slate-800 block truncate max-w-md">{item.name}</span>
+                                <span className="text-[10px] text-slate-500 block mt-0.5">
+                                  Price: ₹{item.price} • Qty: {item.quantity}
+                                </span>
+                                {(item.customText || item.customImage) && (
+                                  <div className="mt-1.5 p-2 bg-amber-50/70 border border-amber-200/50 rounded-lg text-[10px] text-amber-900 font-semibold space-y-0.5 max-w-sm">
+                                    {item.customText && (
+                                      <div>
+                                        <span className="text-slate-500 font-bold">Custom Text: </span>
+                                        <span className="text-slate-800 font-extrabold">"{item.customText}"</span>
+                                      </div>
+                                    )}
+                                    {item.customImage && (
+                                      <div className="flex items-center space-x-1.5 pt-0.5">
+                                        <span className="text-slate-500 font-bold">Custom Photo: </span>
+                                        <img src={item.customImage} alt="User Upload" className="w-5 h-5 object-cover rounded border bg-white" />
+                                        <a href={item.customImage} target="_blank" rel="noreferrer" className="text-[#0066cc] underline text-[9px] hover:text-blue-800 font-bold">View Link</a>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            <span className="font-extrabold text-slate-900 shrink-0">₹{(item.price * item.quantity).toFixed(2)}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-200/60 mt-2">
+                        <span className="text-slate-500 font-bold">Grand total count: {ord.items.reduce((acc, it) => acc + it.quantity, 0)} unit(s)</span>
+                        <span className="font-black text-[#0066cc] text-sm">Amount Paid: ₹{ord.totalAmount.toFixed(2)}</span>
                       </div>
                     </div>
                   ))}

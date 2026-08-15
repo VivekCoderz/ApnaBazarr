@@ -36,7 +36,9 @@ module.exports.createOrder = async (req, res) => {
       name: item.name,
       price: item.price,
       quantity: item.quantity,
-      image: item.image
+      image: item.image,
+      customText: item.customText || '',
+      customImage: item.customImage || ''
     }));
 
     const newOrder = await Order.create({

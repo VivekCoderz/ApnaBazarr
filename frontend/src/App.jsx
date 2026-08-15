@@ -277,40 +277,65 @@ function AppContent() {
   };
 
   // Cart Handler (STRICT GUEST LOGIN CHECK)
-  const handleAddToCart = (product, quantityToAdd = 1) => {
+  const handleAddToCart = (product, quantityToAdd = 1, customizationOptions = {}) => {
     if (!currentUser) {
       showToast("🔒 Please log in to your account to add items to Cart!");
       setIsAuthOpen(true);
       return;
     }
 
+    const { customText = '', customImage = '' } = customizationOptions;
+
     setCartItems(prev => {
-      const existing = prev.find(item => item.id === product.id);
+      const existing = prev.find(item => 
+        item.id === product.id && 
+        (item.customText || '') === customText && 
+        (item.customImage || '') === customImage
+      );
       if (existing) {
         return prev.map(item =>
-          item.id === product.id
+          (item.id === product.id && 
+           (item.customText || '') === customText && 
+           (item.customImage || '') === customImage)
             ? { ...item, quantity: item.quantity + quantityToAdd }
             : item
         );
       } else {
-        return [...prev, { ...product, quantity: quantityToAdd }];
+        return [...prev, { 
+          ...product, 
+          quantity: quantityToAdd, 
+          customText, 
+          customImage 
+        }];
       }
     });
     showToast(`Added "${product.name}" to cart!`);
   };
 
-  const handleUpdateQuantity = (id, newQty) => {
+  const handleUpdateQuantity = (id, newQty, customText = '', customImage = '') => {
     if (newQty <= 0) {
-      handleRemoveFromCart(id);
+      handleRemoveFromCart(id, customText, customImage);
     } else {
       setCartItems(prev =>
-        prev.map(item => (item.id === id ? { ...item, quantity: newQty } : item))
+        prev.map(item =>
+          (item.id === id &&
+           (item.customText || '') === customText &&
+           (item.customImage || '') === customImage)
+            ? { ...item, quantity: newQty }
+            : item
+        )
       );
     }
   };
 
-  const handleRemoveFromCart = (id) => {
-    setCartItems(prev => prev.filter(item => item.id !== id));
+  const handleRemoveFromCart = (id, customText = '', customImage = '') => {
+    setCartItems(prev =>
+      prev.filter(item =>
+        !(item.id === id &&
+          (item.customText || '') === customText &&
+          (item.customImage || '') === customImage)
+      )
+    );
   };
 
   // Wishlist Handler (STRICT GUEST LOGIN CHECK)

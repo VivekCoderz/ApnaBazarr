@@ -9,9 +9,15 @@ async function uploadToCloudinary(file, endpoint) {
   const formData = new FormData();
   formData.append('file', file);
   const res = await fetch(`${BASE_URL}/api/upload/${endpoint}`, { method: 'POST', body: formData });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Upload failed');
-  return data.url;
+  const contentType = res.headers.get("content-type");
+  if (contentType && contentType.includes("application/json")) {
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || data.message || 'Upload failed');
+    return data.url;
+  } else {
+    const text = await res.text();
+    throw new Error(`Server returned non-JSON response (${res.status}): ${text.substring(0, 150)}`);
+  }
 }
 
 export default function ProductDetailPage({
@@ -54,6 +60,29 @@ export default function ProductDetailPage({
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
   const [reviewError, setReviewError] = useState('');
+
+  // Product Customization States
+  const [customTextVal, setCustomTextVal] = useState('');
+  const [customImageVal, setCustomImageVal] = useState('');
+  const [uploadingCustomImage, setUploadingCustomImage] = useState(false);
+  const [customizationError, setCustomizationError] = useState('');
+
+  const handleAddToCartWithCustomization = () => {
+    if (product.isCustomizable) {
+      if ((product.customizationType === 'text' || product.customizationType === 'both') && !customTextVal.trim()) {
+        alert(product.customizationPrompt || "Please enter the required customization text.");
+        return;
+      }
+      if ((product.customizationType === 'image' || product.customizationType === 'both') && !customImageVal) {
+        alert(product.customizationPrompt || "Please upload the required customization photo.");
+        return;
+      }
+    }
+    onAddToCart(product, quantity, {
+      customText: customTextVal,
+      customImage: customImageVal
+    });
+  };
 
   const handleLikeReview = async (reviewId) => {
     if (!currentUser) {
@@ -343,11 +372,87 @@ export default function ProductDetailPage({
               </div>
             </div>
 
+            {/* Product Customization Fields */}
+            {product.isCustomizable && (
+              <div className="bg-amber-50/50 p-5 rounded-2xl border border-amber-200 space-y-4">
+                <div className="flex items-center space-x-1.5 text-amber-900 font-extrabold text-xs uppercase tracking-wider">
+                  <Sparkles className="w-4 h-4 text-amber-700" />
+                  <span>Customization Details Required</span>
+                </div>
+                <p className="text-xs text-amber-800 font-semibold">
+                  Prompt: {product.customizationPrompt || "This product supports custom options. Please provide details below:"}
+                </p>
+
+                {(product.customizationType === 'text' || product.customizationType === 'both') && (
+                  <div className="space-y-1">
+                    <label className="block text-[11px] font-bold text-slate-700 uppercase">Custom Text Name / Note *</label>
+                    <input
+                      type="text"
+                      value={customTextVal}
+                      onChange={(e) => setCustomTextVal(e.target.value)}
+                      placeholder="e.g. Enter name to be printed"
+                      className="w-full px-3 py-2 text-xs border border-slate-355 rounded-xl focus:outline-none focus:border-[#0066cc] bg-white text-slate-800 font-semibold"
+                    />
+                  </div>
+                )}
+
+                {(product.customizationType === 'image' || product.customizationType === 'both') && (
+                  <div className="space-y-2">
+                    <label className="block text-[11px] font-bold text-slate-700 uppercase">Upload Custom Photo / Design *</label>
+                    <div className="flex items-center space-x-3">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        id="user-custom-image-upload"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files[0];
+                          if (!file) return;
+                          setUploadingCustomImage(true);
+                          setCustomizationError('');
+                          try {
+                            const url = await uploadToCloudinary(file, 'custom-image');
+                            setCustomImageVal(url);
+                          } catch (err) {
+                            setCustomizationError(err.message || 'Failed to upload photo.');
+                          } finally {
+                            setUploadingCustomImage(false);
+                          }
+                        }}
+                      />
+                      <label
+                        htmlFor="user-custom-image-upload"
+                        className="cursor-pointer px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl border border-slate-350 transition-colors flex items-center space-x-1.5 shrink-0"
+                      >
+                        {uploadingCustomImage ? (
+                          <><Loader2 className="w-4 h-4 animate-spin text-[#0066cc]" /><span>Uploading...</span></>
+                        ) : (
+                          <><Upload className="w-4 h-4 text-slate-600" /><span>Choose Photo</span></>
+                        )}
+                      </label>
+                      <span className="text-[10px] text-slate-500 truncate max-w-[200px]">
+                        {customImageVal ? "Photo uploaded" : "No file selected"}
+                      </span>
+                    </div>
+                    {customImageVal && (
+                      <div className="mt-2 flex items-center space-x-2">
+                        <img src={customImageVal} alt="User Design" className="w-12 h-12 object-cover rounded-lg border bg-white" />
+                        <span className="text-[10px] text-emerald-600 font-bold">✓ Custom photo loaded successfully!</span>
+                      </div>
+                    )}
+                    {customizationError && (
+                      <p className="text-[11px] text-red-600 font-bold">{customizationError}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Action Buttons */}
             <div className="flex items-center space-x-4 pt-4">
               <button
                 disabled={isOutOfStock}
-                onClick={() => !isOutOfStock && onAddToCart(product, quantity)}
+                onClick={() => !isOutOfStock && handleAddToCartWithCustomization()}
                 className={`flex-1 py-4 text-white font-extrabold text-xs uppercase tracking-wider rounded-2xl shadow-lg transition-colors flex items-center justify-center space-x-2 ${
                   isOutOfStock ? 'bg-slate-400 cursor-not-allowed shadow-none' : 'bg-[#0066cc] hover:bg-blue-700'
                 }`}
