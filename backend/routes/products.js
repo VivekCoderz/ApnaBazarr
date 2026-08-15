@@ -2,69 +2,15 @@ const express = require('express');
 const router = express.Router();
 const Product = require('../models/Product');
 
-// Seeding helper to load initial real products if DB is empty
-const seedProducts = [
-  {
-    name: "Pure Premium Cotton Kurta Set",
-    category: "Rakhi Specials",
-    gender: "Men",
-    price: 1299.00,
-    originalPrice: 1999.00,
-    discount: "35% OFF",
-    badge: "BESTSELLER",
-    stock: 50,
-    rating: 5,
-    reviewsCount: 14,
-    image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=600&q=80",
-    description: "Elegant pure premium cotton silk blend kurta set with detailed embroidery. Perfect for festive celebrations, weddings, and traditional gatherings.",
-    tags: ["New Arrival", "Best Selling", "Featured"],
-    inStock: true
-  },
-  {
-    name: "Luxury Silk Banarasi Saree",
-    category: "Women's Wear",
-    gender: "Women",
-    price: 2499.00,
-    originalPrice: 3999.00,
-    discount: "37% OFF",
-    badge: "ELEGANT",
-    stock: 25,
-    rating: 5,
-    reviewsCount: 22,
-    image: "https://images.unsplash.com/photo-1610030470211-13f5dd72a8c3?auto=format&fit=crop&w=600&q=80",
-    description: "Premium banarasi silk saree woven with golden zari borders. Comes with a matching unstitched blouse piece.",
-    tags: ["Top Rated", "Featured"],
-    inStock: true
-  },
-  {
-    name: "Classic Brown Leather Casual Boots",
-    category: "Footwear & Shoes",
-    gender: "Men",
-    price: 1899.00,
-    originalPrice: 2799.00,
-    discount: "32% OFF",
-    badge: "NEW ARRIVAL",
-    stock: 35,
-    rating: 5,
-    reviewsCount: 12,
-    image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=600&q=80",
-    description: "Comfortable brown mid-top casual leather boots with heavy-duty slip-resistant rubber outsoles and memory foam insoles.",
-    tags: ["New Arrival", "Best Selling"],
-    inStock: true
-  }
-];
+// Seeding helper disabled
+const seedProducts = [];
 
 // GET /products - fetch all products from MongoDB
 router.get('/', async (req, res) => {
   try {
+
     let products = await Product.find().sort({ createdAt: -1 });
-    
-    // Seed DB if completely empty
-    if (products.length === 0) {
-      await Product.insertMany(seedProducts);
-      products = await Product.find().sort({ createdAt: -1 });
-    }
-    
+    console.log(products)
     // Format response to ensure ID maps correctly for frontend
     const formatted = products.map(p => ({
       id: p._id,

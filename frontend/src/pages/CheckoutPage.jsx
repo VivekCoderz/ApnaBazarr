@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, ArrowRight, ArrowLeft, Check, Smartphone, Banknote, CreditCard, Loader2 } from 'lucide-react';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'https://apnabazarr-backend.onrender.com';
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const getToken = () => localStorage.getItem('apna_token');
 
 export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }) {

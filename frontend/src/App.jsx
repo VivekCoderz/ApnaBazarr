@@ -26,7 +26,7 @@ import PolicyPage from './pages/PolicyPage';
 
 import { Check } from 'lucide-react';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'https://apnabazarr-backend.onrender.com';
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const getToken = () => localStorage.getItem('apna_token');
 const clearToken = () => localStorage.removeItem('apna_token');
 
@@ -45,7 +45,7 @@ function AppContent() {
     try {
       const res = await fetch(`${BASE_URL}/products`);
       const result = await res.json();
-      if (result.success && result.data && result.data.length > 0) {
+      if (result.success && result.data) {
         setProducts(result.data);
       }
     } catch {
@@ -249,6 +249,16 @@ function AppContent() {
     }, 500);
     return () => clearTimeout(timer);
   }, [recentlyViewed, currentUser]);
+
+  // Cleanup deleted products from cart, wishlist, and recently viewed lists
+  useEffect(() => {
+    if (productsLoading) return;
+    const validProductIds = new Set(products.map(p => String(p.id)));
+
+    setCartItems(prev => prev.filter(item => validProductIds.has(String(item.id))));
+    setWishlistItems(prev => prev.filter(item => validProductIds.has(String(item.id))));
+    setRecentlyViewed(prev => prev.filter(item => validProductIds.has(String(item.id))));
+  }, [products, productsLoading]);
 
   // Modal States
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

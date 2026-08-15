@@ -190,7 +190,7 @@ exports.updateOrderStatus = async (req, res) => {
     const order = await Order.findOneAndUpdate(
       { orderId },
       { orderStatus: status },
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     if (!order) {

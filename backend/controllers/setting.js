@@ -44,7 +44,7 @@ exports.updateSettings = async (req, res) => {
     const setting = await Setting.findOneAndUpdate(
       { key: 'secret_cod_code' },
       { value: secret_cod_code.trim().toUpperCase() },
-      { new: true, upsert: true }
+      { returnDocument: 'after', upsert: true }
     );
 
     res.json({ success: true, message: 'Settings updated successfully.', settings: { secret_cod_code: setting.value } });

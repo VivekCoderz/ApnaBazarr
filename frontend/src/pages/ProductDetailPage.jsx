@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Star, ShoppingBag, Heart, ShieldCheck, Truck, RotateCcw, Upload, CheckCircle, Sparkles, ArrowLeft, Video, Loader2, ThumbsUp, ThumbsDown, CornerDownRight, MessageSquare } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'https://apnabazarr-backend.onrender.com';
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 async function uploadToCloudinary(file, endpoint) {
   const formData = new FormData();
