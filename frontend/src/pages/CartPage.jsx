@@ -128,9 +128,25 @@ export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem }) 
                 </div>
               </div>
 
+              {total < 100 && (
+                <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl space-y-1.5 text-[11px] text-rose-800 font-semibold leading-relaxed">
+                  <p>
+                    ⚠️ <span className="font-extrabold text-rose-950">English Note:</span> Minimum order value is <span className="font-extrabold text-rose-950">₹100.00</span>. Please add more items to checkout.
+                  </p>
+                  <p className="border-t border-rose-200/50 pt-1.5">
+                    ⚠️ <span className="font-extrabold text-rose-950">Hindi Note:</span> न्यूनतम ऑर्डर मूल्य <span className="font-extrabold text-rose-950">₹100.00</span> है। आगे बढ़ने के लिए और उत्पाद जोड़ें।
+                  </p>
+                </div>
+              )}
+
               <button
                 onClick={() => navigate('/checkout')}
-                className="w-full py-3.5 bg-[#0066cc] hover:bg-blue-700 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md transition-colors flex items-center justify-center space-x-2"
+                disabled={total < 100}
+                className={`w-full py-3.5 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md transition-colors flex items-center justify-center space-x-2 ${
+                  total < 100
+                    ? 'bg-slate-300 cursor-not-allowed opacity-60'
+                    : 'bg-[#0066cc] hover:bg-blue-700'
+                }`}
               >
                 <span>PROCEED TO CHECKOUT</span>
                 <ArrowRight className="w-4 h-4" />

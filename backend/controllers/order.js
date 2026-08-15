@@ -19,6 +19,10 @@ module.exports.createOrder = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid order details provided.' });
     }
 
+    if (totalAmount < 100) {
+      return res.status(400).json({ success: false, message: 'Minimum order amount of ₹100 is required.' });
+    }
+
     const randomNum = Math.floor(1000 + Math.random() * 9000);
     const orderId = `AB-2026-${randomNum}`;
 
@@ -94,6 +98,9 @@ module.exports.createRazorpayOrder = async (req, res) => {
     const { amount } = req.body;
     if (!amount || amount <= 0) {
       return res.status(400).json({ success: false, message: 'Invalid amount.' });
+    }
+    if (amount < 100) {
+      return res.status(400).json({ success: false, message: 'Minimum order amount of ₹100 is required.' });
     }
 
     const options = {

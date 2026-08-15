@@ -65,6 +65,12 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
   const shipping = 0;
   const total = subtotal + shipping;
 
+  React.useEffect(() => {
+    if (cartItems.length > 0 && total < 100) {
+      navigate('/cart');
+    }
+  }, [cartItems, total, navigate]);
+
   const indianStates = ["Delhi", "Maharashtra", "Karnataka", "Uttar Pradesh", "Tamil Nadu", "Gujarat", "West Bengal", "Rajasthan", "Haryana", "Punjab"];
 
   const handlePincodeChange = (val) => {

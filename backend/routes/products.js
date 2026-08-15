@@ -10,7 +10,6 @@ router.get('/', async (req, res) => {
   try {
 
     let products = await Product.find().sort({ createdAt: -1 });
-    console.log(products)
     // Format response to ensure ID maps correctly for frontend
     const formatted = products.map(p => ({
       id: p._id,
