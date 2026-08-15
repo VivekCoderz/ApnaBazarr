@@ -62,6 +62,45 @@ export default function Header({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Typewriter placeholder animation loop
+  const placeholderTexts = [
+    "'Kundan Rakhis'",
+    "'Gold Clutches'",
+    "'Designer Kurtas'",
+    "'Gift Hampers'",
+    "'Casual Boots'",
+    "'Smartwatches'"
+  ];
+  const [placeholder, setPlaceholder] = useState('');
+  const [textIndex, setTextIndex] = useState(0);
+  const [charIndex, setCharIndex] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    let timer;
+    const currentFullText = placeholderTexts[textIndex];
+    
+    if (!isDeleting && charIndex < currentFullText.length) {
+      timer = setTimeout(() => {
+        setPlaceholder(currentFullText.substring(0, charIndex + 1));
+        setCharIndex(prev => prev + 1);
+      }, 70);
+    } else if (isDeleting && charIndex > 0) {
+      timer = setTimeout(() => {
+        setPlaceholder(currentFullText.substring(0, charIndex - 1));
+        setCharIndex(prev => prev - 1);
+      }, 35);
+    } else if (!isDeleting && charIndex === currentFullText.length) {
+      timer = setTimeout(() => {
+        setIsDeleting(true);
+      }, 2500);
+    } else if (isDeleting && charIndex === 0) {
+      setIsDeleting(false);
+      setTextIndex(prev => (prev + 1) % placeholderTexts.length);
+    }
+    return () => clearTimeout(timer);
+  }, [charIndex, isDeleting, textIndex]);
+
   const searchResults = searchQuery.trim() === ''
     ? []
     : products.filter(p =>
@@ -129,9 +168,16 @@ export default function Header({
                   setSearchQuery(e.target.value);
                   setShowSearchDropdown(true);
                 }}
-                placeholder="Search products, brands, Rakhi hampers, Men, Women..."
+                placeholder=""
                 className="w-full bg-slate-50 border border-slate-200 rounded-full pl-11 pr-10 py-2.5 text-xs text-slate-800 font-semibold focus:outline-none focus:border-[#0066cc] focus:bg-white transition-all shadow-xs"
               />
+              {!searchQuery && (
+                <div className="absolute left-11 top-[13px] pointer-events-none select-none text-xs font-bold text-slate-400 flex items-center space-x-1">
+                  <span>Search</span>
+                  <span className="text-[#0066cc] font-black">{placeholder}</span>
+                  <span className="text-[#0066cc] font-light animate-pulse">|</span>
+                </div>
+              )}
               <Search className="w-4 h-4 text-slate-400 absolute left-4 top-3.5" />
               {searchQuery && (
                 <button
@@ -337,9 +383,16 @@ export default function Header({
                 setSearchQuery(e.target.value);
                 setShowMobileSearchDropdown(true);
               }}
-              placeholder="Search products, brands, Rakhi hampers..."
+              placeholder=""
               className="w-full bg-slate-50 border border-slate-205 rounded-full pl-11 pr-10 py-2.5 text-xs text-slate-800 font-semibold focus:outline-none focus:border-[#0066cc] focus:bg-white transition-all shadow-xs"
             />
+            {!searchQuery && (
+              <div className="absolute left-11 top-[11px] pointer-events-none select-none text-xs font-bold text-slate-400 flex items-center space-x-1">
+                <span>Search</span>
+                <span className="text-[#0066cc] font-black">{placeholder}</span>
+                <span className="text-[#0066cc] font-light animate-pulse">|</span>
+              </div>
+            )}
             <Search className="w-4 h-4 text-slate-400 absolute left-4 top-3" />
             {searchQuery && (
               <button
