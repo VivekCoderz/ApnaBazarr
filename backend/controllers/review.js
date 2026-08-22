@@ -1,13 +1,29 @@
 const Review = require('../models/Review');
 
 // POST /reviews — save new product review
+const Product = require('../models/Product');
 exports.createReview = async (req, res) => {
   try {
-    const { productId, productName, userName, userEmail, rating, comment, photoUrl, videoUrl } = req.body;
+    const { productId, productName, userName, userEmail, rating, comment, photoUrl, videoUrl, sellerRating } = req.body;
     if (!productId || !userName || !comment) {
       return res.status(400).json({ success: false, message: 'productId, userName and comment are required.' });
     }
-    const review = await Review.create({ productId, productName, userName, userEmail, rating, comment, photoUrl, videoUrl });
+
+    const prod = await Product.findById(productId);
+    const sellerId = prod ? prod.seller : null;
+
+    const review = await Review.create({ 
+      productId, 
+      productName, 
+      userName, 
+      userEmail, 
+      rating, 
+      comment, 
+      photoUrl, 
+      videoUrl,
+      sellerId,
+      sellerRating: sellerRating ? Number(sellerRating) : undefined
+    });
     res.status(201).json({ success: true, review });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -99,5 +115,32 @@ exports.commentReview = async (req, res) => {
     res.json({ success: true, review });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+module.exports.getSellerReviews = async (req, res) => {
+  try {
+    if (req.user.role !== 'seller') {
+      return res.status(403).json({ success: false, message: 'Forbidden. Seller access required.' });
+    }
+
+    const reviews = await Review.find({ sellerId: req.user._id }).sort({ createdAt: -1 });
+
+    let totalRating = 0;
+    let avgRating = 0;
+    if (reviews.length > 0) {
+      totalRating = reviews.reduce((acc, r) => acc + (r.sellerRating || 5), 0);
+      avgRating = Number((totalRating / reviews.length).toFixed(1));
+    }
+
+    res.json({
+      success: true,
+      count: reviews.length,
+      reviews,
+      averageSellerRating: avgRating
+    });
+  } catch (error) {
+    console.error('Fetch seller reviews error:', error);
+    res.status(500).json({ success: false, message: 'Server error fetching reviews.' });
   }
 };

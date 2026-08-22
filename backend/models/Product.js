@@ -18,7 +18,12 @@ const productSchema = new mongoose.Schema({
   inStock: { type: Boolean, default: true },
   isCustomizable: { type: Boolean, default: false },
   customizationType: { type: String, enum: ['text', 'image', 'both', 'none'], default: 'none' },
-  customizationPrompt: { type: String, default: '' }
+  customizationPrompt: { type: String, default: '' },
+  seller: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  weight: { type: Number, default: 500 }, // weight in grams
+  length: { type: Number, default: 20 }, // in cm
+  width: { type: Number, default: 10 }, // in cm
+  height: { type: Number, default: 5 } // in cm
 }, { timestamps: true });
 
 module.exports = mongoose.model('Product', productSchema);

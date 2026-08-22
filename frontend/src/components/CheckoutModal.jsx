@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Check, ShieldCheck, MapPin, CreditCard, Smartphone, Banknote, Building, Truck, ArrowRight, ArrowLeft } from 'lucide-react';
+import { X, Check, ShieldCheck, MapPin, CreditCard, Smartphone, Banknote, Building, Truck, ArrowRight, ArrowLeft, Loader2 } from 'lucide-react';
 
 export default function CheckoutModal({ isOpen, onClose, cartItems, onOrderComplete }) {
   if (!isOpen) return null;
@@ -18,6 +18,11 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, onOrderCompl
     addressType: 'Home'
   });
 
+  const [locationOption, setLocationOption] = useState('manual'); // 'auto' or 'manual'
+  const [fetchingLocation, setFetchingLocation] = useState(false);
+  const [locationError, setLocationError] = useState('');
+  const [locationSuccess, setLocationSuccess] = useState('');
+
   // Payment State
   const [paymentMethod, setPaymentMethod] = useState('UPI'); // 'UPI', 'COD', 'CARD', 'NETBANKING'
   const [upiId, setUpiId] = useState('');
@@ -31,8 +36,14 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, onOrderCompl
   const total = subtotal + shipping;
 
   const indianStates = [
-    "Delhi", "Maharashtra", "Karnataka", "Uttar Pradesh", "Tamil Nadu", 
-    "Gujarat", "West Bengal", "Rajasthan", "Haryana", "Punjab", "Telangana", "Kerala", "Bihar", "Madhya Pradesh"
+    "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", 
+    "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", 
+    "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", 
+    "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", 
+    "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", 
+    "West Bengal", "Andaman and Nicobar Islands", "Chandigarh", 
+    "Dadra and Nagar Haveli and Daman and Diu", "Delhi", 
+    "Jammu and Kashmir", "Ladakh", "Lakshadweep", "Puducherry"
   ];
 
   const handlePincodeChange = (val) => {
@@ -44,6 +55,90 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, onOrderCompl
     } else if (val === '560001') {
       setAddress(prev => ({ ...prev, city: 'Bengaluru', state: 'Karnataka' }));
     }
+  };
+
+  const fetchLiveLocation = () => {
+    setFetchingLocation(true);
+    setLocationError('');
+    setLocationSuccess('');
+
+    if (!navigator.geolocation) {
+      setLocationError('Geolocation is not supported by your browser.');
+      setFetchingLocation(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
+            {
+              headers: {
+                'User-Agent': 'ApnaBazarr/1.0 (apnabazarr@example.com)'
+              }
+            }
+          );
+          if (!response.ok) {
+            throw new Error('Failed to fetch address details.');
+          }
+          const data = await response.json();
+          
+          const addr = data.address || {};
+          const pincode = addr.postcode || '';
+          const city = addr.city || addr.town || addr.village || addr.suburb || addr.county || '';
+          const state = addr.state || '';
+          
+          // Construct area name
+          const areaParts = [];
+          if (addr.road) areaParts.push(addr.road);
+          if (addr.neighbourhood) areaParts.push(addr.neighbourhood);
+          if (addr.suburb && addr.suburb !== city) areaParts.push(addr.suburb);
+          const area = areaParts.join(', ') || data.display_name || '';
+
+          let matchedState = 'Delhi';
+          if (state) {
+            const found = indianStates.find(s => s.toLowerCase() === state.toLowerCase());
+            if (found) {
+              matchedState = found;
+            } else {
+              const foundPartial = indianStates.find(s => s.toLowerCase().includes(state.toLowerCase()) || state.toLowerCase().includes(s.toLowerCase()));
+              if (foundPartial) {
+                matchedState = foundPartial;
+              }
+            }
+          }
+
+          const cleanedPincode = pincode.replace(/\s+/g, '').substring(0, 6);
+
+          setAddress(prev => ({
+            ...prev,
+            pincode: cleanedPincode || prev.pincode,
+            city: city || prev.city,
+            state: matchedState || prev.state,
+            area: area || prev.area
+          }));
+
+          setLocationSuccess('📍 Location fetched successfully! Please fill in your name, phone, and flat number.');
+        } catch (err) {
+          console.error(err);
+          setLocationError('Failed to fetch address details. Please fill manually.');
+        } finally {
+          setFetchingLocation(false);
+        }
+      },
+      (error) => {
+        console.error(error);
+        let errorMsg = 'Unable to retrieve location.';
+        if (error.code === error.PERMISSION_DENIED) {
+          errorMsg = 'Location permission denied. Please allow permission or enter manually.';
+        }
+        setLocationError(errorMsg);
+        setFetchingLocation(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
   };
 
   const handleAddressSubmit = (e) => {
@@ -137,6 +232,71 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, onOrderCompl
           {/* STEP 1: ADDRESS FORM */}
           {step === 1 && (
             <form onSubmit={handleAddressSubmit} className="space-y-4">
+
+              {/* Location Mode Toggle */}
+              <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200 mt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLocationOption('auto');
+                    setLocationError('');
+                    setLocationSuccess('');
+                  }}
+                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center space-x-1.5 ${locationOption === 'auto' ? 'bg-white text-[#0066cc] shadow-xs' : 'text-slate-600 hover:text-slate-950'}`}
+                >
+                  <MapPin className="w-3.5 h-3.5" />
+                  <span>Auto-detect Live Location</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLocationOption('manual');
+                    setLocationError('');
+                    setLocationSuccess('');
+                  }}
+                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center space-x-1.5 ${locationOption === 'manual' ? 'bg-white text-[#0066cc] shadow-xs' : 'text-slate-600 hover:text-slate-955'}`}
+                >
+                  <span>Enter Location Manually</span>
+                </button>
+              </div>
+
+              {/* Auto Fetch Action Box */}
+              {locationOption === 'auto' && (
+                <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100 text-center space-y-2.5">
+                  <p className="text-xs text-slate-650 font-semibold leading-relaxed">
+                    We will automatically detect your coordinates and fill the Address, Pincode, City and State fields.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={fetchLiveLocation}
+                    disabled={fetchingLocation}
+                    className="px-5 py-2.5 bg-[#0066cc] text-white font-extrabold text-xs uppercase tracking-wider rounded-lg hover:bg-blue-700 transition-all flex items-center justify-center space-x-2 mx-auto disabled:opacity-75 cursor-pointer shadow-xs animate-pulse hover:animate-none"
+                  >
+                    {fetchingLocation ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Detecting Location...</span>
+                      </>
+                    ) : (
+                      <>
+                        <MapPin className="w-3.5 h-3.5" />
+                        <span>Detect My Live Location</span>
+                      </>
+                    )}
+                  </button>
+
+                  {locationError && (
+                    <div className="text-xs font-bold text-rose-600 bg-rose-50 p-2 rounded-lg border border-rose-100 max-w-md mx-auto">
+                      ⚠️ {locationError}
+                    </div>
+                  )}
+                  {locationSuccess && (
+                    <div className="text-xs font-bold text-emerald-600 bg-emerald-50 p-2 rounded-lg border border-emerald-100 max-w-md mx-auto">
+                      {locationSuccess}
+                    </div>
+                  )}
+                </div>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 
                 <div>

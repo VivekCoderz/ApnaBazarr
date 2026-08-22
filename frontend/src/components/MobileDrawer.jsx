@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { X, Search, Heart, ShoppingBag, User, Phone, Mail, ChevronRight } from 'lucide-react';
 
-export default function MobileDrawer({ isOpen, onClose, cartCount, wishlistCount, onOpenCart, onOpenWishlist, onOpenSearch }) {
+export default function MobileDrawer({ isOpen, onClose, cartCount, wishlistCount, onOpenCart, onOpenWishlist, onOpenSearch, currentUser }) {
   if (!isOpen) return null;
 
   const navLinks = [
@@ -12,6 +12,12 @@ export default function MobileDrawer({ isOpen, onClose, cartCount, wishlistCount
     { label: 'Shopping Cart', to: '/cart' },
     { label: 'My Wishlist', to: '/wishlist' },
   ];
+
+  if (currentUser?.role === 'seller') {
+    navLinks.push({ label: 'Seller Dashboard', to: '/seller' });
+  } else if (currentUser && currentUser.email !== 'admin@apnabazarr.com') {
+    navLinks.push({ label: 'Become a Seller', to: '/register-seller' });
+  }
 
   return (
     <div className="fixed inset-0 z-50 lg:hidden">

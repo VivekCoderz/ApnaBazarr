@@ -23,7 +23,7 @@ export default function AdminLoginPage({ onAdminLogin }) {
           role: 'admin',
           token: 'apnabazarr_admin_token_2026'
         };
-        localStorage.setItem('apna_admin_token', adminData.token);
+        document.cookie = "apna_admin_token=" + adminData.token + "; path=/; max-age=604800; SameSite=Lax";
         onAdminLogin(adminData);
         navigate('/admin');
       } else {

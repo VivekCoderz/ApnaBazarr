@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, ArrowRight, ArrowLeft, Check, Smartphone, Banknote, CreditCard, Loader2 } from 'lucide-react';
+import { ShieldCheck, ArrowRight, ArrowLeft, Check, Smartphone, Banknote, CreditCard, Loader2, MapPin } from 'lucide-react';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-const getToken = () => localStorage.getItem('apna_token');
+const getToken = () => '';
 
 export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }) {
   const navigate = useNavigate();
@@ -22,6 +22,11 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
     addressType: 'Home'
   });
 
+  const [locationOption, setLocationOption] = useState('manual'); // 'auto' or 'manual'
+  const [fetchingLocation, setFetchingLocation] = useState(false);
+  const [locationError, setLocationError] = useState('');
+  const [locationSuccess, setLocationSuccess] = useState('');
+
   const [paymentMethod, setPaymentMethod] = useState('UPI');
   const [upiId, setUpiId] = useState('');
   const [placedOrder, setPlacedOrder] = useState(null);
@@ -29,6 +34,34 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
   // COD configurations
   const [codCodeInput, setCodCodeInput] = useState('');
   const [isCodEnabled, setIsCodEnabled] = useState(false);
+  const [shippingCharges, setShippingCharges] = useState(0);
+  const [calculatingShipping, setCalculatingShipping] = useState(false);
+
+  const calculateShippingFees = async (deliveryPincode) => {
+    if (!deliveryPincode || deliveryPincode.trim().length !== 6) return;
+    setCalculatingShipping(true);
+    try {
+      const res = await fetch(`${BASE_URL}/orders/calculate-shipping`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          deliveryPincode,
+          items: cartItems.map(item => ({
+            productId: item.id || item.productId,
+            quantity: item.quantity
+          }))
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setShippingCharges(data.shippingCharges);
+      }
+    } catch (err) {
+      console.warn("Failed to calculate shipping:", err);
+    } finally {
+      setCalculatingShipping(false);
+    }
+  };
   const [codVerificationError, setCodVerificationError] = useState('');
   const [codVerificationSuccess, setCodVerificationSuccess] = useState('');
   const [verifyingCodCode, setVerifyingCodCode] = useState(false);
@@ -61,8 +94,7 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
   };
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
-//   const shipping = subtotal >= 999 ? 0 : 99.00;
-  const shipping = 0;
+  const shipping = shippingCharges;
   const total = subtotal + shipping;
 
   React.useEffect(() => {
@@ -71,7 +103,16 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
     }
   }, [cartItems, total, navigate]);
 
-  const indianStates = ["Delhi", "Maharashtra", "Karnataka", "Uttar Pradesh", "Tamil Nadu", "Gujarat", "West Bengal", "Rajasthan", "Haryana", "Punjab"];
+  const indianStates = [
+    "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", 
+    "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", 
+    "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", 
+    "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", 
+    "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", 
+    "West Bengal", "Andaman and Nicobar Islands", "Chandigarh", 
+    "Dadra and Nagar Haveli and Daman and Diu", "Delhi", 
+    "Jammu and Kashmir", "Ladakh", "Lakshadweep", "Puducherry"
+  ];
 
   const handlePincodeChange = (val) => {
     setAddress(prev => ({ ...prev, pincode: val }));
@@ -80,12 +121,101 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
     else if (val === '560001') setAddress(prev => ({ ...prev, city: 'Bengaluru', state: 'Karnataka' }));
   };
 
-  const handleAddressSubmit = (e) => {
+  const fetchLiveLocation = () => {
+    setFetchingLocation(true);
+    setLocationError('');
+    setLocationSuccess('');
+
+    if (!navigator.geolocation) {
+      setLocationError('Geolocation is not supported by your browser.');
+      setFetchingLocation(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
+            {
+              headers: {
+                'User-Agent': 'ApnaBazarr/1.0 (apnabazarr@example.com)'
+              }
+            }
+          );
+          if (!response.ok) {
+            throw new Error('Failed to fetch address details.');
+          }
+          const data = await response.json();
+          
+          const addr = data.address || {};
+          const pincode = addr.postcode || '';
+          const city = addr.city || addr.town || addr.village || addr.suburb || addr.county || '';
+          const state = addr.state || '';
+          
+          // Construct area name
+          const areaParts = [];
+          if (addr.road) areaParts.push(addr.road);
+          if (addr.neighbourhood) areaParts.push(addr.neighbourhood);
+          if (addr.suburb && addr.suburb !== city) areaParts.push(addr.suburb);
+          const area = areaParts.join(', ') || data.display_name || '';
+
+          let matchedState = 'Delhi';
+          if (state) {
+            const found = indianStates.find(s => s.toLowerCase() === state.toLowerCase());
+            if (found) {
+              matchedState = found;
+            } else {
+              const foundPartial = indianStates.find(s => s.toLowerCase().includes(state.toLowerCase()) || state.toLowerCase().includes(s.toLowerCase()));
+              if (foundPartial) {
+                matchedState = foundPartial;
+              }
+            }
+          }
+
+          const cleanedPincode = pincode.replace(/\s+/g, '').substring(0, 6);
+
+          setAddress(prev => ({
+            ...prev,
+            pincode: cleanedPincode || prev.pincode,
+            city: city || prev.city,
+            state: matchedState || prev.state,
+            area: area || prev.area
+          }));
+
+          if (cleanedPincode && cleanedPincode.trim().length === 6) {
+            calculateShippingFees(cleanedPincode);
+          }
+
+          setLocationSuccess('📍 Location fetched successfully! Please fill in your name, phone, and flat number.');
+        } catch (err) {
+          console.error(err);
+          setLocationError('Failed to fetch address details. Please fill manually.');
+        } finally {
+          setFetchingLocation(false);
+        }
+      },
+      (error) => {
+        console.error(error);
+        let errorMsg = 'Unable to retrieve location.';
+        if (error.code === error.PERMISSION_DENIED) {
+          errorMsg = 'Location permission denied. Please allow permission or enter manually.';
+        }
+        setLocationError(errorMsg);
+        setFetchingLocation(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  };
+
+  const handleAddressSubmit = async (e) => {
     e.preventDefault();
     if (!address.fullName || !address.phone || !address.pincode || !address.flatNo || !address.area) {
       alert("Please fill in all required delivery address fields.");
       return;
     }
+    await calculateShippingFees(address.pincode);
     setStep(2);
   };
 
@@ -266,6 +396,71 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
           {step === 1 && (
             <form onSubmit={handleAddressSubmit} className="space-y-4">
               <h3 className="font-extrabold text-base text-slate-900 border-b pb-2">1. Enter Delivery Address</h3>
+
+              {/* Location Mode Toggle */}
+              <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200 mt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLocationOption('auto');
+                    setLocationError('');
+                    setLocationSuccess('');
+                  }}
+                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center space-x-1.5 ${locationOption === 'auto' ? 'bg-white text-[#0066cc] shadow-xs' : 'text-slate-600 hover:text-slate-950'}`}
+                >
+                  <MapPin className="w-3.5 h-3.5" />
+                  <span>Auto-detect Live Location</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLocationOption('manual');
+                    setLocationError('');
+                    setLocationSuccess('');
+                  }}
+                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center space-x-1.5 ${locationOption === 'manual' ? 'bg-white text-[#0066cc] shadow-xs' : 'text-slate-600 hover:text-slate-955'}`}
+                >
+                  <span>Enter Location Manually</span>
+                </button>
+              </div>
+
+              {/* Auto Fetch Action Box */}
+              {locationOption === 'auto' && (
+                <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100 text-center space-y-2.5">
+                  <p className="text-xs text-slate-650 font-semibold leading-relaxed">
+                    We will automatically detect your coordinates and fill the Address, Pincode, City and State fields.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={fetchLiveLocation}
+                    disabled={fetchingLocation}
+                    className="px-5 py-2.5 bg-[#0066cc] text-white font-extrabold text-xs uppercase tracking-wider rounded-lg hover:bg-blue-700 transition-all flex items-center justify-center space-x-2 mx-auto disabled:opacity-75 cursor-pointer shadow-xs animate-pulse hover:animate-none"
+                  >
+                    {fetchingLocation ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Detecting Location...</span>
+                      </>
+                    ) : (
+                      <>
+                        <MapPin className="w-3.5 h-3.5" />
+                        <span>Detect My Live Location</span>
+                      </>
+                    )}
+                  </button>
+
+                  {locationError && (
+                    <div className="text-xs font-bold text-rose-600 bg-rose-50 p-2 rounded-lg border border-rose-100 max-w-md mx-auto">
+                      ⚠️ {locationError}
+                    </div>
+                  )}
+                  {locationSuccess && (
+                    <div className="text-xs font-bold text-emerald-600 bg-emerald-50 p-2 rounded-lg border border-emerald-100 max-w-md mx-auto">
+                      {locationSuccess}
+                    </div>
+                  )}
+                </div>
+              )}
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
@@ -314,6 +509,23 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
           {step === 2 && (
             <div className="space-y-4">
               <h3 className="font-extrabold text-base text-slate-900 border-b pb-2">2. Select Payment Option</h3>
+              
+              {/* Dynamic Billing Summary */}
+              <div className="bg-slate-50 p-4.5 rounded-2xl border border-slate-250 space-y-2 text-xs">
+                <h4 className="font-black text-slate-800 uppercase tracking-widest mb-1.5">Order Invoice Summary</h4>
+                <div className="flex justify-between font-semibold">
+                  <span className="text-slate-550">Items Subtotal:</span>
+                  <span className="text-slate-800">₹{subtotal.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between font-semibold">
+                  <span className="text-slate-550">Volumetric Shipping Charges:</span>
+                  <span className="text-[#0066cc]">₹{shipping.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between font-black border-t border-slate-200/80 pt-2 text-sm mt-1">
+                  <span className="text-slate-900">Total Payable Amount:</span>
+                  <span className="text-slate-900">₹{total.toFixed(2)}</span>
+                </div>
+              </div>
               
               <div className="space-y-3">
                 <div onClick={() => setPaymentMethod('UPI')} className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex items-center justify-between ${paymentMethod === 'UPI' ? 'border-[#0066cc] bg-blue-50/50' : 'border-slate-200'}`}>

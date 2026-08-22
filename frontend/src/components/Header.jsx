@@ -320,6 +320,26 @@ export default function Header({
                         </Link>
                       )}
 
+                      {currentUser?.role === 'seller' ? (
+                        <Link
+                          to="/seller"
+                          onClick={() => setShowProfileMenu(false)}
+                          className="flex items-center space-x-2.5 px-4 py-2.5 text-xs font-black text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border-b border-slate-100 transition-colors"
+                        >
+                          <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                          <span>Seller Dashboard</span>
+                        </Link>
+                      ) : (currentUser?.role === 'user' || !currentUser?.role) && currentUser?.email !== 'admin@apnabazarr.com' ? (
+                        <Link
+                          to="/register-seller"
+                          onClick={() => setShowProfileMenu(false)}
+                          className="flex items-center space-x-2.5 px-4 py-2.5 text-xs font-black text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border-b border-slate-100 transition-colors"
+                        >
+                          <Package className="w-4 h-4 text-indigo-600" />
+                          <span>Become a Seller</span>
+                        </Link>
+                      ) : null}
+
                       <Link
                         to="/profile"
                         onClick={() => setShowProfileMenu(false)}

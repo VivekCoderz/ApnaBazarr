@@ -9,6 +9,8 @@ const reviewSchema = new mongoose.Schema({
   comment:     { type: String, required: true },
   photoUrl:    { type: String, default: '' },
   videoUrl:    { type: String, default: '' },
+  sellerId:    { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  sellerRating: { type: Number, min: 1, max: 5 },
   likes:       { type: [String], default: [] },
   dislikes:    { type: [String], default: [] },
   comments:    [

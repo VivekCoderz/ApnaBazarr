@@ -52,6 +52,7 @@ export default function ProductDetailPage({
   // New Review Form State
   const [reviewerName, setReviewerName] = useState('');
   const [reviewRating, setReviewRating] = useState(5);
+  const [sellerRating, setSellerRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
   const [reviewPhotoUrl, setReviewPhotoUrl] = useState('');
   const [reviewVideoUrl, setReviewVideoUrl] = useState('');
@@ -235,6 +236,7 @@ export default function ProductDetailPage({
           comment: reviewComment,
           photoUrl: reviewPhotoUrl,
           videoUrl: reviewVideoUrl,
+          sellerRating: sellerRating,
         }),
       });
       const data = await res.json();
@@ -246,6 +248,7 @@ export default function ProductDetailPage({
       setTimeout(() => {
         setReviewerName('');
         setReviewRating(5);
+        setSellerRating(5);
         setReviewComment('');
         setReviewPhotoUrl('');
         setReviewVideoUrl('');
@@ -327,6 +330,19 @@ export default function ProductDetailPage({
                 <span className="text-xs font-bold text-slate-700">4.9 / 5.0</span>
                 <span className="text-xs text-slate-400">({reviews.length} Verified Customer Reviews)</span>
               </div>
+
+              {/* Seller Information */}
+              {product.seller && (
+                <div className="flex items-center space-x-2 text-xs font-bold text-slate-500 pt-1">
+                  <span>Sold by:</span>
+                  <Link 
+                    to={`/shop?sellerId=${product.seller.id}`}
+                    className="text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 font-extrabold hover:bg-emerald-100 transition-colors cursor-pointer"
+                  >
+                    {product.seller.shopName}
+                  </Link>
+                </div>
+              )}
             </div>
 
             {/* Price Box in ₹ INR */}
@@ -518,10 +534,26 @@ export default function ProductDetailPage({
                     </span>
                   </div>
 
-                  <div className="flex text-amber-400">
-                    {[...Array(rev.rating)].map((_, i) => (
-                      <Star key={i} className="w-3.5 h-3.5 fill-amber-400" />
-                    ))}
+                  <div className="flex flex-wrap gap-3">
+                    <div className="flex items-center space-x-1 bg-white border px-2 py-0.5 rounded-lg">
+                      <span className="text-[10px] text-slate-500 font-bold">Product Quality:</span>
+                      <div className="flex text-amber-400">
+                        {[...Array(rev.rating)].map((_, i) => (
+                          <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-450" />
+                        ))}
+                      </div>
+                    </div>
+                    
+                    {rev.sellerRating && (
+                      <div className="flex items-center space-x-1 bg-white border px-2 py-0.5 rounded-lg">
+                        <span className="text-[10px] text-slate-500 font-bold">Seller Service:</span>
+                        <div className="flex text-blue-500">
+                          {[...Array(rev.sellerRating)].map((_, i) => (
+                            <Star key={i} className="w-3 h-3 fill-blue-500 text-blue-500" />
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <p className="text-xs text-slate-700 font-semibold leading-relaxed">"{rev.comment}"</p>
@@ -642,7 +674,7 @@ export default function ProductDetailPage({
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1">Rating</label>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">Product Quality Rating</label>
                     <div className="flex space-x-1">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <button
@@ -652,6 +684,22 @@ export default function ProductDetailPage({
                           className="p-1 focus:outline-none"
                         >
                           <Star className={`w-5 h-5 ${star <= reviewRating ? 'text-amber-400 fill-amber-400' : 'text-slate-600'}`} />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">Seller Service Rating (Shipping & Support)</label>
+                    <div className="flex space-x-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          type="button"
+                          key={star}
+                          onClick={() => setSellerRating(star)}
+                          className="p-1 focus:outline-none"
+                        >
+                          <Star className={`w-5 h-5 ${star <= sellerRating ? 'text-amber-400 fill-amber-400' : 'text-slate-600'}`} />
                         </button>
                       ))}
                     </div>

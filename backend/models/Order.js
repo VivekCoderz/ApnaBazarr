@@ -7,7 +7,18 @@ const orderItemSchema = new mongoose.Schema({
   quantity: { type: Number, required: true },
   image: { type: String },
   customText: { type: String },
-  customImage: { type: String }
+  customImage: { type: String },
+  sellerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  commissionPercent: { type: Number, default: 10 },
+  commissionAmount: { type: Number, default: 0 },
+  shippingCharges: { type: Number, default: 0 },
+  sellerPayout: { type: Number, default: 0 },
+  payoutStatus: { type: String, enum: ['pending', 'paid'], default: 'pending' },
+  itemStatus: {
+    type: String,
+    enum: ['Order Placed', 'Processing', 'Packed', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled', 'Returned'],
+    default: 'Order Placed'
+  }
 });
 
 const shippingAddressSchema = new mongoose.Schema({
@@ -36,7 +47,12 @@ const orderSchema = new mongoose.Schema({
   totalAmount: { type: Number, required: true },
   estimatedDelivery: { type: String },
   paymentId: { type: String },
-  razorpayOrderId: { type: String }
+  razorpayOrderId: { type: String },
+  isOffline: { type: Boolean, default: false },
+  packagingCost: { type: Number, default: 0 },
+  shippingCost: { type: Number, default: 0 },
+  packagingCharge: { type: Number, default: 0 },
+  shippingCharge: { type: Number, default: 0 }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Order', orderSchema);

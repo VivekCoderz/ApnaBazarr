@@ -3,11 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import AdminDashboardModal from '../components/AdminDashboardModal';
 import { LogOut, ArrowLeft } from 'lucide-react';
 
-export default function AdminPage({ products, orders, feedbacks = [], onAddProduct, onDeleteProduct, onUpdateOrderStatus, onAdminLogout, onToggleStock }) {
+export default function AdminPage({ products, orders, feedbacks = [], onAddProduct, onDeleteProduct, onUpdateOrderStatus, onAdminLogout, onToggleStock, onAddOfflineOrder }) {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.removeItem('apna_admin_token');
+    document.cookie = "apna_admin_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
     onAdminLogout();
     navigate('/admin/login');
   };
@@ -18,7 +18,7 @@ export default function AdminPage({ products, orders, feedbacks = [], onAddProdu
       <div className="w-full px-4 sm:px-6 py-3.5 bg-slate-950 flex items-center justify-between text-white border-b border-slate-800 shrink-0">
         <button
           onClick={() => navigate('/')}
-          className="flex items-center space-x-1.5 text-xs font-black text-slate-350 hover:text-white transition-colors shrink-0 cursor-pointer"
+          className="flex items-center space-x-1.5 text-xs font-black text-slate-355 hover:text-white transition-colors shrink-0 cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4 text-amber-400" />
           <span>Exit to Store</span>
@@ -48,6 +48,7 @@ export default function AdminPage({ products, orders, feedbacks = [], onAddProdu
           onDeleteProduct={onDeleteProduct}
           onUpdateOrderStatus={onUpdateOrderStatus}
           onToggleStock={onToggleStock}
+          onAddOfflineOrder={onAddOfflineOrder}
         />
       </div>
     </div>

@@ -6,6 +6,7 @@ export default function ProductCard({ product, onAddToCart, onQuickView, onToggl
   const navigate = useNavigate();
 
   const isOutOfStock = product.inStock === false || product.stock <= 0;
+  const isClosed = product.seller && product.seller.isOpen === false;
 
   const handleCardClick = () => {
     navigate(`/product/${product.id}`);
@@ -15,7 +16,7 @@ export default function ProductCard({ product, onAddToCart, onQuickView, onToggl
     <div 
       onClick={handleCardClick}
       className={`group bg-white rounded-xl overflow-hidden border border-slate-100 custom-card-shadow transition-all duration-300 flex flex-col justify-between h-full relative cursor-pointer ${
-        isOutOfStock ? 'opacity-90' : ''
+        isOutOfStock || isClosed ? 'opacity-90' : ''
       }`}
     >
       
@@ -27,6 +28,10 @@ export default function ProductCard({ product, onAddToCart, onQuickView, onToggl
           {isOutOfStock ? (
             <span className="bg-red-600 text-white font-black text-[10px] px-2 py-0.5 rounded-xs tracking-wider uppercase shadow-xs">
               OUT OF STOCK
+            </span>
+          ) : isClosed ? (
+            <span className="bg-amber-600 text-white font-black text-[10px] px-2 py-0.5 rounded-xs tracking-wider uppercase shadow-xs">
+              SHOP CLOSED
             </span>
           ) : (
             <>
@@ -83,22 +88,24 @@ export default function ProductCard({ product, onAddToCart, onQuickView, onToggl
           </button>
 
           <button
-            disabled={isOutOfStock}
+            disabled={isOutOfStock || isClosed}
             onClick={(e) => {
               e.stopPropagation();
-              if (!isOutOfStock) onAddToCart(product);
+              if (!isOutOfStock && !isClosed) onAddToCart(product);
             }}
             className={`p-2 rounded-lg text-xs font-semibold flex items-center space-x-1 shadow-md transition-colors ${
-              isOutOfStock
+              (isOutOfStock || isClosed)
                 ? 'bg-slate-400 text-slate-200 cursor-not-allowed'
                 : isCartAdded
                   ? 'bg-emerald-600 text-white'
                   : 'bg-[#0066cc] text-white hover:bg-blue-700'
             }`}
-            title={isOutOfStock ? "Out of Stock" : "Add to Cart"}
+            title={isOutOfStock ? "Out of Stock" : isClosed ? "Shop Closed" : "Add to Cart"}
           >
             {isOutOfStock ? (
               <span>Out of Stock</span>
+            ) : isClosed ? (
+              <span>Closed</span>
             ) : isCartAdded ? (
               <>
                 <Check className="w-4 h-4" />
@@ -120,12 +127,24 @@ export default function ProductCard({ product, onAddToCart, onQuickView, onToggl
       <div className="p-2.5 sm:p-4 flex flex-col justify-between flex-1 space-y-1 sm:space-y-2">
         
         <div>
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] sm:text-[11px] font-medium text-slate-400 block truncate">
+          <div className="flex items-center justify-between gap-1.5">
+            <span className="text-[10px] sm:text-[11px] font-medium text-slate-405 block truncate flex-1">
               {product.category}
             </span>
+            {product.seller && (
+              <span 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/shop?sellerId=${product.seller.id}`);
+                }}
+                className="text-[9px] text-[#0066cc] hover:underline font-black cursor-pointer truncate max-w-[100px] shrink-0"
+                title={`View ${product.seller.shopName}`}
+              >
+                {product.seller.shopName}
+              </span>
+            )}
             {product.gender && (
-              <span className="text-[9px] sm:text-[10px] font-extrabold text-[#0066cc] bg-blue-50 px-1 py-0.5 rounded">
+              <span className="text-[9px] sm:text-[10px] font-extrabold text-[#0066cc] bg-blue-50 px-1 py-0.5 rounded shrink-0">
                 {product.gender}
               </span>
             )}
@@ -171,17 +190,24 @@ export default function ProductCard({ product, onAddToCart, onQuickView, onToggl
 
         {/* Mobile Quick Add Button */}
         <button
+          disabled={isOutOfStock || isClosed}
           onClick={(e) => {
             e.stopPropagation();
-            onAddToCart(product);
+            if (!isOutOfStock && !isClosed) onAddToCart(product);
           }}
           className={`w-full mt-2 py-2 rounded-lg text-xs font-bold sm:hidden flex items-center justify-center space-x-1 transition-colors ${
-            isCartAdded
-              ? 'bg-emerald-600 text-white'
-              : 'bg-slate-900 text-white hover:bg-[#0066cc]'
+            isOutOfStock || isClosed
+              ? 'bg-slate-205 text-slate-400 cursor-not-allowed'
+              : isCartAdded
+                ? 'bg-emerald-600 text-white'
+                : 'bg-slate-900 text-white hover:bg-[#0066cc]'
           }`}
         >
-          {isCartAdded ? (
+          {isOutOfStock ? (
+            <span>Out of Stock</span>
+          ) : isClosed ? (
+            <span>Shop Closed</span>
+          ) : isCartAdded ? (
             <>
               <Check className="w-3.5 h-3.5" />
               <span>Added to Cart</span>

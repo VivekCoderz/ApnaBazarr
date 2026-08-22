@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { X, TrendingUp, Package, ShoppingBag, Plus, Trash2, CheckCircle, ShieldCheck, Tag, MessageSquare, Star, Video, Upload, Loader2, Settings } from 'lucide-react';
+import { X, TrendingUp, Package, ShoppingBag, Plus, Trash2, CheckCircle, ShieldCheck, Tag, MessageSquare, Star, Video, Upload, Loader2, Settings, Store, RefreshCw, Eye, ChevronDown } from 'lucide-react';
+
+const getCookie = (name) => {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return '';
+};
+const getToken = () => getCookie('apna_admin_token');
 
 async function uploadToCloudinary(file, endpoint) {
   const formData = new FormData();
@@ -21,10 +29,141 @@ async function uploadToCloudinary(file, endpoint) {
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-export default function AdminDashboardModal({ isOpen, onClose, products, orders, onAddProduct, onDeleteProduct, onUpdateOrderStatus, onToggleStock }) {
+export default function AdminDashboardModal({ isOpen, onClose, products, orders, onAddProduct, onDeleteProduct, onUpdateOrderStatus, onToggleStock, onAddOfflineOrder }) {
   if (!isOpen) return null;
 
   const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'addProduct', 'inventory', 'orders', 'feedbacks', 'reviews', 'settings'
+  const [showAddOfflineOrderModal, setShowAddOfflineOrderModal] = useState(false);
+  const [offlineCustName, setOfflineCustName] = useState('');
+  const [offlineCustPhone, setOfflineCustPhone] = useState('');
+  const [offlineCustEmail, setOfflineCustEmail] = useState('');
+  const [offlinePaymentMethod, setOfflinePaymentMethod] = useState('Offline Cash');
+  const [offlineFlat, setOfflineFlat] = useState('');
+  const [offlineArea, setOfflineArea] = useState('');
+  const [offlineCity, setOfflineCity] = useState('');
+  const [offlineState, setOfflineState] = useState('');
+  const [offlinePincode, setOfflinePincode] = useState('');
+  const [offlinePackagingCost, setOfflinePackagingCost] = useState('0');
+  const [offlineShippingCost, setOfflineShippingCost] = useState('0');
+  const [offlinePackagingCharge, setOfflinePackagingCharge] = useState('0');
+  const [offlineShippingCharge, setOfflineShippingCharge] = useState('0');
+  const [offlineItems, setOfflineItems] = useState([{ productId: '', price: '', quantity: 1 }]);
+  const [offlineActionLoading, setOfflineActionLoading] = useState(false);
+  const [openDropdownIdx, setOpenDropdownIdx] = useState(null);
+  const [prodSearchQueries, setProdSearchQueries] = useState({});
+
+  const updateSearchQuery = (index, value) => {
+    setProdSearchQueries(prev => ({ ...prev, [index]: value }));
+  };
+
+  const filteredProductsForSearch = (index) => {
+    const query = (prodSearchQueries[index] || '').toLowerCase();
+    if (!query) return products;
+    return products.filter(p => p.name.toLowerCase().includes(query));
+  };
+
+  const addOfflineItemRow = () => {
+    setOfflineItems([...offlineItems, { productId: '', price: '', quantity: 1 }]);
+  };
+
+  const removeOfflineItemRow = (index) => {
+    setOfflineItems(offlineItems.filter((_, i) => i !== index));
+  };
+
+  const updateOfflineItem = (index, field, value) => {
+    const updated = [...offlineItems];
+    updated[index][field] = value;
+    if (field === 'productId') {
+      const prod = products.find(p => String(p._id) === String(value));
+      if (prod) {
+        updated[index]['price'] = prod.price;
+      }
+    }
+    setOfflineItems(updated);
+  };
+
+  // Real-time calculations
+  const subtotalAmount = offlineItems.reduce((sum, it) => {
+    const priceVal = Number(it.price) || 0;
+    const qtyVal = Number(it.quantity) || 1;
+    return sum + (priceVal * qtyVal);
+  }, 0);
+
+  const grandTotalAmount = subtotalAmount + (Number(offlinePackagingCharge) || 0) + (Number(offlineShippingCharge) || 0);
+
+  const handleOfflineOrderSubmit = async (e) => {
+    e.preventDefault();
+    if (offlineItems.some(it => !it.productId)) {
+      alert("Please select a product for all item rows.");
+      return;
+    }
+    setOfflineActionLoading(true);
+    try {
+      const orderPayload = {
+        userEmail: offlineCustEmail || 'offline@apnabazarr.com',
+        paymentMethod: offlinePaymentMethod,
+        packagingCost: Number(offlinePackagingCost) || 0,
+        shippingCost: Number(offlineShippingCost) || 0,
+        packagingCharge: Number(offlinePackagingCharge) || 0,
+        shippingCharge: Number(offlineShippingCharge) || 0,
+        shippingAddress: {
+          fullName: offlineCustName,
+          phone: offlineCustPhone,
+          flatNo: offlineFlat,
+          area: offlineArea,
+          city: offlineCity,
+          state: offlineState,
+          pincode: offlinePincode,
+          addressType: 'Home'
+        },
+        items: offlineItems.map(it => ({
+          productId: it.productId,
+          price: Number(it.price) || 0,
+          quantity: Number(it.quantity) || 1
+        }))
+      };
+
+      const res = await fetch(`${BASE_URL}/orders/offline`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}`
+        },
+        credentials: 'include',
+        body: JSON.stringify(orderPayload)
+      });
+      const result = await res.json();
+      if (result.success) {
+        alert("Offline order recorded successfully!");
+        setShowAddOfflineOrderModal(false);
+        // Clear state
+        setOfflineCustName('');
+        setOfflineCustPhone('');
+        setOfflineCustEmail('');
+        setOfflineFlat('');
+        setOfflineArea('');
+        setOfflineCity('');
+        setOfflineState('');
+        setOfflinePincode('');
+        setOfflinePackagingCost('0');
+        setOfflineShippingCost('0');
+        setOfflinePackagingCharge('0');
+        setOfflineShippingCharge('0');
+        setOfflineItems([{ productId: '', price: '', quantity: 1 }]);
+        
+        if (onAddOfflineOrder) {
+          onAddOfflineOrder();
+        }
+      } else {
+        alert(result.message || "Failed to create offline order.");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Error submitting offline order.");
+    } finally {
+      setOfflineActionLoading(false);
+    }
+  };
 
   // Fetch feedbacks from DB
   const [feedbacks, setFeedbacks] = useState([]);
@@ -35,15 +174,65 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
   const [reviewsLoading, setReviewsLoading] = useState(false);
 
   // Settings configuration state
-  const [settings, setSettings] = useState({ secret_cod_code: 'APNACOD' });
+  const [settings, setSettings] = useState({ secret_cod_code: 'APNACOD', commission_percentage: '10' });
   const [newCodCode, setNewCodCode] = useState('');
+  const [newCommission, setNewCommission] = useState('');
   const [settingsLoading, setSettingsLoading] = useState(false);
   const [settingsSuccess, setSettingsSuccess] = useState('');
   const [settingsError, setSettingsError] = useState('');
 
+  // Sellers configuration state
+  const [sellers, setSellers] = useState([]);
+  const [sellersLoading, setSellersLoading] = useState(false);
+  const [selectedSeller, setSelectedSeller] = useState(null);
+
+  const loadSellers = async () => {
+    try {
+      setSellersLoading(true);
+      const token = getToken();
+      const headers = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch(`${BASE_URL}/auth/admin/sellers`, { headers, credentials: 'include' });
+      const result = await res.json();
+      if (result.success) {
+        setSellers(result.sellers);
+      }
+    } catch (err) {
+      console.warn("Failed to fetch sellers:", err);
+    } finally {
+      setSellersLoading(false);
+    }
+  };
+
+  const handleUpdateSellerStatus = async (sellerId, nextStatus) => {
+    if (!window.confirm(`Are you sure you want to change seller status to: ${nextStatus}?`)) return;
+    try {
+      const token = getToken();
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch(`${BASE_URL}/auth/admin/sellers/${sellerId}/status`, {
+        method: 'PUT',
+        headers,
+        credentials: 'include',
+        body: JSON.stringify({ status: nextStatus })
+      });
+      const result = await res.json();
+      if (result.success) {
+        alert(result.message);
+        loadSellers();
+      } else {
+        alert(result.message || "Failed to update seller status.");
+      }
+    } catch (err) {
+      alert("Error updating seller status: " + err.message);
+    }
+  };
+
   const handleSaveSettings = async (e) => {
     e.preventDefault();
-    if (!newCodCode.trim()) return;
+    if (!newCodCode.trim() || !newCommission.trim()) return;
     setSettingsLoading(true);
     setSettingsError('');
     setSettingsSuccess('');
@@ -51,13 +240,18 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
       const res = await fetch(`${BASE_URL}/settings`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ secret_cod_code: newCodCode })
+        body: JSON.stringify({ 
+          secret_cod_code: newCodCode,
+          commission_percentage: newCommission
+        })
       });
       const data = await res.json();
       if (data.success) {
         setSettings(data.settings);
         setNewCodCode(data.settings.secret_cod_code);
-        setSettingsSuccess('✅ Secret COD Code updated successfully!');
+        setNewCommission(data.settings.commission_percentage);
+        setSettingsSuccess('✅ Store configurations saved successfully!');
+        loadSellers();
       } else {
         throw new Error(data.message || 'Failed to update settings');
       }
@@ -91,9 +285,11 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
         if (d.success && d.settings) {
           setSettings(d.settings);
           setNewCodCode(d.settings.secret_cod_code);
+          setNewCommission(d.settings.commission_percentage || '10');
         }
       })
       .catch(() => {});
+    loadSellers();
   }, [isOpen]);
 
   // New Product Form State
@@ -121,11 +317,13 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
 
   // Compute total cost price of sold items across orders
   const totalCost = orders.reduce((sum, ord) => {
-    return sum + ord.items.reduce((itemSum, item) => {
-      const origProd = products.find(p => p.id === item.id || p.name === item.name);
+    const itemsCost = ord.items.reduce((itemSum, item) => {
+      const origProd = products.find(p => p.id === item.id || p.name === item.name || String(p._id) === String(item.productId));
       const costPerPiece = origProd && origProd.costPrice ? origProd.costPrice : (item.price * 0.6);
       return itemSum + (costPerPiece * item.quantity);
     }, 0);
+    const offlineExpenses = ord.isOffline ? ((ord.packagingCost || 0) + (ord.shippingCost || 0)) : 0;
+    return sum + itemsCost + offlineExpenses;
   }, 0);
 
   const netProfit = totalRevenue - totalCost;
@@ -301,6 +499,13 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
           >
             <Star className="w-4 h-4" />
             <span>Product Reviews ({allReviews.length})</span>
+          </button>
+          <button
+            onClick={() => { setActiveTab('sellers'); loadSellers(); }}
+            className={`py-3.5 transition-colors border-b-2 flex items-center space-x-1.5 ${activeTab === 'sellers' ? 'border-[#0066cc] text-[#0066cc]' : 'border-transparent text-slate-600 hover:text-slate-900'}`}
+          >
+            <Store className="w-4 h-4" />
+            <span>Sellers Directory ({sellers.length})</span>
           </button>
           <button
             onClick={() => setActiveTab('settings')}
@@ -830,7 +1035,16 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
           {/* TAB 4: ORDERS */}
           {activeTab === 'orders' && (
             <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4 max-w-6xl mx-auto">
-              <h4 className="text-sm font-extrabold text-slate-900 border-b pb-3">Customer Orders History ({orders.length})</h4>
+              <div className="flex justify-between items-center border-b pb-3">
+                <h4 className="text-sm font-extrabold text-slate-900">Customer Orders History ({orders.length})</h4>
+                <button
+                  onClick={() => setShowAddOfflineOrderModal(true)}
+                  className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-xl transition-all flex items-center space-x-1.5 uppercase tracking-wider cursor-pointer shadow-xs"
+                >
+                  <Plus className="w-4 h-4 text-white" />
+                  <span>Add Offline Order</span>
+                </button>
+              </div>
               
               {orders.length === 0 ? (
                 <div className="py-12 text-center text-slate-400 text-xs">No orders placed yet.</div>
@@ -841,7 +1055,11 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                       <div className="flex items-center justify-between text-xs border-b border-slate-200 pb-2">
                         <div>
                           <span className="font-extrabold text-slate-900">{ord.orderId}</span>
-                          {ord.paymentMethod === 'COD' ? (
+                          {ord.isOffline ? (
+                            <span className="bg-blue-100 text-blue-700 font-extrabold text-[10px] px-2.5 py-0.5 rounded-lg ml-2 border border-blue-250 uppercase tracking-wide">
+                              Offline ({ord.paymentMethod})
+                            </span>
+                          ) : ord.paymentMethod === 'COD' ? (
                             <span className="bg-rose-100 text-rose-700 font-extrabold text-[10px] px-2.5 py-0.5 rounded-lg ml-2 border border-rose-200">
                               Cash on Delivery (COD)
                             </span>
@@ -1065,10 +1283,28 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                     value={newCodCode}
                     onChange={(e) => setNewCodCode(e.target.value)}
                     placeholder="Enter new secret code (e.g. APNACOD)..."
-                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-[#0066cc] bg-white text-slate-850 uppercase font-bold"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-[#0066cc] bg-white text-slate-855 uppercase font-bold"
                   />
                   <p className="text-[10px] text-slate-400">
                     If a customer enters this code on checkout, the Cash on Delivery (COD) payment option will be unlocked.
+                  </p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-[11px] font-extrabold text-slate-650 uppercase">
+                    Admin profit commission Cut (%)
+                  </label>
+                  <input 
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={newCommission}
+                    onChange={(e) => setNewCommission(e.target.value)}
+                    placeholder="e.g. 10..."
+                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-[#0066cc] bg-white text-slate-855 font-bold"
+                  />
+                  <p className="text-[10px] text-slate-400">
+                    The percentage cut the website receives from all sales generated by multiple sellers.
                   </p>
                 </div>
 
@@ -1086,7 +1322,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
 
                 <button 
                   type="submit"
-                  disabled={settingsLoading || !newCodCode.trim()}
+                  disabled={settingsLoading || !newCodCode.trim() || !newCommission.trim()}
                   className="px-6 py-2.5 bg-[#0066cc] hover:bg-blue-700 text-white font-extrabold text-xs uppercase rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1 cursor-pointer"
                 >
                   {settingsLoading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
@@ -1096,8 +1332,593 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
             </div>
           )}
 
-        </div>
+          {/* TAB 8: SELLERS DIRECTORY */}
+          {activeTab === 'sellers' && (
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <h4 className="text-sm font-extrabold text-slate-905">Sellers Directory & Commission Earnings</h4>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Manage active sellers and monitor website profit cuts (Currently set to: <strong className="text-[#0066cc]">{settings.commission_percentage || '10'}% Commission</strong>).
+                  </p>
+                </div>
+                <button
+                  onClick={loadSellers}
+                  className="px-4 py-2 border rounded-xl text-xs font-black text-slate-700 hover:bg-slate-50 bg-white shadow-2xs flex items-center space-x-1 cursor-pointer"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>REFRESH LIST</span>
+                </button>
+              </div>
 
+              <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-xs">
+                {sellersLoading ? (
+                  <div className="p-16 text-center space-y-2">
+                    <Loader2 className="w-8 h-8 text-[#0066cc] animate-spin mx-auto" />
+                    <p className="text-xs text-slate-450 font-black uppercase">Loading registered sellers...</p>
+                  </div>
+                ) : sellers.length === 0 ? (
+                  <div className="p-16 text-center space-y-3">
+                    <Store className="w-12 h-12 text-slate-350 mx-auto" />
+                    <div>
+                      <h4 className="text-sm font-black text-slate-800">No sellers registered yet</h4>
+                      <p className="text-xs text-slate-400 font-semibold mt-1">Once a user completes seller registration, their shop profile details will show here.</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-slate-50 text-[10px] font-black text-slate-450 uppercase tracking-widest border-b border-slate-200">
+                          <th className="px-6 py-4">Shop Details</th>
+                          <th className="px-6 py-4">Seller Owner</th>
+                          <th className="px-6 py-4">Products Listed</th>
+                          <th className="px-6 py-4">Total Sales</th>
+                          <th className="px-6 py-4">Admin Commission Cut ({settings.commission_percentage || '10'}%)</th>
+                          <th className="px-6 py-4">Contact Phone</th>
+                          <th className="px-6 py-4 text-right">Approval Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {sellers.map(s => (
+                          <tr key={s.id} className="hover:bg-slate-50/50 transition-colors">
+                            <td className="px-6 py-4.5">
+                              <h4 
+                                onClick={() => setSelectedSeller(s)}
+                                className="text-xs font-black text-[#0066cc] hover:underline cursor-pointer flex items-center"
+                              >
+                                <Eye className="w-3.5 h-3.5 mr-1" />
+                                {s.shopName}
+                              </h4>
+                              <p className="text-[10px] text-slate-400 font-bold truncate max-w-xs mt-0.5" title={s.shopDescription}>
+                                {s.shopDescription || 'No description provided.'}
+                              </p>
+                              <span className="text-[9px] text-slate-500 font-bold block mt-1">📍 {s.shopAddress}</span>
+                            </td>
+
+                            <td className="px-6 py-4.5">
+                              <div className="text-xs font-black text-slate-800">{s.name}</div>
+                              <div className="text-[10px] text-slate-450 font-bold mt-0.5">{s.email}</div>
+                            </td>
+
+                            <td className="px-6 py-4.5">
+                              <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-full border">
+                                {s.productsCount} items
+                              </span>
+                            </td>
+
+                            <td className="px-6 py-4.5">
+                              <span className="text-xs font-black text-slate-900">₹{s.totalSales.toLocaleString('en-IN')}</span>
+                              <span className="text-[10px] text-slate-450 font-bold block mt-0.5">{s.totalItems} items sold</span>
+                            </td>
+
+                            <td className="px-6 py-4.5">
+                              <span className="text-xs font-black text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                                +₹{s.commissionEarned.toLocaleString('en-IN')}
+                              </span>
+                            </td>
+
+                            <td className="px-6 py-4.5 text-xs font-black text-slate-700">
+                              <a href={`tel:${s.phone}`} className="text-[#0066cc] hover:underline">
+                                {s.phone || 'N/A'}
+                              </a>
+                            </td>
+
+                            <td className="px-6 py-4.5 text-right">
+                              <div className="flex flex-col items-end space-y-1.5">
+                                <span className={`text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border inline-block ${
+                                  s.status === 'approved' 
+                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                                    : s.status === 'rejected' 
+                                    ? 'bg-red-50 text-red-700 border-red-200' 
+                                    : 'bg-amber-50 text-amber-700 border-amber-200'
+                                }`}>
+                                  {s.status || 'approved'}
+                                </span>
+                                <div className="flex items-center space-x-1.5">
+                                  {s.status !== 'approved' && (
+                                    <button
+                                      onClick={() => handleUpdateSellerStatus(s.id, 'approved')}
+                                      className="text-[9px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-0.5 rounded cursor-pointer transition-colors"
+                                    >
+                                      Approve
+                                    </button>
+                                  )}
+                                  {s.status !== 'rejected' && (
+                                    <button
+                                      onClick={() => handleUpdateSellerStatus(s.id, 'rejected')}
+                                      className="text-[9px] font-bold bg-red-650 hover:bg-red-705 text-white px-2 py-0.5 rounded cursor-pointer transition-colors"
+                                    >
+                                      Reject
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {selectedSeller && (
+                <div className="fixed inset-0 z-55 flex items-center justify-center p-4 overflow-y-auto animate-fade-in">
+                  <div className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity" onClick={() => setSelectedSeller(null)} />
+                  
+                  <div className="relative bg-white rounded-3xl max-w-lg w-full shadow-2xl overflow-hidden border border-slate-200 z-10">
+                    <div className="bg-slate-950 text-white p-5 flex justify-between items-center border-b border-slate-900">
+                      <div>
+                        <span className="text-[10px] text-indigo-400 font-black uppercase tracking-widest block">Seller Detail Record</span>
+                        <h3 className="text-sm font-black text-white">{selectedSeller.shopName}</h3>
+                      </div>
+                      <button 
+                        onClick={() => setSelectedSeller(null)} 
+                        className="w-7 h-7 rounded-full bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center border border-slate-800 cursor-pointer"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                    
+                    <div className="p-6 space-y-5 max-h-[70vh] overflow-y-auto">
+                      <div className="grid grid-cols-2 gap-4 text-xs">
+                        <div>
+                          <span className="block text-[8px] text-slate-400 uppercase font-black tracking-widest mb-0.5">Owner Name</span>
+                          <p className="font-extrabold text-slate-800">{selectedSeller.name}</p>
+                        </div>
+                        <div>
+                          <span className="block text-[8px] text-slate-400 uppercase font-black tracking-widest mb-0.5">Email ID</span>
+                          <p className="font-extrabold text-slate-850 truncate">{selectedSeller.email}</p>
+                        </div>
+                        <div>
+                          <span className="block text-[8px] text-slate-400 uppercase font-black tracking-widest mb-0.5">Contact Phone</span>
+                          <p className="font-extrabold text-slate-800">{selectedSeller.phone || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <span className="block text-[8px] text-slate-400 uppercase font-black tracking-widest mb-0.5">Shop Location</span>
+                          <p className="font-extrabold text-slate-800">{selectedSeller.shopAddress || 'N/A'}</p>
+                        </div>
+                      </div>
+
+                      <div className="border-t border-slate-100 pt-4 grid grid-cols-2 gap-4 text-xs">
+                        <div>
+                          <span className="block text-[8px] text-slate-400 uppercase font-black tracking-widest mb-0.5">Pickup Pincode</span>
+                          <p className="font-extrabold text-slate-800">📍 {selectedSeller.pickupPincode || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <span className="block text-[8px] text-slate-400 uppercase font-black tracking-widest mb-0.5">Return Policy</span>
+                          <p className="font-extrabold text-slate-800">🛡️ {selectedSeller.returnPolicy || 'N/A'}</p>
+                        </div>
+                      </div>
+
+                      <div className="border-t border-slate-100 pt-4 space-y-2.5">
+                        <span className="text-[10px] text-[#0066cc] font-black uppercase tracking-widest block font-sans">Bank Payout details</span>
+                        <div className="bg-slate-50 border p-3 rounded-2xl grid grid-cols-2 gap-3 text-xs border-slate-200">
+                          <div>
+                            <span className="block text-[8px] text-slate-450 uppercase font-black leading-none mb-0.5">A/C Holder</span>
+                            <span className="font-bold text-slate-800">{selectedSeller.bankDetails?.accountName || 'N/A'}</span>
+                          </div>
+                          <div>
+                            <span className="block text-[8px] text-slate-455 uppercase font-black leading-none mb-0.5">Bank Name</span>
+                            <span className="font-bold text-slate-800">{selectedSeller.bankDetails?.bankName || 'N/A'}</span>
+                          </div>
+                          <div>
+                            <span className="block text-[8px] text-slate-450 uppercase font-black leading-none mb-0.5">Account Number</span>
+                            <span className="font-bold text-slate-800 font-mono">{selectedSeller.bankDetails?.accountNumber || 'N/A'}</span>
+                          </div>
+                          <div>
+                            <span className="block text-[8px] text-slate-455 uppercase font-black leading-none mb-0.5">IFSC Code</span>
+                            <span className="font-bold text-slate-800 font-mono">{selectedSeller.bankDetails?.ifscCode || 'N/A'}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="border-t border-slate-100 pt-4 grid grid-cols-3 gap-3 text-center">
+                        <div className="bg-slate-50 border p-2 rounded-xl">
+                          <span className="block text-[8px] text-slate-400 font-black uppercase">Products</span>
+                          <span className="text-xs font-black text-slate-800">{selectedSeller.productsCount}</span>
+                        </div>
+                        <div className="bg-slate-50 border p-2 rounded-xl">
+                          <span className="block text-[8px] text-slate-400 font-black uppercase">Sales Total</span>
+                          <span className="text-xs font-black text-slate-800">₹{selectedSeller.totalSales}</span>
+                        </div>
+                        <div className="bg-slate-50 border p-2 rounded-xl bg-emerald-50/20 border-emerald-105">
+                          <span className="block text-[8px] text-emerald-600 font-black uppercase">Admin Cut</span>
+                          <span className="text-xs font-black text-emerald-700">₹{selectedSeller.commissionEarned}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+                      <div className="flex gap-2">
+                        {selectedSeller.status !== 'approved' ? (
+                          <button
+                            onClick={async () => {
+                              await handleUpdateSellerStatus(selectedSeller.id, 'approved');
+                              setSelectedSeller(null);
+                            }}
+                            className="bg-emerald-600 hover:bg-emerald-750 text-white font-black text-[9.5px] uppercase px-4 py-2 rounded-xl transition-all cursor-pointer"
+                          >
+                            Approve Shop
+                          </button>
+                        ) : (
+                          <button
+                            onClick={async () => {
+                              await handleUpdateSellerStatus(selectedSeller.id, 'rejected');
+                              setSelectedSeller(null);
+                            }}
+                            className="bg-red-600 hover:bg-red-750 text-white font-black text-[9.5px] uppercase px-4 py-2 rounded-xl transition-all cursor-pointer"
+                          >
+                            Suspend Shop
+                          </button>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => setSelectedSeller(null)}
+                        className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-black text-[9.5px] uppercase rounded-xl transition-all cursor-pointer"
+                      >
+                        Close
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Add Offline Order Modal overlay */}
+              {showAddOfflineOrderModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-xs p-4 overflow-y-auto">
+                  <div className="bg-white rounded-3xl w-full max-w-2xl p-6 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto text-slate-800">
+                    <div className="flex justify-between items-center border-b pb-3">
+                      <h3 className="text-base font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                        <Plus className="w-5 h-5 text-emerald-600" />
+                        <span>Add Offline Order</span>
+                      </h3>
+                      <button onClick={() => setShowAddOfflineOrderModal(false)} className="p-1 hover:bg-slate-150 rounded-lg cursor-pointer">
+                        <X className="w-5 h-5 text-slate-500" />
+                      </button>
+                    </div>
+
+                    <form onSubmit={handleOfflineOrderSubmit} className="space-y-4">
+                      {/* Customer Details */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">Customer Name *</label>
+                          <input
+                            type="text"
+                            required
+                            value={offlineCustName}
+                            onChange={(e) => setOfflineCustName(e.target.value)}
+                            className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
+                            placeholder="e.g. Ramesh Kumar"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">Customer Phone *</label>
+                          <input
+                            type="text"
+                            required
+                            value={offlineCustPhone}
+                            onChange={(e) => setOfflineCustPhone(e.target.value)}
+                            className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
+                            placeholder="e.g. 9876543210"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">Customer Email</label>
+                          <input
+                            type="email"
+                            value={offlineCustEmail}
+                            onChange={(e) => setOfflineCustEmail(e.target.value)}
+                            className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
+                            placeholder="e.g. ramesh@example.com (optional)"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-black uppercase text-slate-400 mb-1">Payment Method</label>
+                          <select
+                            value={offlinePaymentMethod}
+                            onChange={(e) => setOfflinePaymentMethod(e.target.value)}
+                            className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
+                          >
+                            <option value="Offline Cash">Offline Cash</option>
+                            <option value="UPI / QR Code">UPI / QR Code</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="Card Payment">Card Payment</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Address Fields */}
+                      <div className="space-y-3 p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Customer Shipping Address</span>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-[9px] font-bold text-slate-400 mb-0.5">Flat / House No. *</label>
+                            <input
+                              type="text"
+                              required
+                              value={offlineFlat}
+                              onChange={(e) => setOfflineFlat(e.target.value)}
+                              className="w-full px-3 py-1.5 border border-slate-200 bg-white rounded-lg text-xs"
+                              placeholder="e.g. House No. 12"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[9px] font-bold text-slate-400 mb-0.5">Area / Street / Colony *</label>
+                            <input
+                              type="text"
+                              required
+                              value={offlineArea}
+                              onChange={(e) => setOfflineArea(e.target.value)}
+                              className="w-full px-3 py-1.5 border border-slate-200 bg-white rounded-lg text-xs"
+                              placeholder="e.g. Sector 14"
+                            />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          <div>
+                            <label className="block text-[9px] font-bold text-slate-400 mb-0.5">City *</label>
+                            <input
+                              type="text"
+                              required
+                              value={offlineCity}
+                              onChange={(e) => setOfflineCity(e.target.value)}
+                              className="w-full px-3 py-1.5 border border-slate-200 bg-white rounded-lg text-xs"
+                              placeholder="e.g. Panipat"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[9px] font-bold text-slate-400 mb-0.5">State *</label>
+                            <input
+                              type="text"
+                              required
+                              value={offlineState}
+                              onChange={(e) => setOfflineState(e.target.value)}
+                              className="w-full px-3 py-1.5 border border-slate-200 bg-white rounded-lg text-xs"
+                              placeholder="e.g. Haryana"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[9px] font-bold text-slate-400 mb-0.5">Pincode *</label>
+                            <input
+                              type="text"
+                              required
+                              value={offlinePincode}
+                              onChange={(e) => setOfflinePincode(e.target.value)}
+                              className="w-full px-3 py-1.5 border border-slate-200 bg-white rounded-lg text-xs"
+                              placeholder="e.g. 132103"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Charges & Expenses */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                        <div className="space-y-3">
+                          <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Charges (Billed to Customer)</span>
+                          <div className="grid grid-cols-2 gap-2.5">
+                            <div>
+                              <label className="block text-[9px] font-bold text-slate-400 mb-0.5">Packaging Fee (₹)</label>
+                              <input
+                                type="number"
+                                min="0"
+                                value={offlinePackagingCharge}
+                                onChange={(e) => setOfflinePackagingCharge(e.target.value)}
+                                className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                placeholder="0"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[9px] font-bold text-slate-400 mb-0.5">Shipping Fee (₹)</label>
+                              <input
+                                type="number"
+                                min="0"
+                                value={offlineShippingCharge}
+                                onChange={(e) => setOfflineShippingCharge(e.target.value)}
+                                className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                placeholder="0"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="space-y-3">
+                          <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Expenses (Your Actual Costs)</span>
+                          <div className="grid grid-cols-2 gap-2.5">
+                            <div>
+                              <label className="block text-[9px] font-bold text-slate-400 mb-0.5">Packaging Cost (₹)</label>
+                              <input
+                                type="number"
+                                min="0"
+                                value={offlinePackagingCost}
+                                onChange={(e) => setOfflinePackagingCost(e.target.value)}
+                                className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                placeholder="0"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[9px] font-bold text-slate-400 mb-0.5">Shipping Cost (₹)</label>
+                              <input
+                                type="number"
+                                min="0"
+                                value={offlineShippingCost}
+                                onChange={(e) => setOfflineShippingCost(e.target.value)}
+                                className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                placeholder="0"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Product Items Selection */}
+                      <div className="space-y-3 p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                        <div className="flex justify-between items-center">
+                          <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Product Items List</span>
+                          <button
+                            type="button"
+                            onClick={addOfflineItemRow}
+                            className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-[10px] rounded-lg flex items-center space-x-1 uppercase cursor-pointer"
+                          >
+                            <Plus className="w-3 h-3 text-white" />
+                            <span>Add Item</span>
+                          </button>
+                        </div>
+
+                        {offlineItems.map((item, idx) => {
+                          const selectedProd = products.find(p => String(p._id) === String(item.productId) || String(p.id) === String(item.productId));
+                          return (
+                            <div key={idx} className="flex flex-col sm:flex-row gap-2.5 items-end bg-white p-3 rounded-xl border border-slate-200">
+                              <div className="flex-1 min-w-0 w-full">
+                                <label className="block text-[8px] font-bold text-slate-400 mb-0.5">Product *</label>
+                                <div className="relative">
+                                  <button
+                                    type="button"
+                                    onClick={() => setOpenDropdownIdx(openDropdownIdx === idx ? null : idx)}
+                                    className="w-full flex items-center justify-between px-3 py-1.5 border border-slate-200 bg-white rounded-lg text-xs text-left cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                  >
+                                    {selectedProd ? (
+                                      <div className="flex items-center space-x-2 truncate">
+                                        <img src={selectedProd.image} className="w-6 h-6 object-cover rounded border" />
+                                        <span className="truncate">{selectedProd.name}</span>
+                                      </div>
+                                    ) : (
+                                      <span className="text-slate-400">Select a Product</span>
+                                    )}
+                                    <ChevronDown className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                                  </button>
+
+                                  {openDropdownIdx === idx && (
+                                    <div className="absolute left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg z-30 p-2 max-h-60 overflow-y-auto space-y-2">
+                                      <input
+                                        type="text"
+                                        placeholder="Search product..."
+                                        value={prodSearchQueries[idx] || ''}
+                                        onChange={(e) => updateSearchQuery(idx, e.target.value)}
+                                        className="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                        autoFocus
+                                      />
+                                      <div className="divide-y divide-slate-100 max-h-44 overflow-y-auto">
+                                        {filteredProductsForSearch(idx).map(p => (
+                                          <button
+                                            key={p._id || p.id}
+                                            type="button"
+                                            onClick={() => {
+                                              updateOfflineItem(idx, 'productId', p._id || p.id);
+                                              setOpenDropdownIdx(null);
+                                              updateSearchQuery(idx, '');
+                                            }}
+                                            className="w-full flex items-center space-x-2.5 p-2 hover:bg-slate-50 text-left text-xs cursor-pointer rounded-lg"
+                                          >
+                                            <img src={p.image} className="w-8 h-8 object-cover rounded border shrink-0 bg-slate-50" />
+                                            <div className="min-w-0 flex-1 leading-tight">
+                                              <p className="font-extrabold text-slate-800 truncate">{p.name}</p>
+                                              <span className="text-[10px] text-slate-500 font-semibold">₹{p.price}</span>
+                                            </div>
+                                          </button>
+                                        ))}
+                                        {filteredProductsForSearch(idx).length === 0 && (
+                                          <p className="text-[10px] text-slate-400 text-center py-3">No products found</p>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="w-24 shrink-0">
+                                <label className="block text-[8px] font-bold text-slate-400 mb-0.5">Selling Price (₹)</label>
+                                <input
+                                  type="number"
+                                  required
+                                  min="1"
+                                  value={item.price}
+                                  onChange={(e) => updateOfflineItem(idx, 'price', e.target.value)}
+                                  className="w-full px-2 py-1.5 border border-slate-200 bg-white rounded-lg text-xs"
+                                  placeholder={selectedProd ? selectedProd.price : ''}
+                                />
+                              </div>
+                              <div className="w-20 shrink-0">
+                                <label className="block text-[8px] font-bold text-slate-400 mb-0.5">Quantity *</label>
+                                <input
+                                  type="number"
+                                  required
+                                  min="1"
+                                  value={item.quantity}
+                                  onChange={(e) => updateOfflineItem(idx, 'quantity', e.target.value)}
+                                  className="w-full px-2 py-1.5 border border-slate-200 bg-white rounded-lg text-xs"
+                                />
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => removeOfflineItemRow(idx)}
+                                disabled={offlineItems.length === 1}
+                                className="p-2 text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-100 rounded-lg disabled:opacity-50 cursor-pointer"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Calculations Summary */}
+                      <div className="border-t border-slate-200 pt-4 flex flex-col items-end text-xs space-y-1.5 font-bold">
+                        <div className="text-slate-500">Items Subtotal: ₹{subtotalAmount}</div>
+                        <div className="text-slate-500">Packaging Fee (Billed to Customer): +₹{Number(offlinePackagingCharge) || 0}</div>
+                        <div className="text-slate-500">Shipping Fee (Billed to Customer): +₹{Number(offlineShippingCharge) || 0}</div>
+                        <div className="text-slate-900 text-sm font-black bg-slate-50 px-3 py-1.5 rounded-xl border">Grand Total (Customer Pays): ₹{grandTotalAmount}</div>
+                      </div>
+
+                      {/* Form Actions */}
+                      <div className="flex justify-end space-x-3 pt-2">
+                        <button
+                          type="button"
+                          onClick={() => setShowAddOfflineOrderModal(false)}
+                          className="px-4 py-2 border rounded-xl text-xs font-black text-slate-500 hover:bg-slate-50 uppercase cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={offlineActionLoading}
+                          className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-black rounded-xl uppercase tracking-wider flex items-center space-x-1.5 cursor-pointer shadow-sm"
+                        >
+                          {offlineActionLoading && <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />}
+                          <span>Save Offline Order</span>
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              )}
+
+        </div>
       </div>
     </div>
   );

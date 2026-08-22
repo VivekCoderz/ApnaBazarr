@@ -23,17 +23,28 @@ import AdminPage from './pages/AdminPage';
 import AdminLoginPage from './pages/AdminLoginPage';
 import WishlistPage from './pages/WishlistPage';
 import PolicyPage from './pages/PolicyPage';
+import RegisterSellerPage from './pages/RegisterSellerPage';
+import SellerDashboardPage from './pages/SellerDashboardPage';
 
 import { Check, ShieldCheck } from 'lucide-react';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-const getToken = () => localStorage.getItem('apna_token');
-const clearToken = () => localStorage.removeItem('apna_token');
+const getCookie = (name) => {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return '';
+};
+const getToken = () => getCookie('apna_admin_token');
+const clearToken = () => {
+  document.cookie = "apna_admin_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+};
 
 function AppContent() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const isAdminRoute = pathname.startsWith('/admin');
+  const isNoNavRoute = pathname.startsWith('/admin') || pathname.startsWith('/seller') || pathname === '/register-seller';
 
   const [products, setProducts] = useState([]);
   const [productsLoading, setProductsLoading] = useState(true);
@@ -73,19 +84,15 @@ function AppContent() {
 
   // ─── On Mount: restore session + load products ──────────────────────
   useEffect(() => {
-    // Restore admin session
-    const adminToken = localStorage.getItem('apna_admin_token');
+    // Restore admin session from cookie
+    const adminToken = getCookie('apna_admin_token');
     if (adminToken) setIsAdminAuthenticated(true);
 
-    // Restore user session from cookie on refresh/mount
+    // Restore user session from cookie on refresh/mount (unconditionally try fetching)
     const restoreSession = async () => {
       try {
-        const token = getToken();
-        if (!token) return; // If logged out, do not restore session
-
         const res = await fetch(`${BASE_URL}/auth/me`, {
-          credentials: 'include',
-          headers: { 'Authorization': `Bearer ${token}` }
+          credentials: 'include'
         });
         const result = await res.json();
         if (result.success && result.user) {
@@ -542,9 +549,9 @@ function AppContent() {
       )}
 
       {/* Top Ribbon */}
-      {!isAdminRoute && <TopBar />}
+      {!isNoNavRoute && <TopBar />}
 
-      {!isAdminRoute && (
+      {!isNoNavRoute && (
         <Header
           cartCount={totalCartCount}
           wishlistCount={wishlistItems.length}
@@ -681,6 +688,16 @@ function AppContent() {
           />
 
           <Route
+            path="/register-seller"
+            element={<RegisterSellerPage currentUser={currentUser} onAuthSuccess={handleAuthSuccess} />}
+          />
+
+          <Route
+            path="/seller"
+            element={<SellerDashboardPage currentUser={currentUser} onLogout={handleLogout} onAuthSuccess={handleAuthSuccess} />}
+          />
+
+          <Route
             path="/admin/login"
             element={<AdminLoginPage onAdminLogin={handleAdminLogin} />}
           />
@@ -699,6 +716,7 @@ function AppContent() {
                   onUpdateOrderStatus={handleUpdateOrderStatus}
                   onAdminLogout={handleAdminLogout}
                   onToggleStock={handleToggleStock}
+                  onAddOfflineOrder={loadUserOrders}
                 />
               </ProtectedAdminRoute>
             }
@@ -707,12 +725,13 @@ function AppContent() {
       </main>
 
       {/* Footer */}
-      {!isAdminRoute && <Footer />}
+      {!isNoNavRoute && <Footer />}
 
       {/* Global Modals & Drawers */}
       <MobileDrawer
         isOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
+        currentUser={currentUser}
         cartCount={totalCartCount}
         wishlistCount={wishlistItems.length}
         onOpenCart={() => {
