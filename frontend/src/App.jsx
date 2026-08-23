@@ -405,12 +405,16 @@ function AppContent() {
   };
 
   // Admin Product & Order Handlers
-  // Admin Product & Order Handlers
   const handleAddProduct = async (newProduct) => {
     try {
+      const token = getToken();
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
       const res = await fetch(`${BASE_URL}/products`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
+        credentials: 'include',
         body: JSON.stringify(newProduct)
       });
       const data = await res.json();
@@ -426,7 +430,15 @@ function AppContent() {
   const handleDeleteProduct = async (productId) => {
     if (window.confirm("Are you sure you want to delete this product?")) {
       try {
-        const res = await fetch(`${BASE_URL}/products/${productId}`, { method: 'DELETE' });
+        const token = getToken();
+        const headers = {};
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
+        const res = await fetch(`${BASE_URL}/products/${productId}`, { 
+          method: 'DELETE',
+          headers,
+          credentials: 'include'
+        });
         const result = await res.json();
         if (result.success) {
           setProducts(prev => prev.filter(p => String(p.id) !== String(productId)));
@@ -444,9 +456,14 @@ function AppContent() {
     const currentStockStatus = targetProduct.inStock !== false;
     const nextStatus = !currentStockStatus;
     try {
+      const token = getToken();
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
       const res = await fetch(`${BASE_URL}/products/${productId}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
+        credentials: 'include',
         body: JSON.stringify({ inStock: nextStatus, stock: nextStatus ? 50 : 0 })
       });
       const data = await res.json();
@@ -461,9 +478,14 @@ function AppContent() {
 
   const handleUpdateOrderStatus = async (orderId, newStatus) => {
     try {
+      const token = getToken();
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
       const res = await fetch(`${BASE_URL}/orders/${orderId}/status`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
+        credentials: 'include',
         body: JSON.stringify({ status: newStatus })
       });
       const result = await res.json();
