@@ -937,6 +937,26 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                           })}
                         </div>
 
+                        {/* Kurti/Suits Sizes */}
+                        <div className="flex flex-wrap items-center gap-1">
+                          <span className="text-[9px] text-slate-400 font-extrabold uppercase w-12 shrink-0">Kurti/Suits:</span>
+                          {["36", "38", "40", "42", "44", "46"].map(sz => {
+                            const active = newProd.sizes ? newProd.sizes.split(',').map(s => s.trim().toLowerCase()).includes(sz.toLowerCase()) : false;
+                            return (
+                              <button
+                                key={sz}
+                                type="button"
+                                onClick={() => handleToggleSizePreset(sz)}
+                                className={`px-2 py-0.5 text-[9px] font-black rounded border transition-all cursor-pointer ${
+                                  active ? 'bg-[#0066cc] text-white border-[#0066cc]' : 'bg-white text-slate-700 border-slate-200 hover:border-slate-350'
+                                }`}
+                              >
+                                {sz}
+                              </button>
+                            );
+                          })}
+                        </div>
+
                         {/* Pants Sizes */}
                         <div className="flex flex-wrap items-center gap-1">
                           <span className="text-[9px] text-slate-400 font-extrabold uppercase w-12 shrink-0">Pants:</span>
