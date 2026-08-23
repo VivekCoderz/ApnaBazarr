@@ -36,10 +36,18 @@ export default function ProductDetailPage({
   const product = products.find(p => p.id === parseInt(id) || p.id === id) || products[0];
   const isOutOfStock = product?.inStock === false || product?.stock <= 0;
 
-  const [selectedSize, setSelectedSize] = useState('M');
-  const [selectedColor, setSelectedColor] = useState('Default');
+  const [selectedSize, setSelectedSize] = useState(product?.sizes && product.sizes.length > 0 ? product.sizes[0] : '');
+  const [selectedColor, setSelectedColor] = useState(product?.colors && product.colors.length > 0 ? product.colors[0] : 'Default');
   const [quantity, setQuantity] = useState(1);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+  // Reset selected size and color when product changes
+  useEffect(() => {
+    if (product) {
+      setSelectedSize(product.sizes && product.sizes.length > 0 ? product.sizes[0] : '');
+      setSelectedColor(product.colors && product.colors.length > 0 ? product.colors[0] : 'Default');
+    }
+  }, [product]);
 
   // Reviews State — load from DB
   const [reviews, setReviews] = useState([]);
@@ -81,7 +89,9 @@ export default function ProductDetailPage({
     }
     onAddToCart(product, quantity, {
       customText: customTextVal,
-      customImage: customImageVal
+      customImage: customImageVal,
+      selectedSize: selectedSize,
+      selectedColor: selectedColor
     });
   };
 
@@ -362,6 +372,72 @@ export default function ProductDetailPage({
             <p className="text-xs sm:text-sm text-slate-600 font-semibold leading-relaxed">
               {product.description || "Premium quality product crafted with express India delivery, soft breathable fabric, and long-lasting durability for festive occasions."}
             </p>
+
+            {/* Sizes Selector */}
+            {product.sizes && product.sizes.length > 0 && (
+              <div className="space-y-2.5 pt-2 animate-fade-in">
+                <div className="flex justify-between items-center">
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Select Size</label>
+                  {product.category === 'Clothing' && (
+                    <span className="text-[10px] text-slate-400 font-semibold">Standard Fit</span>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {product.sizes.map((size) => (
+                    <button
+                      key={size}
+                      type="button"
+                      onClick={() => setSelectedSize(size)}
+                      className={`px-4 py-2 text-xs font-black rounded-xl border transition-all cursor-pointer ${
+                        selectedSize === size
+                          ? 'bg-[#0066cc] text-white border-[#0066cc] shadow-sm'
+                          : 'bg-white text-slate-700 border-slate-200 hover:border-slate-400'
+                      }`}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Colors Selector */}
+            {product.colors && product.colors.length > 0 && (
+              <div className="space-y-2.5 pt-2 animate-fade-in">
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Select Color</label>
+                <div className="flex flex-wrap gap-3">
+                  {product.colors.map((color) => {
+                    const isHex = color.startsWith('#');
+                    const normalizedColor = isHex ? color : color.toLowerCase();
+                    const isSelected = selectedColor.toLowerCase() === color.toLowerCase();
+
+                    return (
+                      <button
+                        key={color}
+                        type="button"
+                        onClick={() => setSelectedColor(color)}
+                        title={color}
+                        className={`w-8 h-8 rounded-full border transition-all relative cursor-pointer ${
+                          isSelected ? 'ring-2 ring-[#0066cc] ring-offset-2 scale-110' : 'border-slate-300 hover:scale-105'
+                        }`}
+                        style={{ backgroundColor: normalizedColor }}
+                      >
+                        {isSelected && (
+                          <span className={`absolute inset-0 flex items-center justify-center text-[10px] font-bold ${
+                            color.toLowerCase() === 'white' || color === '#ffffff' ? 'text-slate-800' : 'text-white'
+                          }`}>
+                            ✓
+                          </span>
+                        )}
+                        {color.toLowerCase() === 'white' && !isSelected && (
+                          <span className="absolute inset-0 rounded-full border border-slate-350" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Quantity Selector */}
             <div className="space-y-2 pt-2">

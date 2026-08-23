@@ -103,6 +103,8 @@ export default function SellerDashboardPage({ currentUser, onLogout, onAuthSucce
     image: '',
     description: '',
     tags: '',
+    sizes: '',
+    colors: '',
     isCustomizable: false,
     customizationType: 'none',
     customizationPrompt: '',
@@ -449,6 +451,32 @@ export default function SellerDashboardPage({ currentUser, onLogout, onAuthSucce
     }
   };
 
+  const handleToggleColorPreset = (colorName) => {
+    const currentColors = newProd.colors
+      ? newProd.colors.split(',').map(c => c.trim()).filter(Boolean)
+      : [];
+    let updated;
+    if (currentColors.includes(colorName)) {
+      updated = currentColors.filter(c => c !== colorName);
+    } else {
+      updated = [...currentColors, colorName];
+    }
+    setNewProd({ ...newProd, colors: updated.join(', ') });
+  };
+
+  const handleToggleSizePreset = (sizeName) => {
+    const currentSizes = newProd.sizes
+      ? newProd.sizes.split(',').map(s => s.trim()).filter(Boolean)
+      : [];
+    let updated;
+    if (currentSizes.includes(sizeName)) {
+      updated = currentSizes.filter(s => s !== sizeName);
+    } else {
+      updated = [...currentSizes, sizeName];
+    }
+    setNewProd({ ...newProd, sizes: updated.join(', ') });
+  };
+
   const handleAddProduct = async (e) => {
     e.preventDefault();
     if (!newProd.name || !newProd.price || !newProd.image) {
@@ -460,6 +488,8 @@ export default function SellerDashboardPage({ currentUser, onLogout, onAuthSucce
       const body = {
         ...newProd,
         tags: newProd.tags.split(',').map(t => t.trim()).filter(Boolean),
+        sizes: newProd.sizes ? newProd.sizes.split(',').map(s => s.trim()).filter(Boolean) : [],
+        colors: newProd.colors ? newProd.colors.split(',').map(c => c.trim()).filter(Boolean) : [],
         price: Number(newProd.price),
         originalPrice: newProd.originalPrice ? Number(newProd.originalPrice) : undefined,
         costPrice: newProd.costPrice ? Number(newProd.costPrice) : undefined,
@@ -517,6 +547,8 @@ export default function SellerDashboardPage({ currentUser, onLogout, onAuthSucce
       image: prod.image || '',
       description: prod.description || '',
       tags: prod.tags ? prod.tags.join(', ') : '',
+      sizes: prod.sizes ? prod.sizes.join(', ') : '',
+      colors: prod.colors ? prod.colors.join(', ') : '',
       isCustomizable: prod.isCustomizable || false,
       customizationType: prod.customizationType || 'none',
       customizationPrompt: prod.customizationPrompt || '',
@@ -1308,6 +1340,167 @@ export default function SellerDashboardPage({ currentUser, onLogout, onAuthSucce
                       className="w-full px-3.5 py-2.5 text-xs border border-slate-200 rounded-xl focus:outline-none focus:border-[#ff5e14] font-semibold text-slate-805 focus:ring-1 focus:ring-[#ff5e14] bg-white"
                     />
                   </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Product Sizes (Click presets to toggle, or type custom comma-separated)</label>
+                    
+                    <div className="space-y-2 mb-3 bg-slate-50 p-3 rounded-2xl border border-slate-200">
+                      {/* Clothing Sizes */}
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="text-[9px] text-slate-400 font-extrabold uppercase w-12 shrink-0">Clothing:</span>
+                        {["XS", "S", "M", "L", "XL", "XXL", "3XL"].map(sz => {
+                          const active = newProd.sizes ? newProd.sizes.split(',').map(s => s.trim().toLowerCase()).includes(sz.toLowerCase()) : false;
+                          return (
+                            <button
+                              key={sz}
+                              type="button"
+                              onClick={() => handleToggleSizePreset(sz)}
+                              className={`px-2 py-1 text-[9px] font-black rounded-lg border transition-all cursor-pointer ${
+                                active ? 'bg-[#ff5e14] text-white border-[#ff5e14]' : 'bg-white text-slate-750 border-slate-250 hover:border-slate-350'
+                              }`}
+                            >
+                              {sz}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Pants Sizes */}
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="text-[9px] text-slate-400 font-extrabold uppercase w-12 shrink-0">Pants:</span>
+                        {["28", "30", "32", "34", "36", "38", "40"].map(sz => {
+                          const active = newProd.sizes ? newProd.sizes.split(',').map(s => s.trim().toLowerCase()).includes(sz.toLowerCase()) : false;
+                          return (
+                            <button
+                              key={sz}
+                              type="button"
+                              onClick={() => handleToggleSizePreset(sz)}
+                              className={`px-2 py-1 text-[9px] font-black rounded-lg border transition-all cursor-pointer ${
+                                active ? 'bg-[#ff5e14] text-white border-[#ff5e14]' : 'bg-white text-slate-750 border-slate-250 hover:border-slate-350'
+                              }`}
+                            >
+                              {sz}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Shoe Sizes */}
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="text-[9px] text-slate-400 font-extrabold uppercase w-12 shrink-0">Shoes:</span>
+                        {["6", "7", "8", "9", "10", "11", "12"].map(sz => {
+                          const active = newProd.sizes ? newProd.sizes.split(',').map(s => s.trim().toLowerCase()).includes(sz.toLowerCase()) : false;
+                          return (
+                            <button
+                              key={sz}
+                              type="button"
+                              onClick={() => handleToggleSizePreset(sz)}
+                              className={`px-2 py-1 text-[9px] font-black rounded-lg border transition-all cursor-pointer ${
+                                active ? 'bg-[#ff5e14] text-white border-[#ff5e14]' : 'bg-white text-slate-755 border-slate-250 hover:border-slate-350'
+                              }`}
+                            >
+                              {sz}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Bangle Sizes */}
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="text-[9px] text-slate-400 font-extrabold uppercase w-12 shrink-0">Bangles:</span>
+                        {["2.2", "2.4", "2.6", "2.8"].map(sz => {
+                          const active = newProd.sizes ? newProd.sizes.split(',').map(s => s.trim().toLowerCase()).includes(sz.toLowerCase()) : false;
+                          return (
+                            <button
+                              key={sz}
+                              type="button"
+                              onClick={() => handleToggleSizePreset(sz)}
+                              className={`px-2 py-1 text-[9px] font-black rounded-lg border transition-all cursor-pointer ${
+                                active ? 'bg-[#ff5e14] text-white border-[#ff5e14]' : 'bg-white text-slate-755 border-slate-250 hover:border-slate-350'
+                              }`}
+                            >
+                              {sz}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex justify-end pt-1">
+                        <button
+                          type="button"
+                          onClick={() => setNewProd(prev => ({ ...prev, sizes: "" }))}
+                          className="px-2 py-1 text-[9px] bg-rose-50 hover:bg-rose-100 rounded text-rose-600 font-extrabold border border-rose-150 cursor-pointer"
+                        >
+                          Clear Selection
+                        </button>
+                      </div>
+                    </div>
+
+                    <input
+                      type="text"
+                      value={newProd.sizes}
+                      onChange={(e) => setNewProd({ ...newProd, sizes: e.target.value })}
+                      placeholder="e.g. S, M, L, XL or 7, 8, 9 or 32, 34"
+                      className="w-full px-3.5 py-2.5 text-xs border border-slate-200 rounded-xl focus:outline-none focus:border-[#ff5e14] font-semibold text-slate-805 focus:ring-1 focus:ring-[#ff5e14] bg-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Product Colors (Click circles to toggle, or type custom comma-separated)</label>
+                    
+                    <div className="space-y-2 mb-3 bg-slate-50 p-3 rounded-2xl border border-slate-200">
+                      <div className="flex flex-wrap items-center gap-2">
+                        {[
+                          { name: "Black", code: "#000000" },
+                          { name: "White", code: "#ffffff" },
+                          { name: "Red", code: "#ff0000" },
+                          { name: "Blue", code: "#0000ff" },
+                          { name: "Green", code: "#008000" },
+                          { name: "Yellow", code: "#ffff00" },
+                          { name: "Pink", code: "#ffc0cb" },
+                          { name: "Orange", code: "#ffa500" },
+                          { name: "Grey", code: "#808080" },
+                          { name: "Purple", code: "#800080" },
+                          { name: "Gold", code: "#ffd700" }
+                        ].map(col => {
+                          const active = newProd.colors ? newProd.colors.split(',').map(c => c.trim().toLowerCase()).includes(col.name.toLowerCase()) : false;
+                          return (
+                            <button
+                              key={col.name}
+                              type="button"
+                              onClick={() => handleToggleColorPreset(col.name)}
+                              title={col.name}
+                              className={`w-6 h-6 rounded-full border transition-all relative cursor-pointer ${
+                                active ? 'ring-2 ring-[#ff5e14] ring-offset-1 scale-110' : 'border-slate-300'
+                              }`}
+                              style={{ backgroundColor: col.code }}
+                            >
+                              {col.name === "White" && !active && <span className="absolute inset-0 rounded-full border border-slate-350" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <div className="flex justify-end pt-1">
+                        <button
+                          type="button"
+                          onClick={() => setNewProd(prev => ({ ...prev, colors: "" }))}
+                          className="px-2 py-1 text-[9px] bg-rose-50 hover:bg-rose-100 rounded text-rose-600 font-extrabold border border-rose-150 cursor-pointer"
+                        >
+                          Clear Selection
+                        </button>
+                      </div>
+                    </div>
+
+                    <input
+                      type="text"
+                      value={newProd.colors}
+                      onChange={(e) => setNewProd({ ...newProd, colors: e.target.value })}
+                      placeholder="e.g. Red, Blue, Black, White"
+                      className="w-full px-3.5 py-2.5 text-xs border border-slate-200 rounded-xl focus:outline-none focus:border-[#ff5e14] font-semibold text-slate-805 focus:ring-1 focus:ring-[#ff5e14] bg-white"
+                    />
+                  </div>
                 </div>
 
                 {/* Product Image Section */}
@@ -2063,6 +2256,18 @@ export default function SellerDashboardPage({ currentUser, onLogout, onAuthSucce
                                     <span>Quantity: <strong className="text-slate-800">{item.quantity}</strong></span>
                                     <span>•</span>
                                     <span>Price: <strong className="text-slate-800">₹{item.price}</strong></span>
+                                    {item.size && (
+                                      <>
+                                        <span>•</span>
+                                        <span>Size: <strong className="text-[#ff5e14] bg-orange-50 border border-orange-100 px-1.5 py-0.5 rounded text-[9px] uppercase">{item.size}</strong></span>
+                                      </>
+                                    )}
+                                    {item.color && (
+                                      <>
+                                        <span>•</span>
+                                        <span>Color: <strong className="text-[#ff5e14] bg-orange-50 border border-orange-100 px-1.5 py-0.5 rounded text-[9px] uppercase">{item.color}</strong></span>
+                                      </>
+                                    )}
                                   </div>
 
                                   {/* Custom details */}

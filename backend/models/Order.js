@@ -8,6 +8,8 @@ const orderItemSchema = new mongoose.Schema({
   image: { type: String },
   customText: { type: String },
   customImage: { type: String },
+  size: { type: String },
+  color: { type: String },
   sellerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   commissionPercent: { type: Number, default: 10 },
   commissionAmount: { type: Number, default: 0 },

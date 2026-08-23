@@ -287,7 +287,9 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
                     price: item.price,
                     quantity: item.quantity,
                     customText: item.customText || '',
-                    customImage: item.customImage || ''
+                    customImage: item.customImage || '',
+                    selectedSize: item.selectedSize || '',
+                    selectedColor: item.selectedColor || ''
                   })),
                   shippingAddress: { ...address },
                   totalAmount: total
@@ -349,7 +351,9 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
               price: item.price,
               quantity: item.quantity,
               customText: item.customText || '',
-              customImage: item.customImage || ''
+              customImage: item.customImage || '',
+              selectedSize: item.selectedSize || '',
+              selectedColor: item.selectedColor || ''
             })),
             shippingAddress: { ...address },
             paymentMethod: 'COD',

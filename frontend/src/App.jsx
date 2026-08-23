@@ -302,19 +302,30 @@ function AppContent() {
       return;
     }
 
-    const { customText = '', customImage = '' } = customizationOptions;
+    const defaultSize = product.sizes && product.sizes.length > 0 ? product.sizes[0] : '';
+    const defaultColor = product.colors && product.colors.length > 0 ? product.colors[0] : '';
+    const { 
+      customText = '', 
+      customImage = '', 
+      selectedSize = product.selectedSize || defaultSize,
+      selectedColor = product.selectedColor || defaultColor
+    } = customizationOptions;
 
     setCartItems(prev => {
       const existing = prev.find(item => 
         item.id === product.id && 
         (item.customText || '') === customText && 
-        (item.customImage || '') === customImage
+        (item.customImage || '') === customImage &&
+        (item.selectedSize || '') === selectedSize &&
+        (item.selectedColor || '') === selectedColor
       );
       if (existing) {
         return prev.map(item =>
           (item.id === product.id && 
            (item.customText || '') === customText && 
-           (item.customImage || '') === customImage)
+           (item.customImage || '') === customImage &&
+           (item.selectedSize || '') === selectedSize &&
+           (item.selectedColor || '') === selectedColor)
             ? { ...item, quantity: item.quantity + quantityToAdd }
             : item
         );
@@ -323,22 +334,26 @@ function AppContent() {
           ...product, 
           quantity: quantityToAdd, 
           customText, 
-          customImage 
+          customImage,
+          selectedSize,
+          selectedColor
         }];
       }
     });
     showToast(`Added "${product.name}" to cart!`);
   };
 
-  const handleUpdateQuantity = (id, newQty, customText = '', customImage = '') => {
+  const handleUpdateQuantity = (id, newQty, customText = '', customImage = '', selectedSize = '', selectedColor = '') => {
     if (newQty <= 0) {
-      handleRemoveFromCart(id, customText, customImage);
+      handleRemoveFromCart(id, customText, customImage, selectedSize, selectedColor);
     } else {
       setCartItems(prev =>
         prev.map(item =>
           (item.id === id &&
            (item.customText || '') === customText &&
-           (item.customImage || '') === customImage)
+           (item.customImage || '') === customImage &&
+           (item.selectedSize || '') === selectedSize &&
+           (item.selectedColor || '') === selectedColor)
             ? { ...item, quantity: newQty }
             : item
         )
@@ -346,12 +361,14 @@ function AppContent() {
     }
   };
 
-  const handleRemoveFromCart = (id, customText = '', customImage = '') => {
+  const handleRemoveFromCart = (id, customText = '', customImage = '', selectedSize = '', selectedColor = '') => {
     setCartItems(prev =>
       prev.filter(item =>
         !(item.id === id &&
           (item.customText || '') === customText &&
-          (item.customImage || '') === customImage)
+          (item.customImage || '') === customImage &&
+          (item.selectedSize || '') === selectedSize &&
+          (item.selectedColor || '') === selectedColor)
       )
     );
   };

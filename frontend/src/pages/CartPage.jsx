@@ -44,7 +44,7 @@ export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem }) 
             {/* Cart Items List */}
             <div className="lg:col-span-2 space-y-4">
               {cartItems.map((item) => (
-                <div key={`${item.id}-${item.customText || ''}-${item.customImage || ''}`} className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col space-y-3">
+                <div key={`${item.id}-${item.customText || ''}-${item.customImage || ''}-${item.selectedSize || ''}-${item.selectedColor || ''}`} className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col space-y-3">
                   
                   {/* Top Row: Image, Info & Delete Button */}
                   <div className="flex items-start space-x-3 w-full">
@@ -53,11 +53,23 @@ export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem }) 
                     <div className="flex-1 min-w-0">
                       <h4 className="text-xs sm:text-sm font-bold text-slate-900 line-clamp-2 leading-snug">{item.name}</h4>
                       <p className="text-[10px] sm:text-xs text-slate-400 mt-0.5">{item.category} • {item.gender}</p>
+                      <div className="flex flex-wrap gap-1.5 mt-1">
+                        {item.selectedSize && (
+                          <span className="inline-block text-[10px] sm:text-xs font-black text-slate-800 bg-slate-100 px-2.5 py-0.5 rounded border border-slate-200 uppercase">
+                            Size: {item.selectedSize}
+                          </span>
+                        )}
+                        {item.selectedColor && (
+                          <span className="inline-block text-[10px] sm:text-xs font-black text-slate-800 bg-slate-100 px-2.5 py-0.5 rounded border border-slate-200 uppercase">
+                            Color: {item.selectedColor}
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     <button
-                      onClick={() => onRemoveItem(item.id, item.customText, item.customImage)}
-                      className="p-1.5 text-slate-400 hover:text-red-600 transition-colors cursor-pointer shrink-0"
+                      onClick={() => onRemoveItem(item.id, item.customText, item.customImage, item.selectedSize, item.selectedColor)}
+                      className="p-1.5 text-slate-400 hover:text-red-655 transition-colors cursor-pointer shrink-0"
                       title="Remove item"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -88,14 +100,14 @@ export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem }) 
                   <div className="flex items-center justify-between pt-2 border-t border-slate-100 w-full">
                     <div className="flex items-center border border-slate-200 rounded-lg bg-slate-50">
                       <button
-                        onClick={() => onUpdateQuantity(item.id, item.quantity - 1, item.customText, item.customImage)}
+                        onClick={() => onUpdateQuantity(item.id, item.quantity - 1, item.customText, item.customImage, item.selectedSize, item.selectedColor)}
                         className="p-1.5 text-slate-600 hover:bg-slate-200 rounded-l-lg cursor-pointer"
                       >
                         <Minus className="w-3 h-3" />
                       </button>
                       <span className="px-3 text-xs font-extrabold text-slate-900">{item.quantity}</span>
                       <button
-                        onClick={() => onUpdateQuantity(item.id, item.quantity + 1, item.customText, item.customImage)}
+                        onClick={() => onUpdateQuantity(item.id, item.quantity + 1, item.customText, item.customImage, item.selectedSize, item.selectedColor)}
                         className="p-1.5 text-slate-600 hover:bg-slate-200 rounded-r-lg cursor-pointer"
                       >
                         <Plus className="w-3 h-3" />

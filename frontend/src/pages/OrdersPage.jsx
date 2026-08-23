@@ -76,6 +76,18 @@ export default function OrdersPage({ orders }) {
                       <div className="flex-1 min-w-0">
                         <h5 className="text-xs font-bold text-slate-800 truncate">{item.name}</h5>
                         <span className="text-[11px] text-slate-400">Qty: {item.quantity} × ₹{item.price}</span>
+                        <div className="flex flex-wrap gap-1.5 mt-0.5 text-[10px] font-bold">
+                          {(item.size || item.selectedSize) && (
+                            <span className="text-slate-650">
+                              Size: <span className="uppercase text-slate-900 bg-slate-200/60 px-1.5 py-0.5 rounded border border-slate-300 text-[9px]">{item.size || item.selectedSize}</span>
+                            </span>
+                          )}
+                          {(item.color || item.selectedColor) && (
+                            <span className="text-slate-650">
+                              Color: <span className="uppercase text-slate-900 bg-slate-200/60 px-1.5 py-0.5 rounded border border-slate-300 text-[9px]">{item.color || item.selectedColor}</span>
+                            </span>
+                          )}
+                        </div>
 
                         {(item.customText || item.customImage) && (
                           <div className="mt-1 p-1.5 bg-amber-50/70 border border-amber-200/50 rounded-lg text-[9px] text-amber-900 font-semibold space-y-0.5 max-w-[200px]">

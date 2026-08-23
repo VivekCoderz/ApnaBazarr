@@ -303,6 +303,8 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
     stock: 50,
     image: '',
     description: '',
+    sizes: '',
+    colors: '',
     isCustomizable: false,
     customizationType: 'text',
     customizationPrompt: ''
@@ -339,6 +341,32 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
   const mrp = parseFloat(newProd.originalPrice) || 0;
   const discountPercent = mrp > becha && becha > 0 ? Math.round(((mrp - becha) / mrp) * 100) : 0;
 
+  const handleToggleColorPreset = (colorName) => {
+    const currentColors = newProd.colors
+      ? newProd.colors.split(',').map(c => c.trim()).filter(Boolean)
+      : [];
+    let updated;
+    if (currentColors.includes(colorName)) {
+      updated = currentColors.filter(c => c !== colorName);
+    } else {
+      updated = [...currentColors, colorName];
+    }
+    setNewProd({ ...newProd, colors: updated.join(', ') });
+  };
+
+  const handleToggleSizePreset = (sizeName) => {
+    const currentSizes = newProd.sizes
+      ? newProd.sizes.split(',').map(s => s.trim()).filter(Boolean)
+      : [];
+    let updated;
+    if (currentSizes.includes(sizeName)) {
+      updated = currentSizes.filter(s => s !== sizeName);
+    } else {
+      updated = [...currentSizes, sizeName];
+    }
+    setNewProd({ ...newProd, sizes: updated.join(', ') });
+  };
+
   const handleAddSubmit = (e) => {
     e.preventDefault();
     if (!newProd.name || !newProd.price || !newProd.costPrice || !newProd.image) {
@@ -361,6 +389,8 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
       image: newProd.image,
       description: newProd.description || "High quality product from Apna Bazarr.",
       tags: ["New Arrival", "Best Selling"],
+      sizes: newProd.sizes ? newProd.sizes.split(',').map(s => s.trim()).filter(Boolean) : [],
+      colors: newProd.colors ? newProd.colors.split(',').map(c => c.trim()).filter(Boolean) : [],
       inStock: true,
       stock: parseInt(newProd.stock) || 50,
       isCustomizable: newProd.isCustomizable,
@@ -380,6 +410,8 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
       stock: 50,
       image: '',
       description: '',
+      sizes: '',
+      colors: '',
       isCustomizable: false,
       customizationType: 'text',
       customizationPrompt: ''
@@ -876,6 +908,150 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                   )}
                 </div>
 
+                <div className="bg-slate-50 p-4.5 rounded-2xl border border-slate-200 space-y-4">
+                  <h4 className="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center space-x-1">
+                    <span>Sizes & Colors Configuration</span>
+                  </h4>
+
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">Product Sizes (Click presets to toggle, or type custom comma-separated)</label>
+                      <div className="space-y-2 mb-2 bg-white p-3 rounded-xl border border-slate-200">
+                        {/* Clothing Sizes */}
+                        <div className="flex flex-wrap items-center gap-1">
+                          <span className="text-[9px] text-slate-400 font-extrabold uppercase w-12 shrink-0">Clothing:</span>
+                          {["XS", "S", "M", "L", "XL", "XXL", "3XL"].map(sz => {
+                            const active = newProd.sizes ? newProd.sizes.split(',').map(s => s.trim().toLowerCase()).includes(sz.toLowerCase()) : false;
+                            return (
+                              <button
+                                key={sz}
+                                type="button"
+                                onClick={() => handleToggleSizePreset(sz)}
+                                className={`px-2 py-0.5 text-[9px] font-black rounded border transition-all cursor-pointer ${
+                                  active ? 'bg-[#0066cc] text-white border-[#0066cc]' : 'bg-white text-slate-700 border-slate-200 hover:border-slate-350'
+                                }`}
+                              >
+                                {sz}
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        {/* Pants Sizes */}
+                        <div className="flex flex-wrap items-center gap-1">
+                          <span className="text-[9px] text-slate-400 font-extrabold uppercase w-12 shrink-0">Pants:</span>
+                          {["28", "30", "32", "34", "36", "38", "40"].map(sz => {
+                            const active = newProd.sizes ? newProd.sizes.split(',').map(s => s.trim().toLowerCase()).includes(sz.toLowerCase()) : false;
+                            return (
+                              <button
+                                key={sz}
+                                type="button"
+                                onClick={() => handleToggleSizePreset(sz)}
+                                className={`px-2 py-0.5 text-[9px] font-black rounded border transition-all cursor-pointer ${
+                                  active ? 'bg-[#0066cc] text-white border-[#0066cc]' : 'bg-white text-slate-700 border-slate-200 hover:border-slate-350'
+                                }`}
+                              >
+                                {sz}
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        {/* Shoe Sizes */}
+                        <div className="flex flex-wrap items-center gap-1">
+                          <span className="text-[9px] text-slate-400 font-extrabold uppercase w-12 shrink-0">Shoes:</span>
+                          {["6", "7", "8", "9", "10", "11", "12"].map(sz => {
+                            const active = newProd.sizes ? newProd.sizes.split(',').map(s => s.trim().toLowerCase()).includes(sz.toLowerCase()) : false;
+                            return (
+                              <button
+                                key={sz}
+                                type="button"
+                                onClick={() => handleToggleSizePreset(sz)}
+                                className={`px-2 py-0.5 text-[9px] font-black rounded border transition-all cursor-pointer ${
+                                  active ? 'bg-[#0066cc] text-white border-[#0066cc]' : 'bg-white text-slate-700 border-slate-200 hover:border-slate-350'
+                                }`}
+                              >
+                                {sz}
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        {/* Bangle Sizes */}
+                        <div className="flex flex-wrap items-center gap-1">
+                          <span className="text-[9px] text-slate-400 font-extrabold uppercase w-12 shrink-0">Bangles:</span>
+                          {["2.2", "2.4", "2.6", "2.8"].map(sz => {
+                            const active = newProd.sizes ? newProd.sizes.split(',').map(s => s.trim().toLowerCase()).includes(sz.toLowerCase()) : false;
+                            return (
+                              <button
+                                key={sz}
+                                type="button"
+                                onClick={() => handleToggleSizePreset(sz)}
+                                className={`px-2 py-0.5 text-[9px] font-black rounded border transition-all cursor-pointer ${
+                                  active ? 'bg-[#0066cc] text-white border-[#0066cc]' : 'bg-white text-slate-700 border-slate-200 hover:border-slate-350'
+                                }`}
+                              >
+                                {sz}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                      <input
+                        type="text"
+                        value={newProd.sizes || ''}
+                        onChange={(e) => setNewProd({ ...newProd, sizes: e.target.value })}
+                        placeholder="e.g. S, M, L, XL or 32, 34 or 8, 9"
+                        className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-[#0066cc] bg-white text-slate-850"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">Product Colors (Click circles to toggle, or type custom comma-separated)</label>
+                      <div className="space-y-2 mb-2 bg-white p-3 rounded-xl border border-slate-200">
+                        <div className="flex flex-wrap items-center gap-2">
+                          {[
+                            { name: "Black", code: "#000000" },
+                            { name: "White", code: "#ffffff" },
+                            { name: "Red", code: "#ff0000" },
+                            { name: "Blue", code: "#0000ff" },
+                            { name: "Green", code: "#008000" },
+                            { name: "Yellow", code: "#ffff00" },
+                            { name: "Pink", code: "#ffc0cb" },
+                            { name: "Orange", code: "#ffa500" },
+                            { name: "Grey", code: "#808080" },
+                            { name: "Purple", code: "#800080" },
+                            { name: "Gold", code: "#ffd700" }
+                          ].map(col => {
+                            const active = newProd.colors ? newProd.colors.split(',').map(c => c.trim().toLowerCase()).includes(col.name.toLowerCase()) : false;
+                            return (
+                              <button
+                                key={col.name}
+                                type="button"
+                                onClick={() => handleToggleColorPreset(col.name)}
+                                title={col.name}
+                                className={`w-5 h-5 rounded-full border transition-all relative cursor-pointer ${
+                                  active ? 'ring-2 ring-[#0066cc] ring-offset-1 scale-110' : 'border-slate-350'
+                                }`}
+                                style={{ backgroundColor: col.code }}
+                              >
+                                {col.name === "White" && !active && <span className="absolute inset-0 rounded-full border border-slate-300" />}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                      <input
+                        type="text"
+                        value={newProd.colors || ''}
+                        onChange={(e) => setNewProd({ ...newProd, colors: e.target.value })}
+                        placeholder="e.g. Red, Blue, Black, White"
+                        className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-[#0066cc] bg-white text-slate-850"
+                      />
+                    </div>
+                  </div>
+                </div>
+
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Product Description</label>
                   <textarea
@@ -1105,6 +1281,8 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                                 <span className="font-bold text-slate-800 block truncate max-w-md">{item.name}</span>
                                 <span className="text-[10px] text-slate-500 block mt-0.5">
                                   Price: ₹{item.price} • Qty: {item.quantity}
+                                  {(item.size || item.selectedSize) && ` • Size: ${item.size || item.selectedSize}`}
+                                  {(item.color || item.selectedColor) && ` • Color: ${item.color || item.selectedColor}`}
                                 </span>
                                 {(item.customText || item.customImage) && (
                                   <div className="mt-1.5 p-2 bg-amber-50/70 border border-amber-200/50 rounded-lg text-[10px] text-amber-900 font-semibold space-y-0.5 max-w-sm">

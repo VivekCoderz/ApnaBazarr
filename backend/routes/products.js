@@ -31,6 +31,8 @@ router.get('/', async (req, res) => {
       image: p.image,
       description: p.description,
       tags: p.tags,
+      sizes: p.sizes,
+      colors: p.colors,
       inStock: p.inStock,
       isCustomizable: p.isCustomizable,
       customizationType: p.customizationType,
@@ -81,6 +83,8 @@ router.get('/seller/my-products', auth, async (req, res) => {
       image: p.image,
       description: p.description,
       tags: p.tags,
+      sizes: p.sizes,
+      colors: p.colors,
       inStock: p.inStock,
       isCustomizable: p.isCustomizable,
       customizationType: p.customizationType,
@@ -116,6 +120,8 @@ router.get('/:id', async (req, res) => {
       image: product.image,
       description: product.description,
       tags: product.tags,
+      sizes: product.sizes,
+      colors: product.colors,
       inStock: product.inStock,
       isCustomizable: product.isCustomizable,
       customizationType: product.customizationType,
@@ -141,10 +147,10 @@ router.post('/', auth, async (req, res) => {
     if (req.user.role !== 'seller' && req.user.role !== 'admin') {
       return res.status(403).json({ success: false, message: 'Forbidden. Only sellers and admins can add products.' });
     }
-    const { name, category, gender, price, originalPrice, costPrice, discount, badge, stock, image, description, tags, isCustomizable, customizationType, customizationPrompt } = req.body;
+    const { name, category, gender, price, originalPrice, costPrice, discount, badge, stock, image, description, tags, isCustomizable, customizationType, customizationPrompt, sizes, colors } = req.body;
     const newProduct = await Product.create({
       name, category, gender, price, originalPrice, costPrice, discount, badge, stock, image, description, tags, inStock: true,
-      isCustomizable, customizationType, customizationPrompt,
+      isCustomizable, customizationType, customizationPrompt, sizes, colors,
       seller: req.user.role === 'seller' ? req.user._id : undefined
     });
     const formatted = {
@@ -163,6 +169,8 @@ router.post('/', auth, async (req, res) => {
       image: newProduct.image,
       description: newProduct.description,
       tags: newProduct.tags,
+      sizes: newProduct.sizes,
+      colors: newProduct.colors,
       inStock: newProduct.inStock,
       isCustomizable: newProduct.isCustomizable,
       customizationType: newProduct.customizationType,
@@ -203,6 +211,8 @@ router.put('/:id', auth, async (req, res) => {
       image: updated.image,
       description: updated.description,
       tags: updated.tags,
+      sizes: updated.sizes,
+      colors: updated.colors,
       inStock: updated.inStock,
       isCustomizable: updated.isCustomizable,
       customizationType: updated.customizationType,
