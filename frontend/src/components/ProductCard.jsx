@@ -164,7 +164,7 @@ export default function ProductCard({ product, onAddToCart, onQuickView, onToggl
               <Star
                 key={i}
                 className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${
-                  i < product.rating
+                  i < Math.round(product.rating || 5)
                     ? 'text-amber-400 fill-amber-400'
                     : 'text-slate-200'
                 }`}

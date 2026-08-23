@@ -302,6 +302,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
     originalPrice: '', // M.R.P Price
     stock: 50,
     image: '',
+    images: [],
     description: '',
     sizes: '',
     colors: '',
@@ -391,6 +392,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
       tags: ["New Arrival", "Best Selling"],
       sizes: newProd.sizes ? newProd.sizes.split(',').map(s => s.trim()).filter(Boolean) : [],
       colors: newProd.colors ? newProd.colors.split(',').map(c => c.trim()).filter(Boolean) : [],
+      images: [newProd.image, ...(newProd.images || [])].filter(Boolean),
       inStock: true,
       stock: parseInt(newProd.stock) || 50,
       isCustomizable: newProd.isCustomizable,
@@ -409,6 +411,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
       originalPrice: '',
       stock: 50,
       image: '',
+      images: [],
       description: '',
       sizes: '',
       colors: '',
@@ -859,6 +862,69 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                     <div className="mt-2 flex items-center space-x-2">
                       <img src={newProd.image} alt="Preview" className="w-12 h-12 object-cover rounded-lg border" />
                       <span className="text-[10px] text-emerald-600 font-bold">Image loaded successfully!</span>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Product Sub-Images / Gallery (Optional, shows as extra thumbnails)</label>
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const files = Array.from(e.target.files);
+                        if (files.length === 0) return;
+                        setImageUploading(true);
+                        try {
+                          const urls = [];
+                          for (const file of files) {
+                            const url = await uploadToCloudinary(file, 'product-image');
+                            urls.push(url);
+                          }
+                          setNewProd(prev => ({ 
+                            ...prev, 
+                            images: [...(prev.images || []), ...urls] 
+                          }));
+                        } catch (err) {
+                          alert("One or more images failed to upload: " + err.message);
+                        } finally {
+                          setImageUploading(false);
+                        }
+                      }}
+                      className="hidden"
+                      id="admin-sub-images-upload"
+                    />
+                    <label
+                      htmlFor="admin-sub-images-upload"
+                      className="cursor-pointer px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl border border-slate-300 transition-colors flex items-center space-x-1.5 shrink-0"
+                    >
+                      {imageUploading ? (
+                        <><Loader2 className="w-4 h-4 animate-spin text-slate-700" /><span>Uploading Gallery...</span></>
+                      ) : (
+                        <><Upload className="w-4 h-4 text-slate-700" /><span>Upload Gallery Images</span></>
+                      )}
+                    </label>
+                    <span className="text-[10px] text-slate-500 font-semibold">Select one or multiple photos to show as thumbnails</span>
+                  </div>
+                  {newProd.images && newProd.images.length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-2.5 bg-slate-50 p-3 rounded-2xl border border-slate-250">
+                      {newProd.images.map((img, idx) => (
+                        <div key={idx} className="relative w-14 h-14 rounded-lg overflow-hidden border border-slate-350 shadow-3xs group">
+                          <img src={img} alt={`Sub preview ${idx}`} className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => setNewProd(prev => ({
+                              ...prev,
+                              images: prev.images.filter((_, subIdx) => subIdx !== idx)
+                            }))}
+                            className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white font-extrabold text-[9px] cursor-pointer"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>

@@ -17,6 +17,7 @@ const productSchema = new mongoose.Schema({
   tags: [{ type: String }],
   sizes: { type: [String], default: [] },
   colors: { type: [String], default: [] },
+  images: { type: [String], default: [] },
   inStock: { type: Boolean, default: true },
   isCustomizable: { type: Boolean, default: false },
   customizationType: { type: String, enum: ['text', 'image', 'both', 'none'], default: 'none' },

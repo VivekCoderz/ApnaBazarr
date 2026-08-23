@@ -271,7 +271,11 @@ export default function ProductDetailPage({
     }
   };
 
-  const imagesList = [product.image, product.image, product.image];
+  const imagesList = product.images && product.images.length > 0 ? product.images : [product.image];
+  const averageRating = reviews.length > 0
+    ? Number((reviews.reduce((sum, r) => sum + (r.rating || 5), 0) / reviews.length).toFixed(1))
+    : (product.rating || 5);
+  const roundedRating = Math.round(averageRating);
 
   return (
     <div className="bg-white min-h-screen py-8">
@@ -334,10 +338,13 @@ export default function ProductDetailPage({
               <div className="flex items-center space-x-2 pt-1">
                 <div className="flex text-amber-400">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-amber-400" />
+                    <Star 
+                      key={i} 
+                      className={`w-4 h-4 ${i < roundedRating ? 'fill-amber-450 text-amber-400 fill-amber-400' : 'text-slate-300'}`} 
+                    />
                   ))}
                 </div>
-                <span className="text-xs font-bold text-slate-700">4.9 / 5.0</span>
+                <span className="text-xs font-bold text-slate-700">{averageRating.toFixed(1)} / 5.0</span>
                 <span className="text-xs text-slate-400">({reviews.length} Verified Customer Reviews)</span>
               </div>
 

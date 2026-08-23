@@ -17,13 +17,26 @@ exports.createReview = async (req, res) => {
       productName, 
       userName, 
       userEmail, 
-      rating, 
+      rating: Number(rating), 
       comment, 
       photoUrl, 
       videoUrl,
       sellerId,
       sellerRating: sellerRating ? Number(sellerRating) : undefined
     });
+
+    // Recalculate average rating and reviewsCount for the product
+    const allReviews = await Review.find({ productId: String(productId) });
+    if (allReviews.length > 0) {
+      const sum = allReviews.reduce((acc, curr) => acc + (curr.rating || 5), 0);
+      const avg = Number((sum / allReviews.length).toFixed(1));
+      
+      await Product.findByIdAndUpdate(productId, {
+        rating: avg,
+        reviewsCount: allReviews.length
+      });
+    }
+
     res.status(201).json({ success: true, review });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

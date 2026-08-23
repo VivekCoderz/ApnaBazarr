@@ -33,6 +33,7 @@ router.get('/', async (req, res) => {
       tags: p.tags,
       sizes: p.sizes,
       colors: p.colors,
+      images: p.images && p.images.length > 0 ? p.images : [p.image],
       inStock: p.inStock,
       isCustomizable: p.isCustomizable,
       customizationType: p.customizationType,
@@ -85,6 +86,7 @@ router.get('/seller/my-products', auth, async (req, res) => {
       tags: p.tags,
       sizes: p.sizes,
       colors: p.colors,
+      images: p.images && p.images.length > 0 ? p.images : [p.image],
       inStock: p.inStock,
       isCustomizable: p.isCustomizable,
       customizationType: p.customizationType,
@@ -122,6 +124,7 @@ router.get('/:id', async (req, res) => {
       tags: product.tags,
       sizes: product.sizes,
       colors: product.colors,
+      images: product.images && product.images.length > 0 ? product.images : [product.image],
       inStock: product.inStock,
       isCustomizable: product.isCustomizable,
       customizationType: product.customizationType,
@@ -147,10 +150,10 @@ router.post('/', auth, async (req, res) => {
     if (req.user.role !== 'seller' && req.user.role !== 'admin') {
       return res.status(403).json({ success: false, message: 'Forbidden. Only sellers and admins can add products.' });
     }
-    const { name, category, gender, price, originalPrice, costPrice, discount, badge, stock, image, description, tags, isCustomizable, customizationType, customizationPrompt, sizes, colors } = req.body;
+    const { name, category, gender, price, originalPrice, costPrice, discount, badge, stock, image, description, tags, isCustomizable, customizationType, customizationPrompt, sizes, colors, images } = req.body;
     const newProduct = await Product.create({
       name, category, gender, price, originalPrice, costPrice, discount, badge, stock, image, description, tags, inStock: true,
-      isCustomizable, customizationType, customizationPrompt, sizes, colors,
+      isCustomizable, customizationType, customizationPrompt, sizes, colors, images,
       seller: req.user.role === 'seller' ? req.user._id : undefined
     });
     const formatted = {
@@ -171,6 +174,7 @@ router.post('/', auth, async (req, res) => {
       tags: newProduct.tags,
       sizes: newProduct.sizes,
       colors: newProduct.colors,
+      images: newProduct.images && newProduct.images.length > 0 ? newProduct.images : [newProduct.image],
       inStock: newProduct.inStock,
       isCustomizable: newProduct.isCustomizable,
       customizationType: newProduct.customizationType,
@@ -213,6 +217,7 @@ router.put('/:id', auth, async (req, res) => {
       tags: updated.tags,
       sizes: updated.sizes,
       colors: updated.colors,
+      images: updated.images && updated.images.length > 0 ? updated.images : [updated.image],
       inStock: updated.inStock,
       isCustomizable: updated.isCustomizable,
       customizationType: updated.customizationType,
