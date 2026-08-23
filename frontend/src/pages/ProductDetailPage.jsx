@@ -277,6 +277,12 @@ export default function ProductDetailPage({
     : (product.rating || 5);
   const roundedRating = Math.round(averageRating);
 
+  const cost = product.costPrice || (product.price * 0.7);
+  const margin = Math.max(product.price - cost, 1);
+  const totalMargin = margin * quantity;
+  const deliveryCharge = totalMargin >= 120 ? 0 : Math.min(80, Math.max(80 + (15 * quantity) - totalMargin, 0));
+  const itemsForFreeDelivery = Math.ceil(120 / margin);
+
   return (
     <div className="bg-white min-h-screen py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
@@ -468,6 +474,34 @@ export default function ProductDetailPage({
                 <span className={`text-xs font-semibold ${isOutOfStock ? 'text-red-600' : 'text-emerald-600'}`}>
                   {isOutOfStock ? '✗ Out of Stock (Currently Unavailable)' : '✓ In Stock (Express Shipping Available)'}
                 </span>
+              </div>
+            </div>
+
+            {/* Price & Delivery Charge Summary */}
+            <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl space-y-2 select-none font-bold text-xs">
+              <div className="flex justify-between text-slate-700">
+                <span>Items Subtotal ({quantity} {quantity === 1 ? 'Pc' : 'Pcs'}):</span>
+                <span>₹{(product.price * quantity).toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-700">Estimated Delivery Fee:</span>
+                <span className={deliveryCharge === 0 ? 'text-emerald-700 font-extrabold' : 'text-slate-900'}>
+                  {deliveryCharge === 0 ? 'FREE DELIVERY' : `+₹${deliveryCharge.toFixed(0)}`}
+                </span>
+              </div>
+              {deliveryCharge > 0 && (
+                <p className="text-[10px] text-[#0066cc] font-extrabold pt-1 border-t border-slate-200/60">
+                  💡 Hint: Buy {itemsForFreeDelivery} pieces for FREE shipping! (Only {itemsForFreeDelivery - quantity} more needed)
+                </p>
+              )}
+              {deliveryCharge === 0 && (
+                <p className="text-[10px] text-emerald-700 font-extrabold pt-1 border-t border-slate-200/60">
+                  🎉 Congrats! You have unlocked FREE Express Delivery!
+                </p>
+              )}
+              <div className="flex justify-between text-sm font-extrabold text-slate-900 pt-2 border-t border-slate-300">
+                <span>Total Amount:</span>
+                <span>₹{((product.price * quantity) + deliveryCharge).toFixed(2)}</span>
               </div>
             </div>
 

@@ -5,10 +5,15 @@ export default function CartDrawer({ isOpen, onClose, cartItems, onUpdateQuantit
   if (!isOpen) return null;
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
-  const freeShippingThreshold = 999;
-  const shipping = subtotal >= freeShippingThreshold || subtotal === 0 ? 0 : 99.00;
+  const totalQty = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+  const totalMargin = cartItems.reduce((acc, item) => {
+    const cost = item.costPrice || (item.price * 0.7);
+    const margin = Math.max(item.price - cost, 1);
+    return acc + margin * item.quantity;
+  }, 0);
+  const shipping = subtotal === 0 || totalMargin >= 120 ? 0 : Math.min(80, Math.max(80 + (15 * totalQty) - totalMargin, 0));
   const total = subtotal + shipping;
-  const progressToFreeShipping = Math.min((subtotal / freeShippingThreshold) * 100, 100);
+  const progressToFreeShipping = Math.min((totalMargin / 120) * 100, 100);
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
@@ -27,7 +32,7 @@ export default function CartDrawer({ isOpen, onClose, cartItems, onUpdateQuantit
               <ShoppingBag className="w-5 h-5 text-[#0066cc]" />
               <h3 className="font-extrabold text-base tracking-tight">Your Shopping Cart</h3>
               <span className="bg-[#0066cc] text-white text-xs px-2 py-0.5 rounded-full font-bold">
-                {cartItems.reduce((sum, item) => sum + item.quantity, 0)}
+                {totalQty}
               </span>
             </div>
             <button
@@ -39,15 +44,15 @@ export default function CartDrawer({ isOpen, onClose, cartItems, onUpdateQuantit
           </div>
 
           {/* Free Shipping Progress Indicator in ₹ */}
-          <div className="bg-blue-50/80 p-3 px-4 border-b border-blue-100 text-xs">
-            {subtotal >= freeShippingThreshold ? (
-              <p className="text-emerald-700 font-bold text-center">
-                🎉 Congratulations! You unlocked FREE Express Shipping in India!
+          <div className="bg-blue-50/80 p-3 px-4 border-b border-blue-100 text-xs font-bold">
+            {totalMargin >= 120 || subtotal === 0 ? (
+              <p className="text-emerald-700 font-extrabold text-center">
+                🎉 Congratulations! You unlocked FREE Shipping!
               </p>
             ) : (
               <div className="space-y-1">
-                <p className="text-slate-600 font-semibold">
-                  Add <span className="text-[#0066cc] font-extrabold">₹{(freeShippingThreshold - subtotal).toFixed(2)}</span> more for <span className="font-extrabold text-slate-800">FREE SHIPPING</span>
+                <p className="text-slate-600">
+                  Add items to get <span className="text-[#0066cc] font-extrabold">₹{(120 - totalMargin).toFixed(0)}</span> more margin for <span className="font-extrabold text-emerald-700">FREE SHIPPING</span>
                 </p>
                 <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
                   <div 

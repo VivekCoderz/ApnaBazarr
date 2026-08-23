@@ -20,6 +20,8 @@ export default function Header({
   const [showMobileSearchDropdown, setShowMobileSearchDropdown] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [hideHeaderTop, setHideHeaderTop] = useState(false);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [isMobileSearchFocused, setIsMobileSearchFocused] = useState(false);
 
   const profileRef = useRef(null);
   const searchRef = useRef(null);
@@ -64,12 +66,12 @@ export default function Header({
 
   // Typewriter placeholder animation loop
   const placeholderTexts = [
-    "'Kundan Rakhis'",
-    "'Gold Clutches'",
-    "'Designer Kurtas'",
-    "'Gift Hampers'",
-    "'Casual Boots'",
-    "'Smartwatches'"
+    "Premium Co-ord Sets",
+    "Designer Kurtis",
+    "Gold Clutches",
+    "Gift Hampers",
+    "Casual Shoes",
+    "Premium Sarees"
   ];
   const [placeholder, setPlaceholder] = useState('');
   const [textIndex, setTextIndex] = useState(0);
@@ -84,16 +86,16 @@ export default function Header({
       timer = setTimeout(() => {
         setPlaceholder(currentFullText.substring(0, charIndex + 1));
         setCharIndex(prev => prev + 1);
-      }, 70);
+      }, 50);
     } else if (isDeleting && charIndex > 0) {
       timer = setTimeout(() => {
         setPlaceholder(currentFullText.substring(0, charIndex - 1));
         setCharIndex(prev => prev - 1);
-      }, 35);
+      }, 25);
     } else if (!isDeleting && charIndex === currentFullText.length) {
       timer = setTimeout(() => {
         setIsDeleting(true);
-      }, 2500);
+      }, 1500);
     } else if (isDeleting && charIndex === 0) {
       setIsDeleting(false);
       setTextIndex(prev => (prev + 1) % placeholderTexts.length);
@@ -163,7 +165,13 @@ export default function Header({
               <input
                 type="text"
                 value={searchQuery}
-                onFocus={() => setShowSearchDropdown(true)}
+                onFocus={() => {
+                  setShowSearchDropdown(true);
+                  setIsSearchFocused(true);
+                }}
+                onBlur={() => {
+                  setTimeout(() => setIsSearchFocused(false), 200);
+                }}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
                   setShowSearchDropdown(true);
@@ -171,9 +179,9 @@ export default function Header({
                 placeholder=""
                 className="w-full bg-slate-50 border border-slate-200 rounded-full pl-11 pr-10 py-2.5 text-xs text-slate-800 font-semibold focus:outline-none focus:border-[#0066cc] focus:bg-white transition-all shadow-xs"
               />
-              {!searchQuery && (
-                <div className="absolute left-11 top-[13px] pointer-events-none select-none text-xs font-bold text-slate-400 flex items-center space-x-1">
-                  <span>Search</span>
+              {!searchQuery && !isSearchFocused && (
+                <div className="absolute left-11 top-[11.5px] pointer-events-none select-none text-xs font-bold text-slate-400 flex items-center space-x-1">
+                  <span>Search for</span>
                   <span className="text-[#0066cc] font-black">{placeholder}</span>
                   <span className="text-[#0066cc] font-light animate-pulse">|</span>
                 </div>
@@ -398,7 +406,13 @@ export default function Header({
             <input
               type="text"
               value={searchQuery}
-              onFocus={() => setShowMobileSearchDropdown(true)}
+              onFocus={() => {
+                setShowMobileSearchDropdown(true);
+                setIsMobileSearchFocused(true);
+              }}
+              onBlur={() => {
+                setTimeout(() => setIsMobileSearchFocused(false), 200);
+              }}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
                 setShowMobileSearchDropdown(true);
@@ -406,9 +420,9 @@ export default function Header({
               placeholder=""
               className="w-full bg-slate-50 border border-slate-205 rounded-full pl-11 pr-10 py-2.5 text-xs text-slate-800 font-semibold focus:outline-none focus:border-[#0066cc] focus:bg-white transition-all shadow-xs"
             />
-            {!searchQuery && (
-              <div className="absolute left-11 top-[11px] pointer-events-none select-none text-xs font-bold text-slate-400 flex items-center space-x-1">
-                <span>Search</span>
+            {!searchQuery && !isMobileSearchFocused && (
+              <div className="absolute left-11 top-[11.5px] pointer-events-none select-none text-xs font-bold text-slate-400 flex items-center space-x-1">
+                <span>Search for</span>
                 <span className="text-[#0066cc] font-black">{placeholder}</span>
                 <span className="text-[#0066cc] font-light animate-pulse">|</span>
               </div>

@@ -9,7 +9,7 @@ export default function RecentlyViewed({ items, onAddToCart, onQuickView, onTogg
 
   const scroll = (direction) => {
     if (scrollRef.current) {
-      const scrollAmount = direction === 'left' ? -320 : 320;
+      const scrollAmount = direction === 'left' ? -200 : 200;
       scrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
   };
@@ -27,7 +27,7 @@ export default function RecentlyViewed({ items, onAddToCart, onQuickView, onTogg
               {items.length}
             </span>
           </div>
-
+ 
           <div className="flex items-center space-x-2">
             <button
               onClick={() => scroll('left')}
@@ -45,7 +45,7 @@ export default function RecentlyViewed({ items, onAddToCart, onQuickView, onTogg
             </button>
           </div>
         </div>
-
+ 
         {/* Horizontal Scroll Container */}
         <div
           ref={scrollRef}
@@ -55,7 +55,7 @@ export default function RecentlyViewed({ items, onAddToCart, onQuickView, onTogg
           {items.map((product) => (
             <div
               key={product.id}
-              className="w-[200px] sm:w-64 shrink-0 snap-start"
+              className="w-[130px] sm:w-44 shrink-0 snap-start"
             >
               <ProductCard
                 product={product}
@@ -64,6 +64,7 @@ export default function RecentlyViewed({ items, onAddToCart, onQuickView, onTogg
                 onToggleWishlist={onToggleWishlist}
                 isWishlisted={wishlistItems.some(i => i.id === product.id)}
                 isCartAdded={cartItems.some(i => i.id === product.id)}
+                compact={true}
               />
             </div>
           ))}

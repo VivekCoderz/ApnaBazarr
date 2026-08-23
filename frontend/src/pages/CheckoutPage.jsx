@@ -34,7 +34,17 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
   // COD configurations
   const [codCodeInput, setCodCodeInput] = useState('');
   const [isCodEnabled, setIsCodEnabled] = useState(false);
-  const [shippingCharges, setShippingCharges] = useState(0);
+
+  const checkoutSubtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  const checkoutQty = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+  const checkoutMargin = cartItems.reduce((acc, item) => {
+    const cost = item.costPrice || (item.price * 0.7);
+    const margin = Math.max(item.price - cost, 1);
+    return acc + margin * item.quantity;
+  }, 0);
+  const defaultShipping = checkoutSubtotal === 0 || checkoutMargin >= 120 ? 0 : Math.min(80, Math.max(80 + (15 * checkoutQty) - checkoutMargin, 0));
+
+  const [shippingCharges, setShippingCharges] = useState(defaultShipping);
   const [calculatingShipping, setCalculatingShipping] = useState(false);
 
   const calculateShippingFees = async (deliveryPincode) => {

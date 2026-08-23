@@ -20,24 +20,35 @@ async function processOrderItems(items, deliveryPincode) {
   let commissionSetting = await Setting.findOne({ key: 'commission_percentage' });
   const commissionPercent = commissionSetting ? Number(commissionSetting.value) : 10;
 
-  const formatted = [];
+  // 1. Calculate total margin and total quantity of the items
+  let totalMargin = 0;
+  let totalQuantity = 0;
+  const dbProducts = [];
+  
   for (const item of items) {
     const prodId = item.productId || item.id;
     const dbProduct = await Product.findById(prodId).populate('seller');
-    if (!dbProduct) continue;
+    if (dbProduct) {
+      dbProducts.push({ item, dbProduct });
+      const cost = dbProduct.costPrice || (dbProduct.price * 0.7);
+      const margin = Math.max(dbProduct.price - cost, 1);
+      totalMargin += margin * item.quantity;
+      totalQuantity += item.quantity;
+    }
+  }
 
+  // 2. Shipping fee is 0 if totalMargin >= 120, else Math.min(80, Math.max(80 + 15 * totalQuantity - totalMargin, 0))
+  const orderShippingCharge = totalMargin >= 120 
+    ? 0 
+    : Math.round(Math.min(80, Math.max(80 + (15 * totalQuantity) - totalMargin, 0)));
+
+  const formatted = [];
+  for (let idx = 0; idx < dbProducts.length; idx++) {
+    const { item, dbProduct } = dbProducts[idx];
     const sellerId = dbProduct.seller ? dbProduct.seller._id : null;
-    const pickupPincode = dbProduct.seller?.sellerProfile?.pickupPincode || '132103';
 
-    // Calculate shipping per item line
-    const itemShipping = calculateShipping(
-      pickupPincode,
-      deliveryPincode,
-      dbProduct.weight || 500,
-      dbProduct.length || 20,
-      dbProduct.width || 10,
-      dbProduct.height || 5
-    ) * item.quantity;
+    // Distribute order shipping charge: assign all to the first item (cleanest for totals)
+    const itemShipping = idx === 0 ? orderShippingCharge : 0;
 
     const commissionAmount = Math.round((dbProduct.price * item.quantity * commissionPercent) / 100);
     const sellerPayout = (dbProduct.price * item.quantity) - commissionAmount;

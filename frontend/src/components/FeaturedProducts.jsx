@@ -7,7 +7,31 @@ export default function FeaturedProducts({ products, onAddToCart, onQuickView, o
   const tabs = ['New Arrival', 'Best Selling', 'Top Rated'];
 
   // Filter products based on selected tab
-  const filteredProducts = products.filter(p => p.tags && p.tags.includes(activeTab));
+  let filteredProducts = [];
+  if (activeTab === 'New Arrival') {
+    // Sort by creation date descending
+    filteredProducts = [...products]
+      .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+      .slice(0, 10);
+  } else if (activeTab === 'Best Selling') {
+    // Sort by reviewsCount descending, fallback to price ascending (cheaper items sell more)
+    filteredProducts = [...products]
+      .sort((a, b) => {
+        const revDiff = (b.reviewsCount || 0) - (a.reviewsCount || 0);
+        if (revDiff !== 0) return revDiff;
+        return (a.price || 0) - (b.price || 0);
+      })
+      .slice(0, 10);
+  } else if (activeTab === 'Top Rated') {
+    // Sort by rating descending, fallback to price descending (premium top-rated items)
+    filteredProducts = [...products]
+      .sort((a, b) => {
+        const ratingDiff = (b.rating || 0) - (a.rating || 0);
+        if (ratingDiff !== 0) return ratingDiff;
+        return (b.price || 0) - (a.price || 0);
+      })
+      .slice(0, 10);
+  }
 
   const isWishlisted = (id) => wishlistItems.some(item => item.id === id);
   const isCartAdded = (id) => cartItems.some(item => item.id === id);

@@ -6,9 +6,13 @@ export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem }) 
   const navigate = useNavigate();
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
-  const freeShippingThreshold = 999;
-//   const shipping = subtotal >= freeShippingThreshold || subtotal === 0 ? 0 : 99.00;
-     const shipping = 0;
+  const totalQty = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+  const totalMargin = cartItems.reduce((acc, item) => {
+    const cost = item.costPrice || (item.price * 0.7);
+    const margin = Math.max(item.price - cost, 1);
+    return acc + margin * item.quantity;
+  }, 0);
+  const shipping = subtotal === 0 || totalMargin >= 120 ? 0 : Math.min(80, Math.max(80 + (15 * totalQty) - totalMargin, 0));
   const total = subtotal + shipping;
 
   return (

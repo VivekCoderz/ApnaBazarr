@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const Product = require('../models/Product');
+const Review = require('../models/Review');
+const Order = require('../models/Order');
 const auth = require('../middlewares/auth');
 
 // GET /products - fetch all products from MongoDB
@@ -14,42 +16,64 @@ router.get('/', async (req, res) => {
       return p.seller.sellerProfile?.status !== 'rejected';
     });
 
+    const allReviews = await Review.find();
+    const allOrders = await Order.find();
+
+    const salesMap = {};
+    allOrders.forEach(order => {
+      if (order.items) {
+        order.items.forEach(item => {
+          const pId = String(item.productId);
+          salesMap[pId] = (salesMap[pId] || 0) + (item.quantity || 1);
+        });
+      }
+    });
+
     // Format response to ensure ID maps correctly for frontend
-    const formatted = approvedProducts.map(p => ({
-      id: p._id,
-      name: p.name,
-      category: p.category,
-      gender: p.gender,
-      price: p.price,
-      originalPrice: p.originalPrice,
-      costPrice: p.costPrice,
-      discount: p.discount,
-      badge: p.badge,
-      stock: p.stock,
-      rating: p.rating,
-      reviewsCount: p.reviewsCount,
-      image: p.image,
-      description: p.description,
-      tags: p.tags,
-      sizes: p.sizes,
-      colors: p.colors,
-      images: p.images && p.images.length > 0 ? p.images : [p.image],
-      inStock: p.inStock,
-      isCustomizable: p.isCustomizable,
-      customizationType: p.customizationType,
-      customizationPrompt: p.customizationPrompt,
-      seller: p.seller ? {
-        id: p.seller._id,
-        name: p.seller.name,
-        shopName: p.seller.sellerProfile?.shopName || p.seller.name,
-        shopDescription: p.seller.sellerProfile?.shopDescription || '',
-        shopAddress: p.seller.sellerProfile?.shopAddress || '',
-        phone: p.seller.sellerProfile?.phone || '',
-        isOpen: p.seller.sellerProfile?.isOpen ?? true,
-        shopBanner: p.seller.sellerProfile?.shopBanner || '',
-        status: p.seller.sellerProfile?.status || 'approved'
-      } : null
-    }));
+    const formatted = approvedProducts.map(p => {
+      const prodReviews = allReviews.filter(r => String(r.productId) === String(p._id));
+      const reviewsCount = prodReviews.length;
+      const rating = reviewsCount > 0 
+        ? Number((prodReviews.reduce((sum, r) => sum + (r.rating || 5), 0) / reviewsCount).toFixed(1))
+        : 5; // default to 5 stars when no reviews
+
+      return {
+        id: p._id,
+        name: p.name,
+        category: p.category,
+        gender: p.gender,
+        price: p.price,
+        originalPrice: p.originalPrice,
+        costPrice: p.costPrice,
+        discount: p.discount,
+        badge: p.badge,
+        stock: p.stock,
+        rating,
+        reviewsCount,
+        salesCount: salesMap[String(p._id)] || 0,
+        image: p.image,
+        description: p.description,
+        tags: p.tags,
+        sizes: p.sizes,
+        colors: p.colors,
+        images: p.images && p.images.length > 0 ? p.images : [p.image],
+        inStock: p.inStock,
+        isCustomizable: p.isCustomizable,
+        customizationType: p.customizationType,
+        customizationPrompt: p.customizationPrompt,
+        seller: p.seller ? {
+          id: p.seller._id,
+          name: p.seller.name,
+          shopName: p.seller.sellerProfile?.shopName || p.seller.name,
+          shopDescription: p.seller.sellerProfile?.shopDescription || '',
+          shopAddress: p.seller.sellerProfile?.shopAddress || '',
+          phone: p.seller.sellerProfile?.phone || '',
+          isOpen: p.seller.sellerProfile?.isOpen ?? true,
+          shopBanner: p.seller.sellerProfile?.shopBanner || '',
+          status: p.seller.sellerProfile?.status || 'approved'
+        } : null
+      };
+    });
 
     res.json({ success: true, count: formatted.length, data: formatted });
   } catch (err) {
@@ -106,6 +130,24 @@ router.get('/:id', async (req, res) => {
     if (!product) {
       return res.status(404).json({ success: false, message: 'Product not found' });
     }
+    const prodReviews = await Review.find({ productId: String(product._id) });
+    const reviewsCount = prodReviews.length;
+    const rating = reviewsCount > 0 
+      ? Number((prodReviews.reduce((sum, r) => sum + (r.rating || 5), 0) / reviewsCount).toFixed(1))
+      : 5;
+
+    const allItemOrders = await Order.find({ "items.productId": String(product._id) });
+    let salesCount = 0;
+    allItemOrders.forEach(order => {
+      if (order.items) {
+        order.items.forEach(item => {
+          if (String(item.productId) === String(product._id)) {
+            salesCount += (item.quantity || 1);
+          }
+        });
+      }
+    });
+
     const formatted = {
       id: product._id,
       name: product.name,
@@ -117,8 +159,9 @@ router.get('/:id', async (req, res) => {
       discount: product.discount,
       badge: product.badge,
       stock: product.stock,
-      rating: product.rating,
-      reviewsCount: product.reviewsCount,
+      rating,
+      reviewsCount,
+      salesCount,
       image: product.image,
       description: product.description,
       tags: product.tags,
