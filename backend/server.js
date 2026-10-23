@@ -38,7 +38,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Database Connection
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://vivekgarg0605:06062005@business.kyssclv.mongodb.net/ApnaBazar';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://careerconnect-prod-oct:VfwTFVGAkWTXhZpa@business.kyssclv.mongodb.net/ApnaBazar';
 mongoose.connect(MONGODB_URI)
   .then(() => {
     console.log("✅ Database connected to Apna Bazarr MongoDB");
