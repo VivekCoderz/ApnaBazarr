@@ -600,7 +600,7 @@ function AppContent() {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center space-y-4">
         <div className="relative flex items-center justify-center">
-          <div className="w-16 h-16 border-4 border-slate-200 border-t-[#0066cc] rounded-full animate-spin"></div>
+          <div className="w-16 h-16 border-4 border-slate-200 border-t-brand-navy rounded-full animate-spin"></div>
           <span className="absolute font-black text-xs text-slate-800">APNA</span>
         </div>
         <div className="text-center space-y-1">
@@ -612,7 +612,7 @@ function AppContent() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-white text-slate-800 antialiased selection:bg-[#0066cc] selection:text-white">
+    <div className="min-h-screen flex flex-col bg-white text-slate-800 antialiased selection:bg-brand-navy selection:text-white">
       
       {/* Toast Notification */}
       {toastMessage && (

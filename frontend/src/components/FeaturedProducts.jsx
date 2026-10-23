@@ -45,7 +45,7 @@ export default function FeaturedProducts({ products, onAddToCart, onQuickView, o
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
             Featured Products
           </h2>
-          <div className="w-12 h-1 bg-[#0066cc] rounded-full" />
+          <div className="w-12 h-1 bg-brand-navy rounded-full" />
 
           {/* Filter Tabs */}
           <div className="flex items-center space-x-2 sm:space-x-8 pt-2 border-b border-slate-200">
@@ -55,13 +55,13 @@ export default function FeaturedProducts({ products, onAddToCart, onQuickView, o
                 onClick={() => setActiveTab(tab)}
                 className={`pb-3 text-xs sm:text-sm font-bold tracking-wide transition-all relative ${
                   activeTab === tab
-                    ? 'text-[#0066cc]'
+                    ? 'text-brand-navy'
                     : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
                 <span>{tab}</span>
                 {activeTab === tab && (
-                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#0066cc] animate-fade-in" />
+                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-navy animate-fade-in" />
                 )}
               </button>
             ))}

@@ -53,7 +53,7 @@ export default function QuickViewModal({ product, onClose, onAddToCart, onToggle
           <div className="p-6 sm:p-8 flex flex-col justify-between space-y-4">
             
             <div className="space-y-2">
-              <span className="text-xs font-semibold text-[#0066cc] uppercase tracking-wider">
+              <span className="text-xs font-semibold text-brand-navy uppercase tracking-wider">
                 {product.category}
               </span>
               <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 leading-tight">
@@ -106,7 +106,7 @@ export default function QuickViewModal({ product, onClose, onAddToCart, onToggle
                         key={idx}
                         onClick={() => setSelectedColor(color)}
                         className={`w-6 h-6 rounded-full border-2 transition-all ${
-                          selectedColor === color ? 'ring-2 ring-[#0066cc] ring-offset-2 scale-110' : 'border-white'
+                          selectedColor === color ? 'ring-2 ring-brand-navy ring-offset-2 scale-110' : 'border-white'
                         }`}
                         style={{ backgroundColor: color }}
                       />
@@ -125,7 +125,7 @@ export default function QuickViewModal({ product, onClose, onAddToCart, onToggle
                         onClick={() => setSelectedSize(size)}
                         className={`px-3 py-1 text-xs font-bold rounded-md border transition-all ${
                           selectedSize === size
-                            ? 'bg-[#0066cc] text-white border-[#0066cc]'
+                            ? 'bg-brand-navy text-white border-brand-navy'
                             : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-400'
                         }`}
                       >
@@ -161,7 +161,7 @@ export default function QuickViewModal({ product, onClose, onAddToCart, onToggle
                 <button
                   onClick={handleAdd}
                   className={`flex-1 py-3 px-4 rounded-xl font-extrabold text-xs uppercase tracking-wider text-white shadow-md flex items-center justify-center space-x-2 transition-colors ${
-                    addedSuccess ? 'bg-emerald-600' : 'bg-[#0066cc] hover:bg-blue-700'
+                    addedSuccess ? 'bg-emerald-600' : 'bg-brand-cta hover:bg-brand-cta-hover'
                   }`}
                 >
                   {addedSuccess ? (
@@ -193,11 +193,11 @@ export default function QuickViewModal({ product, onClose, onAddToCart, onToggle
               {/* Guarantees */}
               <div className="flex items-center justify-between text-[11px] text-slate-500 pt-2 border-t border-slate-100">
                 <div className="flex items-center space-x-1">
-                  <Truck className="w-3.5 h-3.5 text-[#0066cc]" />
+                  <Truck className="w-3.5 h-3.5 text-brand-navy" />
                   <span>Free Express Delivery Across India</span>
                 </div>
                 <div className="flex items-center space-x-1">
-                  <Shield className="w-3.5 h-3.5 text-[#0066cc]" />
+                  <Shield className="w-3.5 h-3.5 text-brand-navy" />
                   <span>100% Genuine Guarantee</span>
                 </div>
               </div>

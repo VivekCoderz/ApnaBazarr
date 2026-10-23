@@ -32,7 +32,7 @@ export default function FeaturedCategories({ products = [], onSelectCategory }) 
           <p className="text-slate-500 text-sm">
             Browse our wide selection of top premium fashion categories
           </p>
-          <div className="w-12 h-1 bg-[#0066cc] rounded-full mx-auto mt-3" />
+          <div className="w-12 h-1 bg-brand-navy rounded-full mx-auto mt-3" />
         </div>
 
         {/* Category Cards */}
@@ -43,14 +43,14 @@ export default function FeaturedCategories({ products = [], onSelectCategory }) 
               onClick={() => onSelectCategory(cat.name)}
               className="group bg-white rounded-xl p-4 text-center cursor-pointer border border-slate-200/80 custom-card-shadow transition-all duration-300 hover:-translate-y-1"
             >
-              <div className="w-20 h-20 mx-auto rounded-full overflow-hidden mb-3 bg-slate-100 ring-2 ring-blue-50 group-hover:ring-[#0066cc] transition-all">
+              <div className="w-20 h-20 mx-auto rounded-full overflow-hidden mb-3 bg-slate-100 ring-2 ring-blue-50 group-hover:ring-brand-navy transition-all">
                 <img
                   src={cat.image}
                   alt={cat.name}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
               </div>
-              <h4 className="text-sm font-bold text-slate-800 group-hover:text-[#0066cc] transition-colors truncate">
+              <h4 className="text-sm font-bold text-slate-800 group-hover:text-brand-navy transition-colors truncate">
                 {cat.name}
               </h4>
               <span className="text-[11px] text-slate-400 font-semibold mt-0.5 block">

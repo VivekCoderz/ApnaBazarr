@@ -83,7 +83,7 @@ export default function ProductCard({ product, onAddToCart, onQuickView, onToggl
               e.stopPropagation();
               navigate(`/product/${product.id}`);
             }}
-            className="p-2 bg-white text-slate-800 rounded-lg hover:bg-[#0066cc] hover:text-white transition-colors shadow-md text-xs font-semibold flex items-center space-x-1"
+            className="p-2 bg-white text-slate-800 rounded-lg hover:bg-brand-navy hover:text-white transition-colors shadow-md text-xs font-semibold flex items-center space-x-1"
             title="View Details"
           >
             <Eye className="w-4 h-4" />
@@ -101,7 +101,7 @@ export default function ProductCard({ product, onAddToCart, onQuickView, onToggl
                 ? 'bg-slate-400 text-slate-200 cursor-not-allowed'
                 : isCartAdded
                   ? 'bg-emerald-600 text-white'
-                  : 'bg-[#0066cc] text-white hover:bg-blue-700'
+                  : 'bg-brand-cta text-white hover:bg-brand-cta-hover'
             }`}
             title={isOutOfStock ? "Out of Stock" : isClosed ? "Shop Closed" : "Add to Cart"}
           >
@@ -141,14 +141,14 @@ export default function ProductCard({ product, onAddToCart, onQuickView, onToggl
                     e.stopPropagation();
                     navigate(`/shop?sellerId=${product.seller.id}`);
                   }}
-                  className="text-[8px] sm:text-[9px] text-[#0066cc] hover:underline font-black cursor-pointer truncate max-w-[100px] shrink-0"
+                  className="text-[8px] sm:text-[9px] text-brand-navy hover:underline font-black cursor-pointer truncate max-w-[100px] shrink-0"
                   title={`View ${product.seller.shopName}`}
                 >
                   {product.seller.shopName}
                 </span>
               )}
               {product.gender && (
-                <span className="text-[8px] sm:text-[9px] font-extrabold text-[#0066cc] bg-blue-50 px-1 py-0.5 rounded shrink-0">
+                <span className="text-[8px] sm:text-[9px] font-extrabold text-brand-navy bg-blue-50 px-1 py-0.5 rounded shrink-0">
                   {product.gender}
                 </span>
               )}
@@ -156,7 +156,7 @@ export default function ProductCard({ product, onAddToCart, onQuickView, onToggl
           )}
 
           <h4 
-            className="text-[11px] sm:text-xs font-bold text-slate-800 hover:text-[#0066cc] transition-colors line-clamp-2 mt-0.5"
+            className="text-[11px] sm:text-xs font-bold text-slate-800 hover:text-brand-navy transition-colors line-clamp-2 mt-0.5"
           >
             {product.name}
           </h4>
@@ -203,7 +203,7 @@ export default function ProductCard({ product, onAddToCart, onQuickView, onToggl
                 </p>
               ) : (
                 <>
-                  <p className="text-[#0066cc] font-extrabold">
+                  <p className="text-brand-navy font-extrabold">
                     🚚 Free Delivery: buy {itemsForFreeDelivery} Pcs
                   </p>
                   <p className="text-slate-400 text-[8px] sm:text-[9px] font-semibold">
@@ -228,7 +228,7 @@ export default function ProductCard({ product, onAddToCart, onQuickView, onToggl
                 ? 'bg-slate-205 text-slate-400 cursor-not-allowed'
                 : isCartAdded
                   ? 'bg-emerald-600 text-white'
-                  : 'bg-slate-900 text-white hover:bg-[#0066cc]'
+                  : 'bg-brand-cta text-white hover:bg-brand-cta-hover'
             }`}
           >
             {isOutOfStock ? (

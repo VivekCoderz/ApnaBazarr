@@ -3,7 +3,7 @@ import { Mail, Phone, ChevronDown } from 'lucide-react';
 
 export default function TopBar() {
   return (
-    <div className="bg-[#0066cc] text-white text-xs py-2 px-4 border-b border-blue-600/30">
+    <div className="bg-brand-navy text-white text-xs py-2 px-4 border-b border-blue-600/30">
       <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-0">
         
         {/* Left Side: Contact Info */}

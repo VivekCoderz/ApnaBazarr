@@ -1088,7 +1088,7 @@ export default function SellerDashboardPage({ currentUser, onLogout, onAuthSucce
                 {shopLogo ? (
                   <img src={shopLogo} alt="Logo" className="w-8 h-8 rounded-full object-cover border border-slate-200" />
                 ) : (
-                  <div className="w-8 h-8 bg-blue-50 text-[#0066cc] rounded-full flex items-center justify-center font-bold text-xs">
+                  <div className="w-8 h-8 bg-blue-50 text-brand-navy rounded-full flex items-center justify-center font-bold text-xs">
                     {shopName ? shopName[0] : 'S'}
                   </div>
                 )}
@@ -1746,7 +1746,7 @@ export default function SellerDashboardPage({ currentUser, onLogout, onAuthSucce
                           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block leading-none">Total Sales</span>
                           <h3 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">₹{totalSalesVal.toLocaleString('en-IN')}</h3>
                         </div>
-                        <div className="w-9 h-9 bg-blue-50 text-[#0066cc] rounded-xl flex items-center justify-center shrink-0 border border-blue-100">
+                        <div className="w-9 h-9 bg-blue-50 text-brand-navy rounded-xl flex items-center justify-center shrink-0 border border-blue-100">
                           <span className="font-extrabold text-sm">₹</span>
                         </div>
                       </div>
@@ -1844,8 +1844,8 @@ export default function SellerDashboardPage({ currentUser, onLogout, onAuthSucce
                           <svg viewBox="0 0 500 200" className="w-full overflow-visible">
                             <defs>
                               <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor="#0066cc" stopOpacity="0.25"/>
-                                <stop offset="100%" stopColor="#0066cc" stopOpacity="0.00"/>
+                                <stop offset="0%" stopColor="#0B2A55" stopOpacity="0.25"/>
+                                <stop offset="100%" stopColor="#0B2A55" stopOpacity="0.00"/>
                               </linearGradient>
                             </defs>
 
@@ -1932,7 +1932,7 @@ export default function SellerDashboardPage({ currentUser, onLogout, onAuthSucce
                     <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-2xs space-y-4">
                       <div className="flex justify-between items-center pb-2 border-b border-slate-100">
                         <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Recent Orders</h3>
-                        <button onClick={() => setActiveTab('orders')} className="text-[10px] font-bold text-[#0066cc] hover:underline cursor-pointer">
+                        <button onClick={() => setActiveTab('orders')} className="text-[10px] font-bold text-brand-navy hover:underline cursor-pointer">
                           View All Orders
                         </button>
                       </div>
@@ -2019,7 +2019,7 @@ export default function SellerDashboardPage({ currentUser, onLogout, onAuthSucce
                             : "Great job! Keep processing pending orders to reach 100%."
                           }
                         </p>
-                        <button onClick={() => setActiveTab('support')} className="text-[10px] font-extrabold text-[#0066cc] hover:underline uppercase block mx-auto">
+                        <button onClick={() => setActiveTab('support')} className="text-[10px] font-extrabold text-brand-navy hover:underline uppercase block mx-auto">
                           View Insights →
                         </button>
                       </div>
@@ -2029,7 +2029,7 @@ export default function SellerDashboardPage({ currentUser, onLogout, onAuthSucce
                     <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-2xs space-y-4 flex flex-col justify-between">
                       <div className="flex justify-between items-center pb-2 border-b border-slate-100">
                         <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Top Selling Products</h3>
-                        <button onClick={() => setActiveTab('products')} className="text-[9px] font-black text-[#0066cc] hover:underline uppercase tracking-wider">
+                        <button onClick={() => setActiveTab('products')} className="text-[9px] font-black text-brand-navy hover:underline uppercase tracking-wider">
                           View All
                         </button>
                       </div>

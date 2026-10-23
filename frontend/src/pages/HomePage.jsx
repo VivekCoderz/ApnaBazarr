@@ -120,7 +120,7 @@ export default function HomePage({
               <select
                 value={activeTab}
                 onChange={(e) => handleTabChange(e.target.value)}
-                className="px-3 py-2 bg-white border border-slate-200 text-xs sm:text-sm font-bold text-slate-700 rounded-xl shadow-xs outline-none focus:border-[#0066cc] cursor-pointer"
+                className="px-3 py-2 bg-white border border-slate-200 text-xs sm:text-sm font-bold text-slate-700 rounded-xl shadow-xs outline-none focus:border-brand-navy cursor-pointer"
               >
                 <option value="New Arrival">🆕 New Arrival</option>
                 <option value="Best Selling">🔥 Best Selling</option>
@@ -150,7 +150,7 @@ export default function HomePage({
           {/* Loading Indicator Spinner */}
           {isLoading && (
             <div className="flex flex-col items-center justify-center space-y-2 mt-8">
-              <div className="w-8 h-8 border-4 border-[#0066cc] border-t-transparent rounded-full animate-spin" />
+              <div className="w-8 h-8 border-4 border-brand-navy border-t-transparent rounded-full animate-spin" />
               <p className="text-xs text-slate-500 font-extrabold">Loading more products...</p>
             </div>
           )}
@@ -166,7 +166,7 @@ export default function HomePage({
                     setIsLoading(false);
                   }, 500);
                 }}
-                className="px-6 py-3 bg-[#0066cc] hover:bg-blue-700 text-white text-xs font-bold rounded-2xl shadow-md transition-colors cursor-pointer"
+                className="px-6 py-3 bg-brand-navy hover:bg-blue-700 text-white text-xs font-bold rounded-2xl shadow-md transition-colors cursor-pointer"
               >
                 Load More Products
               </button>

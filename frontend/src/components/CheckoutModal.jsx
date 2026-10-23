@@ -193,7 +193,7 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, onOrderCompl
         {/* Header */}
         <div className="p-4 sm:p-5 border-b border-slate-200 bg-slate-900 text-white flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <ShieldCheck className="w-5 h-5 text-[#0066cc]" />
+            <ShieldCheck className="w-5 h-5 text-brand-navy" />
             <h3 className="font-extrabold text-base tracking-tight">
               {step === 1 && "1. Delivery Address"}
               {step === 2 && "2. Payment Method"}
@@ -210,13 +210,13 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, onOrderCompl
 
         {/* Progress Step Indicator */}
         <div className="bg-slate-50 px-6 py-3 border-b border-slate-200 flex items-center justify-between text-xs font-bold text-slate-600">
-          <div className={`flex items-center space-x-1 ${step >= 1 ? 'text-[#0066cc]' : ''}`}>
-            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${step >= 1 ? 'bg-[#0066cc] text-white' : 'bg-slate-200 text-slate-600'}`}>1</span>
+          <div className={`flex items-center space-x-1 ${step >= 1 ? 'text-brand-navy' : ''}`}>
+            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${step >= 1 ? 'bg-brand-navy text-white' : 'bg-slate-200 text-slate-600'}`}>1</span>
             <span>Address</span>
           </div>
           <div className="w-8 h-0.5 bg-slate-200" />
-          <div className={`flex items-center space-x-1 ${step >= 2 ? 'text-[#0066cc]' : ''}`}>
-            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${step >= 2 ? 'bg-[#0066cc] text-white' : 'bg-slate-200 text-slate-600'}`}>2</span>
+          <div className={`flex items-center space-x-1 ${step >= 2 ? 'text-brand-navy' : ''}`}>
+            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${step >= 2 ? 'bg-brand-navy text-white' : 'bg-slate-200 text-slate-600'}`}>2</span>
             <span>Payment</span>
           </div>
           <div className="w-8 h-0.5 bg-slate-200" />
@@ -242,7 +242,7 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, onOrderCompl
                     setLocationError('');
                     setLocationSuccess('');
                   }}
-                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center space-x-1.5 ${locationOption === 'auto' ? 'bg-white text-[#0066cc] shadow-xs' : 'text-slate-600 hover:text-slate-950'}`}
+                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center space-x-1.5 ${locationOption === 'auto' ? 'bg-white text-brand-navy shadow-xs' : 'text-slate-600 hover:text-slate-950'}`}
                 >
                   <MapPin className="w-3.5 h-3.5" />
                   <span>Auto-detect Live Location</span>
@@ -254,7 +254,7 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, onOrderCompl
                     setLocationError('');
                     setLocationSuccess('');
                   }}
-                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center space-x-1.5 ${locationOption === 'manual' ? 'bg-white text-[#0066cc] shadow-xs' : 'text-slate-600 hover:text-slate-955'}`}
+                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center space-x-1.5 ${locationOption === 'manual' ? 'bg-white text-brand-navy shadow-xs' : 'text-slate-600 hover:text-slate-955'}`}
                 >
                   <span>Enter Location Manually</span>
                 </button>
@@ -270,7 +270,7 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, onOrderCompl
                     type="button"
                     onClick={fetchLiveLocation}
                     disabled={fetchingLocation}
-                    className="px-5 py-2.5 bg-[#0066cc] text-white font-extrabold text-xs uppercase tracking-wider rounded-lg hover:bg-blue-700 transition-all flex items-center justify-center space-x-2 mx-auto disabled:opacity-75 cursor-pointer shadow-xs animate-pulse hover:animate-none"
+                    className="px-5 py-2.5 bg-brand-navy text-white font-extrabold text-xs uppercase tracking-wider rounded-lg hover:bg-blue-700 transition-all flex items-center justify-center space-x-2 mx-auto disabled:opacity-75 cursor-pointer shadow-xs animate-pulse hover:animate-none"
                   >
                     {fetchingLocation ? (
                       <>
@@ -307,7 +307,7 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, onOrderCompl
                     value={address.fullName}
                     onChange={(e) => setAddress({ ...address, fullName: e.target.value })}
                     placeholder="Enter your name"
-                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-[#0066cc]"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-brand-navy"
                   />
                 </div>
 
@@ -320,7 +320,7 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, onOrderCompl
                     value={address.phone}
                     onChange={(e) => setAddress({ ...address, phone: e.target.value })}
                     placeholder="e.g. 9876543210"
-                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-[#0066cc]"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-brand-navy"
                   />
                 </div>
 
@@ -333,7 +333,7 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, onOrderCompl
                     value={address.pincode}
                     onChange={(e) => handlePincodeChange(e.target.value)}
                     placeholder="e.g. 110001"
-                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-[#0066cc]"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-brand-navy"
                   />
                 </div>
 
@@ -345,7 +345,7 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, onOrderCompl
                     value={address.flatNo}
                     onChange={(e) => setAddress({ ...address, flatNo: e.target.value })}
                     placeholder="e.g. House No 42, Block C"
-                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-[#0066cc]"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-brand-navy"
                   />
                 </div>
 
@@ -359,7 +359,7 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, onOrderCompl
                   value={address.area}
                   onChange={(e) => setAddress({ ...address, area: e.target.value })}
                   placeholder="e.g. Connaught Place, Near Metro Station"
-                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-[#0066cc]"
+                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-brand-navy"
                 />
               </div>
 
@@ -372,7 +372,7 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, onOrderCompl
                     value={address.city}
                     onChange={(e) => setAddress({ ...address, city: e.target.value })}
                     placeholder="e.g. New Delhi"
-                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-[#0066cc]"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-brand-navy"
                   />
                 </div>
 
@@ -381,7 +381,7 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, onOrderCompl
                   <select
                     value={address.state}
                     onChange={(e) => setAddress({ ...address, state: e.target.value })}
-                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-[#0066cc]"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-brand-navy"
                   >
                     {indianStates.map((st, idx) => (
                       <option key={idx} value={st}>{st}</option>
@@ -393,12 +393,12 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, onOrderCompl
               {/* Order Total Overview */}
               <div className="bg-blue-50/60 p-3 rounded-lg flex items-center justify-between border border-blue-100 mt-4">
                 <span className="text-xs font-bold text-slate-700">Total Payable Amount:</span>
-                <span className="text-base font-extrabold text-[#0066cc]">₹{total.toFixed(2)}</span>
+                <span className="text-base font-extrabold text-brand-navy">₹{total.toFixed(2)}</span>
               </div>
 
               <button
                 type="submit"
-                className="w-full py-3 bg-[#0066cc] hover:bg-blue-700 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md transition-colors flex items-center justify-center space-x-2"
+                className="w-full py-3 bg-brand-navy hover:bg-blue-700 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md transition-colors flex items-center justify-center space-x-2"
               >
                 <span>CONTINUE TO PAYMENT</span>
                 <ArrowRight className="w-4 h-4" />
@@ -416,11 +416,11 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, onOrderCompl
                 <div
                   onClick={() => setPaymentMethod('UPI')}
                   className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all flex items-center justify-between ${
-                    paymentMethod === 'UPI' ? 'border-[#0066cc] bg-blue-50/50' : 'border-slate-200 hover:border-slate-300'
+                    paymentMethod === 'UPI' ? 'border-brand-navy bg-blue-50/50' : 'border-slate-200 hover:border-slate-300'
                   }`}
                 >
                   <div className="flex items-center space-x-3">
-                    <Smartphone className="w-5 h-5 text-[#0066cc]" />
+                    <Smartphone className="w-5 h-5 text-brand-navy" />
                     <div>
                       <h4 className="text-xs font-bold text-slate-800">UPI Instant Payment</h4>
                       <p className="text-[11px] text-slate-500">Google Pay, PhonePe, Paytm, BHIM UPI</p>
@@ -437,7 +437,7 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, onOrderCompl
                       value={upiId}
                       onChange={(e) => setUpiId(e.target.value)}
                       placeholder="e.g. mobile@upi or username@okicici"
-                      className="w-full px-3 py-2 text-xs border border-slate-300 rounded-md focus:outline-none focus:border-[#0066cc]"
+                      className="w-full px-3 py-2 text-xs border border-slate-300 rounded-md focus:outline-none focus:border-brand-navy"
                     />
                   </div>
                 )}
@@ -446,7 +446,7 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, onOrderCompl
                 <div
                   onClick={() => setPaymentMethod('COD')}
                   className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all flex items-center justify-between ${
-                    paymentMethod === 'COD' ? 'border-[#0066cc] bg-blue-50/50' : 'border-slate-200 hover:border-slate-300'
+                    paymentMethod === 'COD' ? 'border-brand-navy bg-blue-50/50' : 'border-slate-200 hover:border-slate-300'
                   }`}
                 >
                   <div className="flex items-center space-x-3">
@@ -462,7 +462,7 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, onOrderCompl
                 <div
                   onClick={() => setPaymentMethod('CARD')}
                   className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all flex items-center justify-between ${
-                    paymentMethod === 'CARD' ? 'border-[#0066cc] bg-blue-50/50' : 'border-slate-200 hover:border-slate-300'
+                    paymentMethod === 'CARD' ? 'border-brand-navy bg-blue-50/50' : 'border-slate-200 hover:border-slate-300'
                   }`}
                 >
                   <div className="flex items-center space-x-3">
@@ -488,7 +488,7 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, onOrderCompl
                 </div>
                 <div className="flex justify-between text-sm font-extrabold text-slate-900 pt-2 border-t border-slate-200">
                   <span>Total Amount</span>
-                  <span className="text-[#0066cc]">₹{total.toFixed(2)}</span>
+                  <span className="text-brand-navy">₹{total.toFixed(2)}</span>
                 </div>
               </div>
 
@@ -503,7 +503,7 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, onOrderCompl
 
                 <button
                   onClick={handlePlaceOrder}
-                  className="flex-1 py-3 bg-[#0066cc] hover:bg-blue-700 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md transition-colors flex items-center justify-center space-x-2"
+                  className="flex-1 py-3 bg-brand-navy hover:bg-blue-700 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md transition-colors flex items-center justify-center space-x-2"
                 >
                   <span>PLACE ORDER & PAY ₹{total.toFixed(2)}</span>
                   <Check className="w-4 h-4" />
@@ -527,7 +527,7 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, onOrderCompl
                 <p className="text-xs text-slate-500 mt-1">
                   Thank you for shopping with <span className="font-bold text-slate-800">Apna Bazarr</span>
                 </p>
-                <span className="inline-block mt-2 px-3 py-1 bg-blue-50 text-[#0066cc] font-extrabold text-xs rounded-full border border-blue-100">
+                <span className="inline-block mt-2 px-3 py-1 bg-blue-50 text-brand-navy font-extrabold text-xs rounded-full border border-blue-100">
                   Order ID: {placedOrder.orderId}
                 </span>
               </div>
@@ -536,7 +536,7 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, onOrderCompl
               <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-left space-y-3">
                 <div className="flex items-center justify-between text-xs border-b border-slate-200 pb-2">
                   <span className="font-bold text-slate-700">Estimated Delivery:</span>
-                  <span className="font-extrabold text-[#0066cc]">{placedOrder.estimatedDelivery}</span>
+                  <span className="font-extrabold text-brand-navy">{placedOrder.estimatedDelivery}</span>
                 </div>
 
                 <div className="text-xs text-slate-600 space-y-1">
@@ -548,7 +548,7 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, onOrderCompl
 
               <button
                 onClick={onClose}
-                className="w-full py-3 bg-[#0066cc] hover:bg-blue-700 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md transition-colors"
+                className="w-full py-3 bg-brand-navy hover:bg-blue-700 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md transition-colors"
               >
                 CONTINUE SHOPPING
               </button>

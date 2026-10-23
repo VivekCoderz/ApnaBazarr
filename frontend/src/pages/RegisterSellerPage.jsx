@@ -58,12 +58,12 @@ export default function RegisterSellerPage({ currentUser, onAuthSuccess }) {
       {/* Left Pane - Marketing and Info */}
       <div className="lg:w-1/2 bg-slate-900 text-white p-8 lg:p-16 flex flex-col justify-between relative overflow-hidden">
         {/* Decorative elements */}
-        <div className="absolute w-96 h-96 bg-[#0066cc]/10 rounded-full blur-3xl -top-20 -left-20 pointer-events-none" />
+        <div className="absolute w-96 h-96 bg-brand-navy/10 rounded-full blur-3xl -top-20 -left-20 pointer-events-none" />
         <div className="absolute w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl -bottom-20 -right-20 pointer-events-none" />
 
         <div className="relative space-y-4">
           <div className="flex items-center space-x-2.5">
-            <span className="bg-[#0066cc]/20 text-[#3b82f6] px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider">
+            <span className="bg-brand-navy/20 text-[#3b82f6] px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider">
               Apna Bazarr Partner
             </span>
           </div>
@@ -78,7 +78,7 @@ export default function RegisterSellerPage({ currentUser, onAuthSuccess }) {
         {/* Benefits Grid */}
         <div className="relative grid grid-cols-1 md:grid-cols-2 gap-6 my-12 lg:my-0">
           <div className="flex items-start space-x-3.5">
-            <div className="w-10 h-10 bg-[#0066cc]/20 rounded-xl flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 bg-brand-navy/20 rounded-xl flex items-center justify-center shrink-0">
               <ShoppingBag className="w-5 h-5 text-[#3b82f6]" />
             </div>
             <div>
@@ -126,7 +126,7 @@ export default function RegisterSellerPage({ currentUser, onAuthSuccess }) {
                 value={shopName}
                 onChange={(e) => setShopName(e.target.value)}
                 placeholder="e.g. Royal Handloom Boutique"
-                className="w-full px-3.5 py-2.5 text-xs border border-slate-350 rounded-xl focus:outline-none focus:border-[#0066cc] font-semibold text-slate-800"
+                className="w-full px-3.5 py-2.5 text-xs border border-slate-350 rounded-xl focus:outline-none focus:border-brand-navy font-semibold text-slate-800"
               />
             </div>
 
@@ -140,7 +140,7 @@ export default function RegisterSellerPage({ currentUser, onAuthSuccess }) {
                 onChange={(e) => setShopDescription(e.target.value)}
                 placeholder="Briefly describe what products your shop specializes in..."
                 rows={3}
-                className="w-full px-3.5 py-2.5 text-xs border border-slate-350 rounded-xl focus:outline-none focus:border-[#0066cc] font-semibold text-slate-800 resize-none"
+                className="w-full px-3.5 py-2.5 text-xs border border-slate-350 rounded-xl focus:outline-none focus:border-brand-navy font-semibold text-slate-800 resize-none"
               />
             </div>
 
@@ -157,7 +157,7 @@ export default function RegisterSellerPage({ currentUser, onAuthSuccess }) {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="10-digit number"
-                  className="w-full px-3.5 py-2.5 text-xs border border-slate-350 rounded-xl focus:outline-none focus:border-[#0066cc] font-semibold text-slate-800"
+                  className="w-full px-3.5 py-2.5 text-xs border border-slate-350 rounded-xl focus:outline-none focus:border-brand-navy font-semibold text-slate-800"
                 />
               </div>
 
@@ -172,7 +172,7 @@ export default function RegisterSellerPage({ currentUser, onAuthSuccess }) {
                   value={shopAddress}
                   onChange={(e) => setShopAddress(e.target.value)}
                   placeholder="City, State"
-                  className="w-full px-3.5 py-2.5 text-xs border border-slate-350 rounded-xl focus:outline-none focus:border-[#0066cc] font-semibold text-slate-800"
+                  className="w-full px-3.5 py-2.5 text-xs border border-slate-350 rounded-xl focus:outline-none focus:border-brand-navy font-semibold text-slate-800"
                 />
               </div>
             </div>
@@ -187,7 +187,7 @@ export default function RegisterSellerPage({ currentUser, onAuthSuccess }) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 bg-slate-900 hover:bg-[#0066cc] active:scale-[0.98] text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md transition-all flex items-center justify-center space-x-2"
+              className="w-full py-3.5 bg-slate-900 hover:bg-brand-navy active:scale-[0.98] text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md transition-all flex items-center justify-center space-x-2"
             >
               <span>{loading ? 'REGISTERING...' : 'REGISTER & ACCESS SELLER DASHBOARD'}</span>
               <ArrowRight className="w-4 h-4" />

@@ -22,7 +22,7 @@ export default function WishlistPage({ wishlistItems, onAddToCart, onToggleWishl
           
           <button
             onClick={() => navigate('/shop')}
-            className="text-xs font-bold text-[#0066cc] hover:underline flex items-center space-x-1"
+            className="text-xs font-bold text-brand-navy hover:underline flex items-center space-x-1"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Continue Shopping</span>
@@ -40,7 +40,7 @@ export default function WishlistPage({ wishlistItems, onAddToCart, onToggleWishl
             </p>
             <button
               onClick={() => navigate('/shop')}
-              className="px-6 py-3 bg-[#0066cc] hover:bg-blue-700 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md transition-colors flex items-center justify-center space-x-2 mx-auto"
+              className="px-6 py-3 bg-brand-navy hover:bg-blue-700 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md transition-colors flex items-center justify-center space-x-2 mx-auto"
             >
               <span>Explore Collections</span>
               <ArrowRight className="w-4 h-4" />

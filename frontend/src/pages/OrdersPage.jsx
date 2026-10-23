@@ -12,7 +12,7 @@ export default function OrdersPage({ orders }) {
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">My Placed Orders</h1>
             <p className="text-xs text-slate-500 mt-1">Track active shipments and review past purchases</p>
           </div>
-          <span className="bg-[#0066cc] text-white text-xs px-3 py-1 rounded-full font-bold shrink-0">
+          <span className="bg-brand-navy text-white text-xs px-3 py-1 rounded-full font-bold shrink-0">
             {orders.length} Total Order(s)
           </span>
         </div>
@@ -39,7 +39,7 @@ export default function OrdersPage({ orders }) {
                       Placed on {new Date(ord.createdAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </span>
                   </div>
-                  <span className="bg-blue-100 text-[#0066cc] font-extrabold text-xs px-3 py-1 rounded-full border border-blue-200">
+                  <span className="bg-blue-100 text-brand-navy font-extrabold text-xs px-3 py-1 rounded-full border border-blue-200">
                     {ord.orderStatus}
                   </span>
                 </div>
@@ -47,15 +47,15 @@ export default function OrdersPage({ orders }) {
                 {/* Progress Bar Timeline */}
                 <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-2">
                   <div className="flex items-center justify-between text-[10px] sm:text-xs text-slate-500 font-extrabold uppercase">
-                    <span className={ord.orderStatus === 'Order Placed' ? 'text-[#0066cc]' : ''}>Ordered</span>
-                    <span className={ord.orderStatus === 'Processing' || ord.orderStatus === 'Packed' ? 'text-[#0066cc]' : ''}>Processing</span>
-                    <span className={ord.orderStatus === 'Shipped' ? 'text-[#0066cc]' : ''}>Shipped</span>
-                    <span className={ord.orderStatus === 'Out for Delivery' ? 'text-[#0066cc]' : ''}>Out for Delivery</span>
+                    <span className={ord.orderStatus === 'Order Placed' ? 'text-brand-navy' : ''}>Ordered</span>
+                    <span className={ord.orderStatus === 'Processing' || ord.orderStatus === 'Packed' ? 'text-brand-navy' : ''}>Processing</span>
+                    <span className={ord.orderStatus === 'Shipped' ? 'text-brand-navy' : ''}>Shipped</span>
+                    <span className={ord.orderStatus === 'Out for Delivery' ? 'text-brand-navy' : ''}>Out for Delivery</span>
                     <span className={ord.orderStatus === 'Delivered' ? 'text-emerald-600' : ''}>Delivered</span>
                   </div>
                   <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
                     <div 
-                      className={`h-full rounded-full transition-all duration-500 ${ord.orderStatus === 'Delivered' ? 'bg-emerald-500' : 'bg-[#0066cc]'}`}
+                      className={`h-full rounded-full transition-all duration-500 ${ord.orderStatus === 'Delivered' ? 'bg-emerald-500' : 'bg-brand-navy'}`}
                       style={{ 
                         width: ord.orderStatus === 'Order Placed' ? '15%' :
                                ord.orderStatus === 'Processing' ? '35%' :
@@ -101,7 +101,7 @@ export default function OrdersPage({ orders }) {
                               <div className="flex items-center space-x-1">
                                 <span className="text-slate-500 font-bold">Photo: </span>
                                 <img src={item.customImage} alt="Custom Preview" className="w-4 h-4 object-cover rounded border bg-white" />
-                                <a href={item.customImage} target="_blank" rel="noreferrer" className="text-[#0066cc] underline text-[8px]">View</a>
+                                <a href={item.customImage} target="_blank" rel="noreferrer" className="text-brand-navy underline text-[8px]">View</a>
                               </div>
                             )}
                           </div>
@@ -115,7 +115,7 @@ export default function OrdersPage({ orders }) {
                 {/* Total */}
                 <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-100">
                   <span className="text-slate-500">Payment: <strong className="text-slate-800">{ord.paymentMethod}</strong></span>
-                  <span className="text-base font-extrabold text-[#0066cc]">Total Paid: ₹{ord.totalAmount.toFixed(2)}</span>
+                  <span className="text-base font-extrabold text-brand-navy">Total Paid: ₹{ord.totalAmount.toFixed(2)}</span>
                 </div>
 
               </div>

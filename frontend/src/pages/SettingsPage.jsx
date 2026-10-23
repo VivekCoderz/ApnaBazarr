@@ -16,7 +16,7 @@ export default function SettingsPage() {
         
         {/* Header */}
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs flex items-center space-x-3">
-          <Settings className="w-6 h-6 text-[#0066cc]" />
+          <Settings className="w-6 h-6 text-brand-navy" />
           <div>
             <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900">Account & Security Settings</h1>
             <p className="text-xs text-slate-500">Manage password, login notifications, and email preferences</p>
@@ -37,11 +37,11 @@ export default function SettingsPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">Current Password</label>
-                <input type="password" placeholder="••••••••" className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-[#0066cc]" />
+                <input type="password" placeholder="••••••••" className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-brand-navy" />
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">New Password</label>
-                <input type="password" placeholder="••••••••" className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-[#0066cc]" />
+                <input type="password" placeholder="••••••••" className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-brand-navy" />
               </div>
             </div>
           </div>
@@ -50,17 +50,17 @@ export default function SettingsPage() {
             <h3 className="font-extrabold text-sm text-slate-900 border-b pb-2">Notification Preferences</h3>
             <div className="space-y-2 text-xs text-slate-700">
               <label className="flex items-center space-x-2 cursor-pointer">
-                <input type="checkbox" defaultChecked className="accent-[#0066cc]" />
+                <input type="checkbox" defaultChecked className="accent-brand-navy" />
                 <span>Receive WhatsApp & SMS order tracking updates (+91)</span>
               </label>
               <label className="flex items-center space-x-2 cursor-pointer">
-                <input type="checkbox" defaultChecked className="accent-[#0066cc]" />
+                <input type="checkbox" defaultChecked className="accent-brand-navy" />
                 <span>Email alerts for Rakhi Specials & Diwali sale discounts</span>
               </label>
             </div>
           </div>
 
-          <button type="submit" className="px-6 py-3 bg-[#0066cc] text-white text-xs font-extrabold rounded-xl shadow-md">
+          <button type="submit" className="px-6 py-3 bg-brand-navy text-white text-xs font-extrabold rounded-xl shadow-md">
             SAVE SETTINGS
           </button>
         </form>

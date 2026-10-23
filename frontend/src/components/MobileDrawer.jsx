@@ -55,14 +55,14 @@ export default function MobileDrawer({ isOpen, onClose, cartCount, wishlistCount
         <div className="p-4 bg-slate-50 border-b flex justify-around items-center">
           <button 
             onClick={() => { onClose(); onOpenSearch(); }}
-            className="flex flex-col items-center text-xs text-slate-600 hover:text-[#0066cc]"
+            className="flex flex-col items-center text-xs text-slate-600 hover:text-brand-navy"
           >
             <Search className="w-5 h-5 mb-1 text-slate-700" />
             <span>Search</span>
           </button>
           <button 
             onClick={() => { onClose(); onOpenWishlist(); }}
-            className="flex flex-col items-center text-xs text-slate-600 hover:text-[#0066cc] relative"
+            className="flex flex-col items-center text-xs text-slate-600 hover:text-brand-navy relative"
           >
             <Heart className="w-5 h-5 mb-1 text-slate-700" />
             <span>Wishlist</span>
@@ -74,12 +74,12 @@ export default function MobileDrawer({ isOpen, onClose, cartCount, wishlistCount
           </button>
           <button 
             onClick={() => { onClose(); onOpenCart(); }}
-            className="flex flex-col items-center text-xs text-slate-600 hover:text-[#0066cc] relative"
+            className="flex flex-col items-center text-xs text-slate-600 hover:text-brand-navy relative"
           >
             <ShoppingBag className="w-5 h-5 mb-1 text-slate-700" />
             <span>Cart</span>
             {cartCount > 0 && (
-              <span className="absolute -top-1 right-2 bg-[#0066cc] text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
+              <span className="absolute -top-1 right-2 bg-brand-navy text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
                 {cartCount}
               </span>
             )}
@@ -93,7 +93,7 @@ export default function MobileDrawer({ isOpen, onClose, cartCount, wishlistCount
               key={idx}
               to={link.to}
               onClick={onClose}
-              className="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-semibold text-slate-700 hover:bg-blue-50 hover:text-[#0066cc] transition-colors"
+              className="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-semibold text-slate-700 hover:bg-blue-50 hover:text-brand-navy transition-colors"
             >
               <span>{link.label}</span>
               <ChevronRight className="w-4 h-4 text-slate-400" />
@@ -104,11 +104,11 @@ export default function MobileDrawer({ isOpen, onClose, cartCount, wishlistCount
         {/* Mobile Footer Contact */}
         <div className="p-4 border-t bg-slate-50 text-xs text-slate-500 space-y-2">
           <a href="mailto:appnabaazar@gmail.com" className="flex items-center space-x-2 hover:text-slate-900 transition-colors">
-            <Mail className="w-4 h-4 text-[#0066cc]" />
+            <Mail className="w-4 h-4 text-brand-navy" />
             <span>appnabaazar@gmail.com</span>
           </a>
           <a href="tel:+919306810726" className="flex items-center space-x-2 hover:text-slate-900 transition-colors">
-            <Phone className="w-4 h-4 text-[#0066cc]" />
+            <Phone className="w-4 h-4 text-brand-navy" />
             <span>+91 9306810726</span>
           </a>
         </div>

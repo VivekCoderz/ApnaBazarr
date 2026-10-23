@@ -1,29 +1,78 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=Playfair+Display:ital,wght@0,600;1,600&family=Alex+Brush&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Mukta:wght@400;600;800&display=swap');
 @import "tailwindcss";
 
+/* Brand kit (business plan/03-brand-kit.md, Option A "Navy Bharosa").
+   The old blue/amber/emerald utility classes are remapped here so the whole
+   site follows the brand: blue → navy, amber → bazaar orange, emerald → COD green. */
+@theme {
+  --color-brand-navy: #0B2A55;
+  --color-brand-orange: #F47A1F;
+  --color-brand-cta: #C2410C;
+  --color-brand-cta-hover: #9A3412;
+  --color-brand-cream: #FFF8F1;
+  --color-brand-peach: #FFE9D6;
+
+  --color-blue-50: #EEF2F8;
+  --color-blue-100: #DCE4F0;
+  --color-blue-200: #B9C8E0;
+  --color-blue-300: #8DA4C9;
+  --color-blue-400: #5B7AAB;
+  --color-blue-500: #2D4F82;
+  --color-blue-600: #143A6E;
+  --color-blue-700: #08203F;
+  --color-blue-800: #061A33;
+  --color-blue-900: #04122A;
+
+  --color-amber-50: #FFF4EA;
+  --color-amber-100: #FFE9D6;
+  --color-amber-200: #FFD0AA;
+  --color-amber-300: #FDB27A;
+  --color-amber-400: #F9954A;
+  --color-amber-500: #F47A1F;
+  --color-amber-600: #D9630E;
+  --color-amber-700: #C2410C;
+  --color-amber-800: #9A3412;
+  --color-amber-900: #7C2D12;
+  --color-amber-950: #431407;
+
+  --color-emerald-50: #F0FDF4;
+  --color-emerald-100: #DCFCE7;
+  --color-emerald-200: #BBF7D0;
+  --color-emerald-300: #86EFAC;
+  --color-emerald-400: #4ADE80;
+  --color-emerald-500: #22C55E;
+  --color-emerald-600: #15803D;
+  --color-emerald-700: #166534;
+  --color-emerald-800: #14532D;
+  --color-emerald-900: #052E16;
+
+  --color-slate-50: #FFF8F1;
+
+  --font-sans: 'Mukta', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-heading: 'Baloo 2', 'Mukta', system-ui, sans-serif;
+}
+
 :root {
-  --primary-blue: #0066cc;
-  --primary-hover: #0052a3;
-  --accent-gold: #f59e0b;
-  --dark-text: #1e293b;
-  --light-bg: #f8fafc;
+  --primary-blue: #0B2A55;
+  --primary-hover: #08203F;
+  --accent-gold: #F47A1F;
+  --dark-text: #1A2233;
+  --light-bg: #FFF8F1;
   --border-color: #e2e8f0;
 }
 
 body {
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  color: #334155;
-  background-color: #ffffff;
+  font-family: 'Mukta', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  color: #1A2233;
+  background-color: #FFF8F1;
   overflow-x: hidden;
   -webkit-tap-highlight-color: transparent;
 }
 
-.font-script {
-  font-family: 'Alex Brush', cursive;
-}
-
+h1, h2, h3,
+.font-script,
 .font-serif-heading {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Baloo 2', 'Mukta', system-ui, sans-serif;
 }
 
 /* Glassmorphism & Custom Shadow Effects */

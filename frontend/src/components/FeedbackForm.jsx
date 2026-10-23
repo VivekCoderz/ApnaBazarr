@@ -124,7 +124,7 @@ export default function FeedbackForm({ onSubmitFeedback, currentUser }) {
   return (
     <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm max-w-2xl mx-auto space-y-4">
       <div className="flex items-center space-x-3 border-b border-slate-100 pb-3">
-        <MessageSquare className="w-6 h-6 text-[#0066cc]" />
+        <MessageSquare className="w-6 h-6 text-brand-navy" />
         <div>
           <h3 className="text-lg font-extrabold text-slate-900">Customer Feedback & Review</h3>
           <p className="text-xs text-slate-500">We value your shopping experience at Apna Bazarr!</p>
@@ -150,7 +150,7 @@ export default function FeedbackForm({ onSubmitFeedback, currentUser }) {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Enter your name"
-                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-[#0066cc]"
+                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-brand-navy"
               />
             </div>
 
@@ -184,7 +184,7 @@ export default function FeedbackForm({ onSubmitFeedback, currentUser }) {
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-[#0066cc]"
+                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-brand-navy"
               >
                 <option value="Product Quality">Product Quality & Fabric</option>
                 <option value="Shopping Experience">Shopping Experience</option>
@@ -202,7 +202,7 @@ export default function FeedbackForm({ onSubmitFeedback, currentUser }) {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Tell us what you loved or how we can improve Apna Bazarr..."
-              className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-[#0066cc]"
+              className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-brand-navy"
             />
           </div>
 
@@ -212,7 +212,7 @@ export default function FeedbackForm({ onSubmitFeedback, currentUser }) {
             <div className="space-y-1">
               <label className="block text-xs font-bold text-slate-700">Attach Photo (Optional)</label>
               <label className="w-full px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl cursor-pointer flex items-center justify-center space-x-1.5 transition-colors border border-slate-300">
-                {uploadingPhoto ? <Loader2 className="w-4 h-4 animate-spin text-[#0066cc]" /> : <Upload className="w-4 h-4 text-[#0066cc]" />}
+                {uploadingPhoto ? <Loader2 className="w-4 h-4 animate-spin text-brand-navy" /> : <Upload className="w-4 h-4 text-brand-navy" />}
                 <span>{uploadingPhoto ? 'Uploading to Cloudinary...' : 'Upload Photo'}</span>
                 <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" disabled={uploadingPhoto} />
               </label>
@@ -228,7 +228,7 @@ export default function FeedbackForm({ onSubmitFeedback, currentUser }) {
             <div className="space-y-1">
               <label className="block text-xs font-bold text-slate-700">Attach Video (Optional)</label>
               <label className="w-full px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl cursor-pointer flex items-center justify-center space-x-1.5 transition-colors border border-slate-300">
-                {uploadingVideo ? <Loader2 className="w-4 h-4 animate-spin text-[#0066cc]" /> : <Video className="w-4 h-4 text-[#0066cc]" />}
+                {uploadingVideo ? <Loader2 className="w-4 h-4 animate-spin text-brand-navy" /> : <Video className="w-4 h-4 text-brand-navy" />}
                 <span>{uploadingVideo ? 'Uploading to Cloudinary...' : 'Upload Video'}</span>
                 <input type="file" accept="video/*" onChange={handleVideoUpload} className="hidden" disabled={uploadingVideo} />
               </label>
@@ -246,7 +246,7 @@ export default function FeedbackForm({ onSubmitFeedback, currentUser }) {
           <button
             type="submit"
             disabled={submitting || uploadingPhoto || uploadingVideo}
-            className="w-full py-3.5 bg-[#0066cc] hover:bg-blue-700 disabled:opacity-60 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md transition-colors flex items-center justify-center space-x-2"
+            className="w-full py-3.5 bg-brand-navy hover:bg-blue-700 disabled:opacity-60 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md transition-colors flex items-center justify-center space-x-2"
           >
             {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
             <span>{submitting ? 'SUBMITTING...' : 'SUBMIT CUSTOMER FEEDBACK'}</span>

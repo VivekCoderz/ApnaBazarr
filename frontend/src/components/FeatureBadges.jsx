@@ -36,7 +36,7 @@ export default function FeatureBadges() {
                 key={idx}
                 className="flex items-center space-x-4 p-4 rounded-xl hover:bg-slate-50 transition-colors group cursor-default"
               >
-                <div className="p-3 bg-blue-50 text-[#0066cc] rounded-full group-hover:bg-[#0066cc] group-hover:text-white transition-colors duration-300">
+                <div className="p-3 bg-blue-50 text-brand-navy rounded-full group-hover:bg-brand-navy group-hover:text-white transition-colors duration-300">
                   <IconComponent className="w-6 h-6 stroke-[1.75]" />
                 </div>
                 <div>

@@ -14,7 +14,7 @@ export default function ProfilePage({ currentUser }) {
         
         {/* Profile Card Header */}
         <div className="bg-slate-900 text-white p-6 sm:p-8 rounded-3xl flex flex-col sm:flex-row items-center text-center sm:text-left gap-4 shadow-md">
-          <div className="w-16 h-16 rounded-full bg-[#0066cc] text-white flex items-center justify-center font-black text-2xl shadow-inner shrink-0">
+          <div className="w-16 h-16 rounded-full bg-brand-navy text-white flex items-center justify-center font-black text-2xl shadow-inner shrink-0">
             {user.name.charAt(0)}
           </div>
           <div>
@@ -34,7 +34,7 @@ export default function ProfilePage({ currentUser }) {
             <div className="space-y-1">
               <label className="text-xs font-bold text-slate-500">Full Name</label>
               <div className="flex items-center space-x-2 p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs font-bold text-slate-800">
-                <User className="w-4 h-4 text-[#0066cc]" />
+                <User className="w-4 h-4 text-brand-navy" />
                 <span>{user.name}</span>
               </div>
             </div>
@@ -42,7 +42,7 @@ export default function ProfilePage({ currentUser }) {
             <div className="space-y-1">
               <label className="text-xs font-bold text-slate-500">Email Address</label>
               <div className="flex items-center space-x-2 p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs font-bold text-slate-800">
-                <Mail className="w-4 h-4 text-[#0066cc]" />
+                <Mail className="w-4 h-4 text-brand-navy" />
                 <span>{user.email}</span>
               </div>
             </div>
@@ -50,7 +50,7 @@ export default function ProfilePage({ currentUser }) {
             <div className="space-y-1">
               <label className="text-xs font-bold text-slate-500">Mobile Number (+91)</label>
               <div className="flex items-center space-x-2 p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs font-bold text-slate-800">
-                <Phone className="w-4 h-4 text-[#0066cc]" />
+                <Phone className="w-4 h-4 text-brand-navy" />
                 <span>+91 {user.phone || '9876543210'}</span>
               </div>
             </div>
@@ -58,7 +58,7 @@ export default function ProfilePage({ currentUser }) {
             <div className="space-y-1">
               <label className="text-xs font-bold text-slate-500">Default Region</label>
               <div className="flex items-center space-x-2 p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs font-bold text-slate-800">
-                <MapPin className="w-4 h-4 text-[#0066cc]" />
+                <MapPin className="w-4 h-4 text-brand-navy" />
                 <span>India (₹ INR)</span>
               </div>
             </div>

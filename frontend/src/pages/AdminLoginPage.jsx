@@ -42,7 +42,7 @@ export default function AdminLoginPage({ onAdminLogin }) {
   return (
     <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
       {/* Glow Effects */}
-      <div className="absolute w-96 h-96 bg-[#0066cc]/20 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute w-96 h-96 bg-brand-navy/20 rounded-full blur-3xl pointer-events-none" />
 
       <div className="relative bg-white rounded-3xl max-w-md w-full shadow-2xl overflow-hidden z-10 animate-fade-in border border-slate-700">
         
@@ -69,7 +69,7 @@ export default function AdminLoginPage({ onAdminLogin }) {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="admin@apnabazarr.com"
-                  className="w-full pl-9 pr-3 py-2.5 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-[#0066cc] font-semibold"
+                  className="w-full pl-9 pr-3 py-2.5 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-brand-navy font-semibold"
                 />
               </div>
             </div>
@@ -84,7 +84,7 @@ export default function AdminLoginPage({ onAdminLogin }) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full pl-9 pr-3 py-2.5 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-[#0066cc] font-semibold"
+                  className="w-full pl-9 pr-3 py-2.5 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-brand-navy font-semibold"
                 />
               </div>
             </div>
@@ -99,7 +99,7 @@ export default function AdminLoginPage({ onAdminLogin }) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 bg-slate-900 hover:bg-[#0066cc] text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-lg transition-colors flex items-center justify-center space-x-2"
+              className="w-full py-3.5 bg-slate-900 hover:bg-brand-navy text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-lg transition-colors flex items-center justify-center space-x-2"
             >
               <span>{loading ? "AUTHENTICATING..." : "LOGIN TO ADMIN DASHBOARD"}</span>
               <ArrowRight className="w-4 h-4" />

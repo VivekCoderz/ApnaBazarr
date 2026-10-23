@@ -38,15 +38,15 @@ export default function Footer() {
             </p>
             <div className="space-y-2 text-xs text-slate-400 pt-2">
               <div className="flex items-center space-x-2">
-                <MapPin className="w-4 h-4 text-[#0066cc]" />
+                <MapPin className="w-4 h-4 text-brand-navy" />
                 <span>123 Commerce Way, Tech City, IN 400001</span>
               </div>
               <a href="tel:+919306810726" className="flex items-center space-x-2 hover:text-white transition-colors">
-                <Phone className="w-4 h-4 text-[#0066cc]" />
+                <Phone className="w-4 h-4 text-brand-navy" />
                 <span>+91 9306810726</span>
               </a>
               <a href="mailto:appnabaazar@gmail.com" className="flex items-center space-x-2 hover:text-white transition-colors">
-                <Mail className="w-4 h-4 text-[#0066cc]" />
+                <Mail className="w-4 h-4 text-brand-navy" />
                 <span>appnabaazar@gmail.com</span>
               </a>
             </div>
@@ -117,12 +117,12 @@ export default function Footer() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Your email address..."
-                  className="w-full bg-slate-800 border border-slate-700 text-white text-xs px-3 py-2.5 rounded-lg focus:outline-none focus:border-[#0066cc] placeholder-slate-500"
+                  className="w-full bg-slate-800 border border-slate-700 text-white text-xs px-3 py-2.5 rounded-lg focus:outline-none focus:border-brand-navy placeholder-slate-500"
                   required
                 />
                 <button
                   type="submit"
-                  className="absolute right-1 top-1 bottom-1 px-3 bg-[#0066cc] hover:bg-blue-600 text-white rounded-md transition-colors flex items-center justify-center"
+                  className="absolute right-1 top-1 bottom-1 px-3 bg-brand-navy hover:bg-blue-600 text-white rounded-md transition-colors flex items-center justify-center"
                 >
                   <Send className="w-3.5 h-3.5" />
                 </button>

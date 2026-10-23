@@ -177,13 +177,13 @@ export default function Header({
                   setShowSearchDropdown(true);
                 }}
                 placeholder=""
-                className="w-full bg-slate-50 border border-slate-200 rounded-full pl-11 pr-10 py-2.5 text-xs text-slate-800 font-semibold focus:outline-none focus:border-[#0066cc] focus:bg-white transition-all shadow-xs"
+                className="w-full bg-slate-50 border border-slate-200 rounded-full pl-11 pr-10 py-2.5 text-xs text-slate-800 font-semibold focus:outline-none focus:border-brand-navy focus:bg-white transition-all shadow-xs"
               />
               {!searchQuery && !isSearchFocused && (
                 <div className="absolute left-11 top-[11.5px] pointer-events-none select-none text-xs font-bold text-slate-400 flex items-center space-x-1">
                   <span>Search for</span>
-                  <span className="text-[#0066cc] font-black">{placeholder}</span>
-                  <span className="text-[#0066cc] font-light animate-pulse">|</span>
+                  <span className="text-brand-navy font-black">{placeholder}</span>
+                  <span className="text-brand-navy font-light animate-pulse">|</span>
                 </div>
               )}
               <Search className="w-4 h-4 text-slate-400 absolute left-4 top-3.5" />
@@ -217,13 +217,13 @@ export default function Header({
                         <h5 className="text-xs font-bold text-slate-800 truncate">{item.name}</h5>
                         <span className="text-[11px] text-slate-400">{item.category} • {item.gender}</span>
                       </div>
-                      <span className="text-xs font-extrabold text-[#0066cc]">₹{item.price.toFixed(2)}</span>
+                      <span className="text-xs font-extrabold text-brand-navy">₹{item.price.toFixed(2)}</span>
                     </div>
                   ))}
                 </div>
                 <div 
                   onClick={handleSearchSubmit}
-                  className="bg-slate-50 p-2.5 text-center text-xs font-bold text-[#0066cc] hover:underline border-t border-slate-100 cursor-pointer"
+                  className="bg-slate-50 p-2.5 text-center text-xs font-bold text-brand-navy hover:underline border-t border-slate-100 cursor-pointer"
                 >
                   View all results for "{searchQuery}" →
                 </div>
@@ -237,7 +237,7 @@ export default function Header({
             {/* Wishlist Icon */}
             <button
               onClick={handleWishlistClick}
-              className="p-2.5 text-slate-700 hover:text-[#0066cc] hover:bg-slate-50 rounded-full transition-colors relative"
+              className="p-2.5 text-slate-700 hover:text-brand-navy hover:bg-slate-50 rounded-full transition-colors relative"
               title={currentUser ? "Wishlist" : "Log in to view Wishlist"}
             >
               <Heart className="w-5 h-5" />
@@ -251,12 +251,12 @@ export default function Header({
             {/* Cart Icon */}
             <button
               onClick={handleCartClick}
-              className="p-2.5 text-slate-700 hover:text-[#0066cc] hover:bg-slate-50 rounded-full transition-colors relative"
+              className="p-2.5 text-slate-700 hover:text-brand-navy hover:bg-slate-50 rounded-full transition-colors relative"
               title={currentUser ? "Shopping Cart" : "Log in to view Cart"}
             >
               <ShoppingBag className="w-5 h-5" />
               {currentUser && cartCount > 0 && (
-                <span className="absolute top-1 right-1 bg-[#0066cc] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-white">
+                <span className="absolute top-1 right-1 bg-brand-navy text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-white">
                   {cartCount}
                 </span>
               )}
@@ -279,7 +279,7 @@ export default function Header({
               /* GUEST USER: ONLY LOGIN / REGISTER BUTTON DISPLAYED */
               <button
                 onClick={onOpenAuth}
-                className="p-2 sm:px-4 sm:py-2 bg-slate-900 hover:bg-[#0066cc] text-white font-extrabold text-xs rounded-full sm:rounded-xl shadow-md transition-colors flex items-center space-x-1.5 shrink-0"
+                className="p-2 sm:px-4 sm:py-2 bg-slate-900 hover:bg-brand-navy text-white font-extrabold text-xs rounded-full sm:rounded-xl shadow-md transition-colors flex items-center space-x-1.5 shrink-0"
               >
                 <LogIn className="w-4 h-4 text-white" />
                 <span className="hidden sm:inline">Login / Register</span>
@@ -362,7 +362,7 @@ export default function Header({
                       <Link
                         to="/profile"
                         onClick={() => setShowProfileMenu(false)}
-                        className="flex items-center space-x-2.5 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-blue-50 hover:text-[#0066cc] transition-colors"
+                        className="flex items-center space-x-2.5 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-blue-50 hover:text-brand-navy transition-colors"
                       >
                         <User className="w-4 h-4 text-slate-500" />
                         <span>My Profile</span>
@@ -371,7 +371,7 @@ export default function Header({
                       <Link
                         to="/orders"
                         onClick={() => setShowProfileMenu(false)}
-                        className="flex items-center space-x-2.5 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-blue-50 hover:text-[#0066cc] transition-colors"
+                        className="flex items-center space-x-2.5 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-blue-50 hover:text-brand-navy transition-colors"
                       >
                         <Package className="w-4 h-4 text-slate-500" />
                         <span>My Orders</span>
@@ -380,7 +380,7 @@ export default function Header({
                       <Link
                         to="/settings"
                         onClick={() => setShowProfileMenu(false)}
-                        className="flex items-center space-x-2.5 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-blue-50 hover:text-[#0066cc] transition-colors"
+                        className="flex items-center space-x-2.5 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-blue-50 hover:text-brand-navy transition-colors"
                       >
                         <Settings className="w-4 h-4 text-slate-500" />
                         <span>Account Settings</span>
@@ -429,13 +429,13 @@ export default function Header({
                 setShowMobileSearchDropdown(true);
               }}
               placeholder=""
-              className="w-full bg-slate-50 border border-slate-205 rounded-full pl-11 pr-10 py-2.5 text-xs text-slate-800 font-semibold focus:outline-none focus:border-[#0066cc] focus:bg-white transition-all shadow-xs"
+              className="w-full bg-slate-50 border border-slate-205 rounded-full pl-11 pr-10 py-2.5 text-xs text-slate-800 font-semibold focus:outline-none focus:border-brand-navy focus:bg-white transition-all shadow-xs"
             />
             {!searchQuery && !isMobileSearchFocused && (
               <div className="absolute left-11 top-[11.5px] pointer-events-none select-none text-xs font-bold text-slate-400 flex items-center space-x-1">
                 <span>Search for</span>
-                <span className="text-[#0066cc] font-black">{placeholder}</span>
-                <span className="text-[#0066cc] font-light animate-pulse">|</span>
+                <span className="text-brand-navy font-black">{placeholder}</span>
+                <span className="text-brand-navy font-light animate-pulse">|</span>
               </div>
             )}
             <Search className="w-4 h-4 text-slate-400 absolute left-4 top-3" />
@@ -469,13 +469,13 @@ export default function Header({
                       <h5 className="text-xs font-bold text-slate-800 truncate">{item.name}</h5>
                       <span className="text-[11px] text-slate-400">{item.category} • {item.gender}</span>
                     </div>
-                    <span className="text-xs font-extrabold text-[#0066cc]">₹{item.price.toFixed(2)}</span>
+                    <span className="text-xs font-extrabold text-brand-navy">₹{item.price.toFixed(2)}</span>
                   </div>
                 ))}
               </div>
               <div 
                 onClick={handleSearchSubmit}
-                className="bg-slate-50 p-2.5 text-center text-xs font-bold text-[#0066cc] hover:underline border-t border-slate-100 cursor-pointer"
+                className="bg-slate-50 p-2.5 text-center text-xs font-bold text-brand-navy hover:underline border-t border-slate-100 cursor-pointer"
               >
                 View all results for "{searchQuery}" →
               </div>

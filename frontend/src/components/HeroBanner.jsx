@@ -72,8 +72,8 @@ export default function HeroBanner() {
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-[#fff6e6] via-white to-[#fff0f5] py-6 sm:py-12 md:py-16 lg:py-20 group/banner">
       {/* Background Decorative Shapes */}
-      <div className="absolute top-0 right-0 w-48 h-48 sm:w-64 sm:h-64 lg:w-96 lg:h-96 bg-[#0a2540] rounded-bl-[160px] sm:rounded-bl-[240px] lg:rounded-bl-[320px] pointer-events-none -z-0 transition-all duration-500" />
-      <div className="absolute bottom-0 right-0 w-16 h-48 sm:w-24 sm:h-72 lg:w-32 lg:h-[450px] bg-orange-600 rounded-tl-[80px] sm:rounded-tl-[120px] lg:rounded-tl-[160px] pointer-events-none -z-0 transition-all duration-500" />
+      <div className="hidden lg:block absolute top-0 right-0 lg:w-96 lg:h-96 bg-brand-navy rounded-bl-[160px] sm:rounded-bl-[240px] lg:rounded-bl-[320px] pointer-events-none -z-0 transition-all duration-500" />
+      <div className="hidden lg:block absolute bottom-0 right-0 lg:w-32 lg:h-[450px] bg-brand-orange rounded-tl-[80px] sm:rounded-tl-[120px] lg:rounded-tl-[160px] pointer-events-none -z-0 transition-all duration-500" />
       
       {/* Slides wrapper */}
       <div className="overflow-hidden relative w-full">
@@ -177,7 +177,7 @@ export default function HeroBanner() {
                       </div>
 
                       {/* Blue Circular Gift Badge */}
-                      <div className="absolute -top-3 -right-3 sm:-top-4 sm:-right-4 bg-[#0a2540] text-white rounded-full p-1.5 sm:p-3 w-16 h-16 sm:w-28 sm:h-28 flex flex-col items-center justify-center text-center shadow-2xl border-2 border-dashed border-white/70 z-20">
+                      <div className="absolute -top-3 -right-3 sm:-top-4 sm:-right-4 bg-brand-navy text-white rounded-full p-1.5 sm:p-3 w-16 h-16 sm:w-28 sm:h-28 flex flex-col items-center justify-center text-center shadow-2xl border-2 border-dashed border-white/70 z-20">
                         <Gift className="w-3.5 h-3.5 sm:w-5 sm:h-5 mb-0.5 text-orange-400" />
                         <span className="text-[7px] sm:text-[9px] font-black uppercase tracking-wider text-orange-300">Free</span>
                         <span className="text-[8px] sm:text-[11px] font-extrabold leading-tight">Roli-Chawal & Sweets Kit</span>

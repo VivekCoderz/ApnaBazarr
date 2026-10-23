@@ -27,7 +27,7 @@ export default function SearchModal({ isOpen, onClose, products, onQuickView, on
         
         {/* Search Input Bar */}
         <div className="p-4 border-b border-slate-200 flex items-center space-x-3 bg-slate-50">
-          <Search className="w-5 h-5 text-[#0066cc]" />
+          <Search className="w-5 h-5 text-brand-navy" />
           <input
             type="text"
             value={query}
@@ -79,7 +79,7 @@ export default function SearchModal({ isOpen, onClose, products, onQuickView, on
                     className="w-12 h-12 object-cover rounded-lg bg-slate-100"
                   />
                   <div>
-                    <h4 className="text-xs font-bold text-slate-800 group-hover:text-[#0066cc] transition-colors">
+                    <h4 className="text-xs font-bold text-slate-800 group-hover:text-brand-navy transition-colors">
                       {item.name}
                     </h4>
                     <span className="text-[11px] text-slate-400">{item.category} • {item.gender}</span>
@@ -95,7 +95,7 @@ export default function SearchModal({ isOpen, onClose, products, onQuickView, on
                       e.stopPropagation();
                       onAddToCart(item);
                     }}
-                    className="p-2 bg-[#0066cc] text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    className="p-2 bg-brand-navy text-white rounded-lg hover:bg-blue-700 transition-colors"
                     title="Add to Cart"
                   >
                     <ShoppingBag className="w-3.5 h-3.5" />

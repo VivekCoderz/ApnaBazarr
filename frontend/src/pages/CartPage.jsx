@@ -22,7 +22,7 @@ export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem }) 
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Shopping Cart</h1>
             <p className="text-xs text-slate-500 mt-1">Review your items before proceeding to payment</p>
           </div>
-          <Link to="/shop" className="text-xs font-bold text-[#0066cc] flex items-center space-x-1 hover:underline">
+          <Link to="/shop" className="text-xs font-bold text-brand-navy flex items-center space-x-1 hover:underline">
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Continue Shopping</span>
           </Link>
@@ -35,7 +35,7 @@ export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem }) 
             </div>
             <h3 className="text-lg font-bold text-slate-800">Your shopping cart is currently empty</h3>
             <p className="text-xs text-slate-500 max-w-sm mx-auto">Explore our wide collection of Men, Women, Kids, and Rakhi Special products!</p>
-            <Link to="/shop" className="inline-block px-6 py-3 bg-[#0066cc] text-white text-xs font-extrabold rounded-xl shadow-md">
+            <Link to="/shop" className="inline-block px-6 py-3 bg-brand-navy text-white text-xs font-extrabold rounded-xl shadow-md">
               START SHOPPING NOW
             </Link>
           </div>
@@ -91,7 +91,7 @@ export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem }) 
                         <div className="flex items-center space-x-1.5 pt-0.5">
                           <span className="text-slate-500 font-bold">Photo: </span>
                           <img src={item.customImage} alt="Custom Preview" className="w-6 h-6 object-cover rounded border" />
-                          <a href={item.customImage} target="_blank" rel="noreferrer" className="text-[#0066cc] underline text-[9px]">View Original</a>
+                          <a href={item.customImage} target="_blank" rel="noreferrer" className="text-brand-navy underline text-[9px]">View Original</a>
                         </div>
                       )}
                     </div>
@@ -139,7 +139,7 @@ export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem }) 
                 </div>
                 <div className="flex justify-between text-base font-extrabold text-slate-900 pt-3 border-t border-slate-200">
                   <span>Total Amount</span>
-                  <span className="text-[#0066cc]">₹{total.toFixed(2)}</span>
+                  <span className="text-brand-navy">₹{total.toFixed(2)}</span>
                 </div>
               </div>
 
@@ -160,7 +160,7 @@ export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem }) 
                 className={`w-full py-3.5 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md transition-colors flex items-center justify-center space-x-2 ${
                   belowMinimum || shippingLoading
                     ? 'bg-slate-300 cursor-not-allowed opacity-60'
-                    : 'bg-[#0066cc] hover:bg-blue-700'
+                    : 'bg-brand-cta hover:bg-brand-cta-hover'
                 }`}
               >
                 <span>PROCEED TO CHECKOUT</span>

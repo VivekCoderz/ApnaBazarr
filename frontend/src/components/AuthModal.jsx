@@ -74,7 +74,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
           </button>
 
           <div className="space-y-1">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#0066cc]">
+            <span className="text-xs font-bold uppercase tracking-wider text-brand-navy">
               Apna Bazarr Account
             </span>
             <h3 className="text-xl font-extrabold text-white">
@@ -96,13 +96,13 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
               }}
               className={`pb-2.5 text-xs font-bold flex-1 text-center transition-colors relative ${
                 isLogin
-                  ? "text-[#0066cc]"
+                  ? "text-brand-navy"
                   : "text-slate-400 hover:text-slate-200"
               }`}
             >
               <span>LOGIN</span>
               {isLogin && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#0066cc]" />
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-navy" />
               )}
             </button>
             <button
@@ -112,13 +112,13 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
               }}
               className={`pb-2.5 text-xs font-bold flex-1 text-center transition-colors relative ${
                 !isLogin
-                  ? "text-[#0066cc]"
+                  ? "text-brand-navy"
                   : "text-slate-400 hover:text-slate-200"
               }`}
             >
               <span>SIGN UP</span>
               {!isLogin && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#0066cc]" />
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-navy" />
               )}
             </button>
           </div>
@@ -142,7 +142,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
                       setFormData({ ...formData, name: e.target.value })
                     }
                     placeholder="Enter Your Name"
-                    className="w-full pl-9 pr-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-[#0066cc]"
+                    className="w-full pl-9 pr-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-brand-navy"
                   />
                 </div>
               </div>
@@ -162,7 +162,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
                     setFormData({ ...formData, email: e.target.value })
                   }
                   placeholder="name@example.com"
-                  className="w-full pl-9 pr-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-[#0066cc]"
+                  className="w-full pl-9 pr-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-brand-navy"
                 />
               </div>
             </div>
@@ -183,7 +183,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
                       setFormData({ ...formData, phone: e.target.value })
                     }
                     placeholder="Enter Your Phone Number"
-                    className="w-full pl-9 pr-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-[#0066cc]"
+                    className="w-full pl-9 pr-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-brand-navy"
                   />
                 </div>
               </div>
@@ -203,7 +203,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
                     setFormData({ ...formData, password: e.target.value })
                   }
                   placeholder="••••••••"
-                  className="w-full pl-9 pr-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-[#0066cc]"
+                  className="w-full pl-9 pr-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-brand-navy"
                 />
               </div>
             </div>
@@ -217,7 +217,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-[#0066cc] hover:bg-blue-700 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md transition-colors flex items-center justify-center space-x-2"
+              className="w-full py-3 bg-brand-navy hover:bg-blue-700 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md transition-colors flex items-center justify-center space-x-2"
             >
               <span>
                 {loading

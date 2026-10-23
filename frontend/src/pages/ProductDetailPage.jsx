@@ -172,7 +172,7 @@ export default function ProductDetailPage({
     return (
       <div className="py-20 text-center text-slate-500">
         <p className="text-sm font-bold">Product not found.</p>
-        <button onClick={() => navigate('/shop')} className="mt-4 px-4 py-2 bg-[#0066cc] text-white text-xs font-bold rounded-xl">
+        <button onClick={() => navigate('/shop')} className="mt-4 px-4 py-2 bg-brand-navy text-white text-xs font-bold rounded-xl">
           Back to Shop
         </button>
       </div>
@@ -319,7 +319,7 @@ export default function ProductDetailPage({
                   key={idx}
                   onClick={() => setActiveImageIndex(idx)}
                   className={`w-20 h-20 rounded-xl overflow-hidden border-2 transition-all shrink-0 ${
-                    activeImageIndex === idx ? 'border-[#0066cc] scale-105 shadow-xs' : 'border-slate-200 opacity-70 hover:opacity-100'
+                    activeImageIndex === idx ? 'border-brand-navy scale-105 shadow-xs' : 'border-slate-200 opacity-70 hover:opacity-100'
                   }`}
                 >
                   <img src={img} alt={`Thumb ${idx}`} className="w-full h-full object-cover" />
@@ -332,7 +332,7 @@ export default function ProductDetailPage({
           <div className="lg:col-span-6 space-y-6">
             
             <div className="space-y-2">
-              <div className="flex items-center space-x-2 text-xs font-bold text-[#0066cc]">
+              <div className="flex items-center space-x-2 text-xs font-bold text-brand-navy">
                 <span>{product.category}</span>
                 <span>•</span>
                 <span>{product.gender || 'Unisex'}</span>
@@ -371,7 +371,7 @@ export default function ProductDetailPage({
 
             {/* Price Box in ₹ INR */}
             <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex items-baseline space-x-3">
-              <span className="text-3xl font-black text-[#0066cc]">₹{product.price.toFixed(2)}</span>
+              <span className="text-3xl font-black text-brand-navy">₹{product.price.toFixed(2)}</span>
               {product.originalPrice && (
                 <span className="text-sm font-bold text-slate-400 line-through">₹{product.originalPrice.toFixed(2)}</span>
               )}
@@ -404,7 +404,7 @@ export default function ProductDetailPage({
                       onClick={() => setSelectedSize(size)}
                       className={`px-4 py-2 text-xs font-black rounded-xl border transition-all cursor-pointer ${
                         selectedSize === size
-                          ? 'bg-[#0066cc] text-white border-[#0066cc] shadow-sm'
+                          ? 'bg-brand-navy text-white border-brand-navy shadow-sm'
                           : 'bg-white text-slate-700 border-slate-200 hover:border-slate-400'
                       }`}
                     >
@@ -432,7 +432,7 @@ export default function ProductDetailPage({
                         onClick={() => setSelectedColor(color)}
                         title={color}
                         className={`w-8 h-8 rounded-full border transition-all relative cursor-pointer ${
-                          isSelected ? 'ring-2 ring-[#0066cc] ring-offset-2 scale-110' : 'border-slate-300 hover:scale-105'
+                          isSelected ? 'ring-2 ring-brand-navy ring-offset-2 scale-110' : 'border-slate-300 hover:scale-105'
                         }`}
                         style={{ backgroundColor: normalizedColor }}
                       >
@@ -491,7 +491,7 @@ export default function ProductDetailPage({
                 </span>
               </div>
               {deliveryCharge > 0 && itemsForFreeDelivery > quantity && (
-                <p className="text-[10px] text-[#0066cc] font-extrabold pt-1 border-t border-slate-200/60">
+                <p className="text-[10px] text-brand-navy font-extrabold pt-1 border-t border-slate-200/60">
                   💡 Hint: Buy {itemsForFreeDelivery} pieces for FREE shipping! (Only {itemsForFreeDelivery - quantity} more needed)
                 </p>
               )}
@@ -525,7 +525,7 @@ export default function ProductDetailPage({
                       value={customTextVal}
                       onChange={(e) => setCustomTextVal(e.target.value)}
                       placeholder="e.g. Enter name to be printed"
-                      className="w-full px-3 py-2 text-xs border border-slate-355 rounded-xl focus:outline-none focus:border-[#0066cc] bg-white text-slate-800 font-semibold"
+                      className="w-full px-3 py-2 text-xs border border-slate-355 rounded-xl focus:outline-none focus:border-brand-navy bg-white text-slate-800 font-semibold"
                     />
                   </div>
                 )}
@@ -559,7 +559,7 @@ export default function ProductDetailPage({
                         className="cursor-pointer px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl border border-slate-350 transition-colors flex items-center space-x-1.5 shrink-0"
                       >
                         {uploadingCustomImage ? (
-                          <><Loader2 className="w-4 h-4 animate-spin text-[#0066cc]" /><span>Uploading...</span></>
+                          <><Loader2 className="w-4 h-4 animate-spin text-brand-navy" /><span>Uploading...</span></>
                         ) : (
                           <><Upload className="w-4 h-4 text-slate-600" /><span>Choose Photo</span></>
                         )}
@@ -588,7 +588,7 @@ export default function ProductDetailPage({
                 disabled={isOutOfStock}
                 onClick={() => !isOutOfStock && handleAddToCartWithCustomization()}
                 className={`flex-1 py-4 text-white font-extrabold text-xs uppercase tracking-wider rounded-2xl shadow-lg transition-colors flex items-center justify-center space-x-2 ${
-                  isOutOfStock ? 'bg-slate-400 cursor-not-allowed shadow-none' : 'bg-[#0066cc] hover:bg-blue-700'
+                  isOutOfStock ? 'bg-slate-400 cursor-not-allowed shadow-none' : 'bg-brand-cta hover:bg-brand-cta-hover'
                 }`}
               >
                 <ShoppingBag className="w-5 h-5" />
@@ -619,15 +619,15 @@ export default function ProductDetailPage({
             {/* Trust Badges */}
             <div className="grid grid-cols-3 gap-3 pt-4 text-center">
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-                <Truck className="w-5 h-5 text-[#0066cc] mx-auto" />
+                <Truck className="w-5 h-5 text-brand-navy mx-auto" />
                 <span className="text-[10px] font-bold text-slate-700 block">Fast India Delivery</span>
               </div>
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-                <RotateCcw className="w-5 h-5 text-[#0066cc] mx-auto" />
+                <RotateCcw className="w-5 h-5 text-brand-navy mx-auto" />
                 <span className="text-[10px] font-bold text-slate-700 block">7 Days Return</span>
               </div>
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-                <ShieldCheck className="w-5 h-5 text-[#0066cc] mx-auto" />
+                <ShieldCheck className="w-5 h-5 text-brand-navy mx-auto" />
                 <span className="text-[10px] font-bold text-slate-700 block">100% Genuine</span>
               </div>
             </div>
@@ -756,11 +756,11 @@ export default function ProductDetailPage({
                             onChange={(e) => setReplyTexts(prev => ({ ...prev, [rev._id]: e.target.value }))}
                             onKeyDown={(e) => { if (e.key === 'Enter') handleCommentReview(rev._id); }}
                             placeholder="Write a reply..."
-                            className="flex-1 px-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-[#0066cc] bg-white text-slate-800"
+                            className="flex-1 px-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-brand-navy bg-white text-slate-800"
                           />
                           <button 
                             onClick={() => handleCommentReview(rev._id)}
-                            className="px-3 py-1.5 bg-[#0066cc] hover:bg-blue-700 text-white font-extrabold text-xs uppercase rounded-lg transition-all flex items-center space-x-1 shrink-0 cursor-pointer"
+                            className="px-3 py-1.5 bg-brand-navy hover:bg-blue-700 text-white font-extrabold text-xs uppercase rounded-lg transition-all flex items-center space-x-1 shrink-0 cursor-pointer"
                           >
                             <CornerDownRight className="w-3.5 h-3.5" />
                             <span>Reply</span>
@@ -797,7 +797,7 @@ export default function ProductDetailPage({
                       value={reviewerName}
                       onChange={(e) => setReviewerName(e.target.value)}
                       placeholder="Enter your name"
-                      className="w-full px-3 py-2 text-xs border border-slate-700 rounded-xl bg-slate-800 text-white focus:outline-none focus:border-[#0066cc]"
+                      className="w-full px-3 py-2 text-xs border border-slate-700 rounded-xl bg-slate-800 text-white focus:outline-none focus:border-brand-navy"
                     />
                   </div>
 
@@ -841,7 +841,7 @@ export default function ProductDetailPage({
                       value={reviewComment}
                       onChange={(e) => setReviewComment(e.target.value)}
                       placeholder="Describe fit, fabric quality, and experience..."
-                      className="w-full px-3 py-2 text-xs border border-slate-700 rounded-xl bg-slate-800 text-white focus:outline-none focus:border-[#0066cc]"
+                      className="w-full px-3 py-2 text-xs border border-slate-700 rounded-xl bg-slate-800 text-white focus:outline-none focus:border-brand-navy"
                     />
                   </div>
 
@@ -849,7 +849,7 @@ export default function ProductDetailPage({
                   <div className="space-y-2">
                     <label className="block text-xs font-bold text-slate-300">Attach Photo (Cloudinary)</label>
                     <label className="w-full py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-bold rounded-xl cursor-pointer flex items-center justify-center space-x-1.5 transition-colors">
-                      {uploadingPhoto ? <Loader2 className="w-4 h-4 animate-spin text-[#0066cc]" /> : <Upload className="w-4 h-4 text-[#0066cc]" />}
+                      {uploadingPhoto ? <Loader2 className="w-4 h-4 animate-spin text-brand-navy" /> : <Upload className="w-4 h-4 text-brand-navy" />}
                       <span>{uploadingPhoto ? 'Uploading...' : 'Attach Photo'}</span>
                       <input type="file" accept="image/*" onChange={handleReviewPhotoUpload} className="hidden" disabled={uploadingPhoto} />
                     </label>
@@ -862,7 +862,7 @@ export default function ProductDetailPage({
 
                     <label className="block text-xs font-bold text-slate-300 mt-2">Attach Video (Cloudinary)</label>
                     <label className="w-full py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-bold rounded-xl cursor-pointer flex items-center justify-center space-x-1.5 transition-colors">
-                      {uploadingVideo ? <Loader2 className="w-4 h-4 animate-spin text-[#0066cc]" /> : <Video className="w-4 h-4 text-[#0066cc]" />}
+                      {uploadingVideo ? <Loader2 className="w-4 h-4 animate-spin text-brand-navy" /> : <Video className="w-4 h-4 text-brand-navy" />}
                       <span>{uploadingVideo ? 'Uploading...' : 'Attach Video'}</span>
                       <input type="file" accept="video/*" onChange={handleReviewVideoUpload} className="hidden" disabled={uploadingVideo} />
                     </label>
@@ -879,7 +879,7 @@ export default function ProductDetailPage({
                   <button
                     type="submit"
                     disabled={reviewSubmitting || uploadingPhoto || uploadingVideo}
-                    className="w-full py-3 bg-[#0066cc] hover:bg-blue-600 disabled:opacity-60 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md transition-colors flex items-center justify-center space-x-2"
+                    className="w-full py-3 bg-brand-navy hover:bg-blue-600 disabled:opacity-60 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md transition-colors flex items-center justify-center space-x-2"
                   >
                     {reviewSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
                     <span>{reviewSubmitting ? 'SUBMITTING...' : 'POST CUSTOMER REVIEW'}</span>
@@ -896,7 +896,7 @@ export default function ProductDetailPage({
           <div className="pt-12 border-t border-slate-200 space-y-6">
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">Recommended Related Products</h3>
-              <Link to="/shop" className="text-xs font-extrabold text-[#0066cc] hover:underline">View All Catalog →</Link>
+              <Link to="/shop" className="text-xs font-extrabold text-brand-navy hover:underline">View All Catalog →</Link>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">

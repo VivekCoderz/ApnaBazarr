@@ -21,7 +21,7 @@ export default function PolicyPage({ type }) {
         return (
           <div className="space-y-6">
             <div className="flex items-center space-x-3 border-b pb-4">
-              <FileText className="w-8 h-8 text-[#0066cc]" />
+              <FileText className="w-8 h-8 text-brand-navy" />
               <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Terms & Conditions</h1>
             </div>
             <p className="text-xs text-slate-400">Last updated: August 13, 2026</p>
@@ -40,7 +40,7 @@ export default function PolicyPage({ type }) {
         return (
           <div className="space-y-6">
             <div className="flex items-center space-x-3 border-b pb-4">
-              <Shield className="w-8 h-8 text-[#0066cc]" />
+              <Shield className="w-8 h-8 text-brand-navy" />
               <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Privacy Policy</h1>
             </div>
             <p className="text-xs text-slate-400">Last updated: August 13, 2026</p>
@@ -57,7 +57,7 @@ export default function PolicyPage({ type }) {
         return (
           <div className="space-y-6">
             <div className="flex items-center space-x-3 border-b pb-4">
-              <Truck className="w-8 h-8 text-[#0066cc]" />
+              <Truck className="w-8 h-8 text-brand-navy" />
               <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Shipping Policy</h1>
             </div>
             <p className="text-xs text-slate-400">Last updated: August 13, 2026</p>
@@ -76,7 +76,7 @@ export default function PolicyPage({ type }) {
         return (
           <div className="space-y-6">
             <div className="flex items-center space-x-3 border-b pb-4">
-              <RefreshCw className="w-8 h-8 text-[#0066cc]" />
+              <RefreshCw className="w-8 h-8 text-brand-navy" />
               <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Cancellation & Refund Policy</h1>
             </div>
             <p className="text-xs text-slate-400">Last updated: August 13, 2026</p>
@@ -97,7 +97,7 @@ export default function PolicyPage({ type }) {
             {/* Contact Details (5 cols) */}
             <div className="lg:col-span-5 space-y-6">
               <div className="flex items-center space-x-3 border-b pb-4">
-                <Mail className="w-8 h-8 text-[#0066cc]" />
+                <Mail className="w-8 h-8 text-brand-navy" />
                 <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Contact Us</h1>
               </div>
               <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
@@ -105,15 +105,15 @@ export default function PolicyPage({ type }) {
               </p>
               <div className="space-y-4 pt-2">
                 <div className="flex items-center space-x-3 text-xs sm:text-sm font-semibold text-slate-700">
-                  <Phone className="w-5 h-5 text-[#0066cc]" />
+                  <Phone className="w-5 h-5 text-brand-navy" />
                   <a href="tel:+919306810726" className="hover:underline">+91 9306810726</a>
                 </div>
                 <div className="flex items-center space-x-3 text-xs sm:text-sm font-semibold text-slate-700">
-                  <Mail className="w-5 h-5 text-[#0066cc]" />
+                  <Mail className="w-5 h-5 text-brand-navy" />
                   <a href="mailto:appnabaazar@gmail.com" className="hover:underline">appnabaazar@gmail.com</a>
                 </div>
                 <div className="flex items-center space-x-3 text-xs sm:text-sm font-semibold text-slate-700">
-                  <MapPin className="w-5 h-5 text-[#0066cc]" />
+                  <MapPin className="w-5 h-5 text-brand-navy" />
                   <span>123 Commerce Way, Tech City, IN 400001</span>
                 </div>
               </div>
@@ -140,7 +140,7 @@ export default function PolicyPage({ type }) {
                         value={contactForm.name}
                         onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
                         placeholder="Enter your name"
-                        className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-[#0066cc]"
+                        className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-brand-navy"
                       />
                     </div>
                     <div>
@@ -151,7 +151,7 @@ export default function PolicyPage({ type }) {
                         value={contactForm.email}
                         onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
                         placeholder="Enter your email"
-                        className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-[#0066cc]"
+                        className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-brand-navy"
                       />
                     </div>
                   </div>
@@ -163,7 +163,7 @@ export default function PolicyPage({ type }) {
                       value={contactForm.subject}
                       onChange={(e) => setContactForm({ ...contactForm, subject: e.target.value })}
                       placeholder="e.g. Order Tracking Inquiry"
-                      className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-[#0066cc]"
+                      className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-brand-navy"
                     />
                   </div>
                   <div>
@@ -174,12 +174,12 @@ export default function PolicyPage({ type }) {
                       value={contactForm.message}
                       onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
                       placeholder="Describe your query in detail..."
-                      className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-[#0066cc]"
+                      className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-brand-navy"
                     />
                   </div>
                   <button
                     type="submit"
-                    className="w-full py-3 bg-[#0066cc] hover:bg-blue-700 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md transition-colors flex items-center justify-center space-x-2"
+                    className="w-full py-3 bg-brand-navy hover:bg-blue-700 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md transition-colors flex items-center justify-center space-x-2"
                   >
                     <Send className="w-4 h-4" />
                     <span>Send Message</span>

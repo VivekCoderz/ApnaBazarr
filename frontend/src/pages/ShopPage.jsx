@@ -34,7 +34,7 @@ export default function ShopPage({ products, onAddToCart, onQuickView, onToggleW
               onClick={() => setSelectedCategory(cat)}
               className={`w-full text-left px-3 py-2 rounded-lg font-bold transition-colors ${
                 selectedCategory === cat
-                  ? 'bg-[#0066cc] text-white'
+                  ? 'bg-brand-navy text-white'
                   : 'text-slate-700 hover:bg-slate-100'
               }`}
             >
@@ -68,7 +68,7 @@ export default function ShopPage({ products, onAddToCart, onQuickView, onToggleW
       <div className="border-t border-slate-100 pt-4 space-y-2">
         <div className="flex justify-between items-center text-xs">
           <span className="font-bold text-slate-800 uppercase tracking-wider">Max Price</span>
-          <span className="font-extrabold text-[#0066cc]">₹{maxPrice}</span>
+          <span className="font-extrabold text-brand-navy">₹{maxPrice}</span>
         </div>
         <input
           type="range"
@@ -77,7 +77,7 @@ export default function ShopPage({ products, onAddToCart, onQuickView, onToggleW
           step="100"
           value={maxPrice}
           onChange={(e) => setMaxPrice(Number(e.target.value))}
-          className="w-full accent-[#0066cc] cursor-pointer"
+          className="w-full accent-brand-navy cursor-pointer"
         />
       </div>
     </div>
@@ -161,7 +161,7 @@ export default function ShopPage({ products, onAddToCart, onQuickView, onToggleW
             
             {/* Ambient background decoration */}
             <div className="absolute w-72 h-72 bg-[#ff5e14]/15 rounded-full blur-3xl -top-20 -right-20 pointer-events-none z-0" />
-            <div className="absolute w-96 h-96 bg-[#0066cc]/10 rounded-full blur-3xl -bottom-32 -left-32 pointer-events-none z-0" />
+            <div className="absolute w-96 h-96 bg-brand-navy/10 rounded-full blur-3xl -bottom-32 -left-32 pointer-events-none z-0" />
             
             <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6 w-full text-white">
               <div className="flex items-start space-x-5">
@@ -268,7 +268,7 @@ export default function ShopPage({ products, onAddToCart, onQuickView, onToggleW
                 onClick={() => setIsMobileFilterOpen(true)}
                 className="lg:hidden flex items-center space-x-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 rounded-lg transition-colors text-xs font-bold cursor-pointer"
               >
-                <Filter className="w-4 h-4 text-[#0066cc]" />
+                <Filter className="w-4 h-4 text-brand-navy" />
                 <span>Filters</span>
                 {(selectedCategory !== 'All' || selectedGender !== 'All' || maxPrice < 6000) && (
                   <span className="w-1.5 h-1.5 rounded-full bg-rose-600" />
@@ -277,12 +277,12 @@ export default function ShopPage({ products, onAddToCart, onQuickView, onToggleW
 
               {/* Sort Dropdown */}
               <div className="flex items-center space-x-2">
-                <SlidersHorizontal className="w-4 h-4 text-[#0066cc]" />
+                <SlidersHorizontal className="w-4 h-4 text-brand-navy" />
                 <span className="text-xs font-bold text-slate-700">Sort:</span>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="text-xs font-bold bg-slate-100 text-slate-800 border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:border-[#0066cc]"
+                  className="text-xs font-bold bg-slate-100 text-slate-800 border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:border-brand-navy"
                 >
                   <option value="featured">Featured First</option>
                   <option value="newest">Newest Arrivals</option>
@@ -376,7 +376,7 @@ export default function ShopPage({ products, onAddToCart, onQuickView, onToggleW
           {/* Left Sidebar Filters (Desktop) */}
           <div className="hidden lg:block space-y-6 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs h-fit">
             <div className="flex items-center space-x-2 border-b border-slate-100 pb-3">
-              <Filter className="w-4 h-4 text-[#0066cc]" />
+              <Filter className="w-4 h-4 text-brand-navy" />
               <h3 className="font-extrabold text-sm text-slate-900">Filter Products</h3>
             </div>
             {renderFilters()}
@@ -394,7 +394,7 @@ export default function ShopPage({ products, onAddToCart, onQuickView, onToggleW
               <div className="fixed inset-y-0 right-0 max-w-xs w-full bg-white shadow-2xl z-50 flex flex-col animate-slide-in p-6 space-y-6 overflow-y-auto">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                   <div className="flex items-center space-x-2">
-                    <Filter className="w-4.5 h-4.5 text-[#0066cc]" />
+                    <Filter className="w-4.5 h-4.5 text-brand-navy" />
                     <h3 className="font-extrabold text-sm text-slate-900 uppercase tracking-tight">Filter Products</h3>
                   </div>
                   <button 
@@ -410,7 +410,7 @@ export default function ShopPage({ products, onAddToCart, onQuickView, onToggleW
                 <div className="pt-4 border-t border-slate-100">
                   <button
                     onClick={() => setIsMobileFilterOpen(false)}
-                    className="w-full py-3 bg-[#0066cc] text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md hover:bg-blue-700 transition-colors cursor-pointer"
+                    className="w-full py-3 bg-brand-navy text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md hover:bg-blue-700 transition-colors cursor-pointer"
                   >
                     Apply Filters
                   </button>
@@ -426,7 +426,7 @@ export default function ShopPage({ products, onAddToCart, onQuickView, onToggleW
                 <p className="text-slate-500 text-sm font-semibold">No products found matching your current filter choices.</p>
                 <button
                   onClick={() => { setSelectedCategory('All'); setSelectedGender('All'); setMaxPrice(6000); }}
-                  className="px-4 py-2 bg-[#0066cc] text-white text-xs font-bold rounded-lg"
+                  className="px-4 py-2 bg-brand-navy text-white text-xs font-bold rounded-lg"
                 >
                   Reset All Filters
                 </button>

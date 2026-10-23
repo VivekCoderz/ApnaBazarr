@@ -116,7 +116,7 @@ export default function CloudinaryUpload({
               <Loader className="w-8 h-8 text-white animate-spin" />
               <div className="w-48 bg-slate-700 rounded-full h-2 overflow-hidden">
                 <div
-                  className="h-2 bg-[#0066cc] rounded-full transition-all duration-300"
+                  className="h-2 bg-brand-navy rounded-full transition-all duration-300"
                   style={{ width: `${progress}%` }}
                 />
               </div>
@@ -152,19 +152,19 @@ export default function CloudinaryUpload({
           onDrop={handleDrop}
           className={`relative border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all duration-200 ${
             dragging
-              ? 'border-[#0066cc] bg-blue-50 scale-[1.01]'
-              : 'border-slate-300 hover:border-[#0066cc] hover:bg-blue-50/40 bg-slate-50'
+              ? 'border-brand-navy bg-blue-50 scale-[1.01]'
+              : 'border-slate-300 hover:border-brand-navy hover:bg-blue-50/40 bg-slate-50'
           }`}
         >
           <div className="space-y-2 flex flex-col items-center">
             {type === 'video' ? (
-              <Video className={`w-10 h-10 ${dragging ? 'text-[#0066cc]' : 'text-slate-400'}`} />
+              <Video className={`w-10 h-10 ${dragging ? 'text-brand-navy' : 'text-slate-400'}`} />
             ) : (
-              <ImageIcon className={`w-10 h-10 ${dragging ? 'text-[#0066cc]' : 'text-slate-400'}`} />
+              <ImageIcon className={`w-10 h-10 ${dragging ? 'text-brand-navy' : 'text-slate-400'}`} />
             )}
 
             <div className="text-xs text-slate-600 font-semibold">
-              <span className="font-extrabold text-[#0066cc]">Click to browse</span> or drag & drop
+              <span className="font-extrabold text-brand-navy">Click to browse</span> or drag & drop
             </div>
             <div className="text-[11px] text-slate-400">
               {type === 'video'

@@ -104,7 +104,7 @@ export default function ResellerPage({ currentUser, products = [], onAuthSuccess
                 <p className="text-sm text-slate-600">Shuru karne ke liye pehle login ya sign up karein.</p>
                 <button
                   onClick={onOpenAuth}
-                  className="w-full py-3 bg-[#0066cc] hover:bg-blue-700 text-white font-black rounded-xl text-sm"
+                  className="w-full py-3 bg-brand-navy hover:bg-blue-700 text-white font-black rounded-xl text-sm"
                 >
                   Login / Sign Up
                 </button>
@@ -119,7 +119,7 @@ export default function ResellerPage({ currentUser, products = [], onAuthSuccess
                     required
                     inputMode="tel"
                     placeholder="98XXXXXXXX"
-                    className="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-[#0066cc]"
+                    className="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-brand-navy"
                   />
                 </label>
                 <label className="block space-y-1">
@@ -129,7 +129,7 @@ export default function ResellerPage({ currentUser, products = [], onAuthSuccess
                     onChange={e => setUpiId(e.target.value)}
                     required
                     placeholder="naam@upi"
-                    className="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-[#0066cc]"
+                    className="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-brand-navy"
                   />
                 </label>
                 {errorMsg && (
@@ -193,7 +193,7 @@ export default function ResellerPage({ currentUser, products = [], onAuthSuccess
             { icon: Wallet, label: 'Mil chuka', value: `₹${stats.paid}` }
           ].map(({ icon: Icon, label, value }) => (
             <div key={label} className="bg-white rounded-2xl p-4 border border-slate-200">
-              <Icon className="w-5 h-5 text-[#0066cc]" />
+              <Icon className="w-5 h-5 text-brand-navy" />
               <p className="text-2xl font-black text-slate-900 mt-2">{loading ? '…' : value}</p>
               <p className="text-xs text-slate-500 font-bold">{label}</p>
             </div>
@@ -249,7 +249,7 @@ export default function ResellerPage({ currentUser, products = [], onAuthSuccess
 
         <section className="space-y-3">
           <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
-            <Users className="w-5 h-5 text-[#0066cc]" /> Aapke orders
+            <Users className="w-5 h-5 text-brand-navy" /> Aapke orders
           </h2>
           {!dashboard?.orders?.length ? (
             <p className="text-sm text-slate-500 bg-white rounded-2xl border border-slate-200 p-5">

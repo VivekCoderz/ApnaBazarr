@@ -18,9 +18,9 @@ export default function OrdersModal({ isOpen, onClose, orders }) {
           {/* Header */}
           <div className="p-4 border-b flex items-center justify-between bg-slate-900 text-white">
             <div className="flex items-center space-x-2">
-              <Package className="w-5 h-5 text-[#0066cc]" />
+              <Package className="w-5 h-5 text-brand-navy" />
               <h3 className="font-extrabold text-base tracking-tight">My Placed Orders</h3>
-              <span className="bg-[#0066cc] text-white text-xs px-2 py-0.5 rounded-full font-bold">
+              <span className="bg-brand-navy text-white text-xs px-2 py-0.5 rounded-full font-bold">
                 {orders.length}
               </span>
             </div>
@@ -57,7 +57,7 @@ export default function OrdersModal({ isOpen, onClose, orders }) {
                       </span>
                     </div>
 
-                    <span className="bg-blue-100 text-[#0066cc] font-extrabold text-[10px] px-2.5 py-1 rounded-full border border-blue-200">
+                    <span className="bg-blue-100 text-brand-navy font-extrabold text-[10px] px-2.5 py-1 rounded-full border border-blue-200">
                       {ord.orderStatus}
                     </span>
                   </div>
@@ -65,13 +65,13 @@ export default function OrdersModal({ isOpen, onClose, orders }) {
                   {/* Status Progress Timeline */}
                   <div className="space-y-1 py-1">
                     <div className="flex items-center justify-between text-[11px] text-slate-500 font-semibold">
-                      <span className="text-[#0066cc] font-bold">Ordered</span>
+                      <span className="text-brand-navy font-bold">Ordered</span>
                       <span>Processing</span>
                       <span>Shipped</span>
                       <span>Delivered</span>
                     </div>
                     <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
-                      <div className="bg-[#0066cc] h-full w-1/3 rounded-full" />
+                      <div className="bg-brand-navy h-full w-1/3 rounded-full" />
                     </div>
                   </div>
 
@@ -103,7 +103,7 @@ export default function OrdersModal({ isOpen, onClose, orders }) {
                     </div>
                     <div>
                       <span>Total: </span>
-                      <span className="font-extrabold text-[#0066cc] text-sm">₹{ord.totalAmount.toFixed(2)}</span>
+                      <span className="font-extrabold text-brand-navy text-sm">₹{ord.totalAmount.toFixed(2)}</span>
                     </div>
                   </div>
 

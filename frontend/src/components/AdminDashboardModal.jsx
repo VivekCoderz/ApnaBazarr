@@ -495,56 +495,56 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
         <div className="bg-slate-100 px-4 sm:px-6 flex space-x-4 sm:space-x-6 border-b border-slate-200 text-xs font-bold shrink-0 overflow-x-auto whitespace-nowrap scrollbar-none">
           <button
             onClick={() => setActiveTab('overview')}
-            className={`py-3.5 transition-colors border-b-2 flex items-center space-x-1.5 ${activeTab === 'overview' ? 'border-[#0066cc] text-[#0066cc]' : 'border-transparent text-slate-600 hover:text-slate-900'}`}
+            className={`py-3.5 transition-colors border-b-2 flex items-center space-x-1.5 ${activeTab === 'overview' ? 'border-brand-navy text-brand-navy' : 'border-transparent text-slate-600 hover:text-slate-900'}`}
           >
             <TrendingUp className="w-4 h-4" />
             <span>Analytics & Profit Overview</span>
           </button>
           <button
             onClick={() => setActiveTab('addProduct')}
-            className={`py-3.5 transition-colors border-b-2 flex items-center space-x-1.5 ${activeTab === 'addProduct' ? 'border-[#0066cc] text-[#0066cc]' : 'border-transparent text-slate-600 hover:text-slate-900'}`}
+            className={`py-3.5 transition-colors border-b-2 flex items-center space-x-1.5 ${activeTab === 'addProduct' ? 'border-brand-navy text-brand-navy' : 'border-transparent text-slate-600 hover:text-slate-900'}`}
           >
             <Plus className="w-4 h-4" />
             <span>Add New Product (Kharida vs Becha)</span>
           </button>
           <button
             onClick={() => setActiveTab('inventory')}
-            className={`py-3.5 transition-colors border-b-2 flex items-center space-x-1.5 ${activeTab === 'inventory' ? 'border-[#0066cc] text-[#0066cc]' : 'border-transparent text-slate-600 hover:text-slate-900'}`}
+            className={`py-3.5 transition-colors border-b-2 flex items-center space-x-1.5 ${activeTab === 'inventory' ? 'border-brand-navy text-brand-navy' : 'border-transparent text-slate-600 hover:text-slate-900'}`}
           >
             <Package className="w-4 h-4" />
             <span>Products Catalog ({products.length})</span>
           </button>
           <button
             onClick={() => setActiveTab('orders')}
-            className={`py-3.5 transition-colors border-b-2 flex items-center space-x-1.5 ${activeTab === 'orders' ? 'border-[#0066cc] text-[#0066cc]' : 'border-transparent text-slate-600 hover:text-slate-900'}`}
+            className={`py-3.5 transition-colors border-b-2 flex items-center space-x-1.5 ${activeTab === 'orders' ? 'border-brand-navy text-brand-navy' : 'border-transparent text-slate-600 hover:text-slate-900'}`}
           >
             <ShoppingBag className="w-4 h-4" />
             <span>Customer Orders ({orders.length})</span>
           </button>
           <button
             onClick={() => setActiveTab('feedbacks')}
-            className={`py-3.5 transition-colors border-b-2 flex items-center space-x-1.5 ${activeTab === 'feedbacks' ? 'border-[#0066cc] text-[#0066cc]' : 'border-transparent text-slate-600 hover:text-slate-900'}`}
+            className={`py-3.5 transition-colors border-b-2 flex items-center space-x-1.5 ${activeTab === 'feedbacks' ? 'border-brand-navy text-brand-navy' : 'border-transparent text-slate-600 hover:text-slate-900'}`}
           >
             <MessageSquare className="w-4 h-4" />
             <span>Customer Feedbacks ({feedbacks.length})</span>
           </button>
           <button
             onClick={() => setActiveTab('reviews')}
-            className={`py-3.5 transition-colors border-b-2 flex items-center space-x-1.5 ${activeTab === 'reviews' ? 'border-[#0066cc] text-[#0066cc]' : 'border-transparent text-slate-600 hover:text-slate-900'}`}
+            className={`py-3.5 transition-colors border-b-2 flex items-center space-x-1.5 ${activeTab === 'reviews' ? 'border-brand-navy text-brand-navy' : 'border-transparent text-slate-600 hover:text-slate-900'}`}
           >
             <Star className="w-4 h-4" />
             <span>Product Reviews ({allReviews.length})</span>
           </button>
           <button
             onClick={() => { setActiveTab('sellers'); loadSellers(); }}
-            className={`py-3.5 transition-colors border-b-2 flex items-center space-x-1.5 ${activeTab === 'sellers' ? 'border-[#0066cc] text-[#0066cc]' : 'border-transparent text-slate-600 hover:text-slate-900'}`}
+            className={`py-3.5 transition-colors border-b-2 flex items-center space-x-1.5 ${activeTab === 'sellers' ? 'border-brand-navy text-brand-navy' : 'border-transparent text-slate-600 hover:text-slate-900'}`}
           >
             <Store className="w-4 h-4" />
             <span>Sellers Directory ({sellers.length})</span>
           </button>
           <button
             onClick={() => setActiveTab('settings')}
-            className={`py-3.5 transition-colors border-b-2 flex items-center space-x-1.5 ${activeTab === 'settings' ? 'border-[#0066cc] text-[#0066cc]' : 'border-transparent text-slate-600 hover:text-slate-900'}`}
+            className={`py-3.5 transition-colors border-b-2 flex items-center space-x-1.5 ${activeTab === 'settings' ? 'border-brand-navy text-brand-navy' : 'border-transparent text-slate-600 hover:text-slate-900'}`}
           >
             <Settings className="w-4 h-4" />
             <span>Store Settings</span>
@@ -576,7 +576,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                         <th className="p-3">Product Name</th>
                         <th className="p-3">Category</th>
                         <th className="p-3 text-amber-700">₹ Kharida Price</th>
-                        <th className="p-3 text-[#0066cc]">₹ Becha Price</th>
+                        <th className="p-3 text-brand-navy">₹ Becha Price</th>
                         <th className="p-3 text-emerald-700">₹ Profit / Piece</th>
                         <th className="p-3">Margin %</th>
                       </tr>
@@ -594,7 +594,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                             </td>
                             <td className="p-3 text-slate-500">{item.category}</td>
                             <td className="p-3 font-bold text-amber-800">₹{cost.toFixed(2)}</td>
-                            <td className="p-3 font-extrabold text-[#0066cc]">₹{item.price.toFixed(2)}</td>
+                            <td className="p-3 font-extrabold text-brand-navy">₹{item.price.toFixed(2)}</td>
                             <td className="p-3 font-black text-emerald-600">+₹{profit.toFixed(2)}</td>
                             <td className="p-3 font-bold text-slate-700">{margin}%</td>
                           </tr>
@@ -627,7 +627,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                           </div>
                           <div>
                             <span className="text-slate-400 block font-bold">Becha</span>
-                            <span className="font-extrabold text-[#0066cc]">₹{item.price.toFixed(2)}</span>
+                            <span className="font-extrabold text-brand-navy">₹{item.price.toFixed(2)}</span>
                           </div>
                           <div>
                             <span className="text-slate-400 block font-bold">Profit</span>
@@ -668,7 +668,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                       value={newProd.name}
                       onChange={(e) => setNewProd({ ...newProd, name: e.target.value })}
                       placeholder="e.g. Pure Cotton Silk Kurta Set"
-                      className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-[#0066cc]"
+                      className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-brand-navy"
                     />
                   </div>
 
@@ -678,7 +678,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                       <button
                         type="button"
                         onClick={() => setIsCustomCategory(!isCustomCategory)}
-                        className="text-[10px] text-[#0066cc] font-extrabold hover:underline cursor-pointer"
+                        className="text-[10px] text-brand-navy font-extrabold hover:underline cursor-pointer"
                       >
                         {isCustomCategory ? "Select from list" : "Enter custom"}
                       </button>
@@ -690,13 +690,13 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                         value={newProd.category}
                         onChange={(e) => setNewProd({ ...newProd, category: e.target.value })}
                         placeholder="e.g. Sweets & Gifts"
-                        className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-[#0066cc] font-semibold bg-white text-slate-850"
+                        className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-brand-navy font-semibold bg-white text-slate-850"
                       />
                     ) : (
                       <select
                         value={newProd.category}
                         onChange={(e) => setNewProd({ ...newProd, category: e.target.value })}
-                        className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-[#0066cc] bg-white text-slate-850"
+                        className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-brand-navy bg-white text-slate-850"
                       >
                         <option value="Men's Fashion">Men's Fashion</option>
                         <option value="Women's Wear">Women's Wear</option>
@@ -748,7 +748,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                         value={newProd.price}
                         onChange={(e) => setNewProd({ ...newProd, price: e.target.value })}
                         placeholder="e.g. 899"
-                        className="w-full px-3 py-2 text-xs border border-blue-300 rounded-lg focus:outline-none focus:border-[#0066cc] font-extrabold text-[#0066cc] bg-white"
+                        className="w-full px-3 py-2 text-xs border border-blue-300 rounded-lg focus:outline-none focus:border-brand-navy font-extrabold text-brand-navy bg-white"
                       />
                       <span className="text-[10px] text-blue-700">Customer price</span>
                     </div>
@@ -798,7 +798,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                     <select
                       value={newProd.gender}
                       onChange={(e) => setNewProd({ ...newProd, gender: e.target.value })}
-                      className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-[#0066cc]"
+                      className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-brand-navy"
                     >
                       <option value="Men">Men</option>
                       <option value="Women">Women</option>
@@ -813,7 +813,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                       type="number"
                       value={newProd.stock}
                       onChange={(e) => setNewProd({ ...newProd, stock: e.target.value })}
-                      className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-[#0066cc]"
+                      className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-brand-navy"
                     />
                   </div>
                 </div>
@@ -855,7 +855,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                       value={newProd.image}
                       onChange={(e) => setNewProd({ ...newProd, image: e.target.value })}
                       placeholder="Or enter image URL manually..."
-                      className="flex-1 px-3 py-2.5 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-[#0066cc]"
+                      className="flex-1 px-3 py-2.5 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-brand-navy"
                     />
                   </div>
                   {newProd.image && (
@@ -937,7 +937,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                       id="admin-is-customizable"
                       checked={newProd.isCustomizable || false}
                       onChange={(e) => setNewProd({ ...newProd, isCustomizable: e.target.checked })}
-                      className="w-4 h-4 text-[#0066cc] border-slate-350 focus:ring-[#0066cc] rounded cursor-pointer"
+                      className="w-4 h-4 text-brand-navy border-slate-350 focus:ring-brand-navy rounded cursor-pointer"
                     />
                     <label htmlFor="admin-is-customizable" className="text-xs font-bold text-slate-800 cursor-pointer select-none">
                       Is this product customizable? (Requires customer text or photo upload)
@@ -951,7 +951,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                         <select
                           value={newProd.customizationType || 'text'}
                           onChange={(e) => setNewProd({ ...newProd, customizationType: e.target.value })}
-                          className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-[#0066cc] bg-white text-slate-850 font-bold"
+                          className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-brand-navy bg-white text-slate-850 font-bold"
                         >
                           <option value="text">Text Input Only (Name, wish note, etc.)</option>
                           <option value="image">Photo Upload Only (Custom user design)</option>
@@ -967,7 +967,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                           value={newProd.customizationPrompt || ''}
                           onChange={(e) => setNewProd({ ...newProd, customizationPrompt: e.target.value })}
                           placeholder="e.g. Enter name to print / Upload your photo"
-                          className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-[#0066cc] bg-white text-slate-850 font-semibold"
+                          className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-brand-navy bg-white text-slate-850 font-semibold"
                         />
                       </div>
                     </div>
@@ -994,7 +994,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                                 type="button"
                                 onClick={() => handleToggleSizePreset(sz)}
                                 className={`px-2 py-0.5 text-[9px] font-black rounded border transition-all cursor-pointer ${
-                                  active ? 'bg-[#0066cc] text-white border-[#0066cc]' : 'bg-white text-slate-700 border-slate-200 hover:border-slate-350'
+                                  active ? 'bg-brand-navy text-white border-brand-navy' : 'bg-white text-slate-700 border-slate-200 hover:border-slate-350'
                                 }`}
                               >
                                 {sz}
@@ -1014,7 +1014,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                                 type="button"
                                 onClick={() => handleToggleSizePreset(sz)}
                                 className={`px-2 py-0.5 text-[9px] font-black rounded border transition-all cursor-pointer ${
-                                  active ? 'bg-[#0066cc] text-white border-[#0066cc]' : 'bg-white text-slate-700 border-slate-200 hover:border-slate-350'
+                                  active ? 'bg-brand-navy text-white border-brand-navy' : 'bg-white text-slate-700 border-slate-200 hover:border-slate-350'
                                 }`}
                               >
                                 {sz}
@@ -1034,7 +1034,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                                 type="button"
                                 onClick={() => handleToggleSizePreset(sz)}
                                 className={`px-2 py-0.5 text-[9px] font-black rounded border transition-all cursor-pointer ${
-                                  active ? 'bg-[#0066cc] text-white border-[#0066cc]' : 'bg-white text-slate-700 border-slate-200 hover:border-slate-350'
+                                  active ? 'bg-brand-navy text-white border-brand-navy' : 'bg-white text-slate-700 border-slate-200 hover:border-slate-350'
                                 }`}
                               >
                                 {sz}
@@ -1054,7 +1054,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                                 type="button"
                                 onClick={() => handleToggleSizePreset(sz)}
                                 className={`px-2 py-0.5 text-[9px] font-black rounded border transition-all cursor-pointer ${
-                                  active ? 'bg-[#0066cc] text-white border-[#0066cc]' : 'bg-white text-slate-700 border-slate-200 hover:border-slate-350'
+                                  active ? 'bg-brand-navy text-white border-brand-navy' : 'bg-white text-slate-700 border-slate-200 hover:border-slate-350'
                                 }`}
                               >
                                 {sz}
@@ -1074,7 +1074,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                                 type="button"
                                 onClick={() => handleToggleSizePreset(sz)}
                                 className={`px-2 py-0.5 text-[9px] font-black rounded border transition-all cursor-pointer ${
-                                  active ? 'bg-[#0066cc] text-white border-[#0066cc]' : 'bg-white text-slate-700 border-slate-200 hover:border-slate-350'
+                                  active ? 'bg-brand-navy text-white border-brand-navy' : 'bg-white text-slate-700 border-slate-200 hover:border-slate-350'
                                 }`}
                               >
                                 {sz}
@@ -1088,7 +1088,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                         value={newProd.sizes || ''}
                         onChange={(e) => setNewProd({ ...newProd, sizes: e.target.value })}
                         placeholder="e.g. S, M, L, XL or 32, 34 or 8, 9"
-                        className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-[#0066cc] bg-white text-slate-850"
+                        className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-brand-navy bg-white text-slate-850"
                       />
                     </div>
 
@@ -1117,7 +1117,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                                 onClick={() => handleToggleColorPreset(col.name)}
                                 title={col.name}
                                 className={`w-5 h-5 rounded-full border transition-all relative cursor-pointer ${
-                                  active ? 'ring-2 ring-[#0066cc] ring-offset-1 scale-110' : 'border-slate-350'
+                                  active ? 'ring-2 ring-brand-navy ring-offset-1 scale-110' : 'border-slate-350'
                                 }`}
                                 style={{ backgroundColor: col.code }}
                               >
@@ -1132,7 +1132,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                         value={newProd.colors || ''}
                         onChange={(e) => setNewProd({ ...newProd, colors: e.target.value })}
                         placeholder="e.g. Red, Blue, Black, White"
-                        className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-[#0066cc] bg-white text-slate-850"
+                        className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-brand-navy bg-white text-slate-850"
                       />
                     </div>
                   </div>
@@ -1145,13 +1145,13 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                     value={newProd.description}
                     onChange={(e) => setNewProd({ ...newProd, description: e.target.value })}
                     placeholder="Describe material, sizing, and details..."
-                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-[#0066cc]"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-brand-navy"
                   />
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full py-3.5 bg-[#0066cc] hover:bg-blue-700 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md transition-colors flex items-center justify-center space-x-2"
+                  className="w-full py-3.5 bg-brand-navy hover:bg-blue-700 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md transition-colors flex items-center justify-center space-x-2"
                 >
                   <Plus className="w-4 h-4" />
                   <span>SAVE & PUBLISH PRODUCT TO STORE</span>
@@ -1167,7 +1167,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                 <h4 className="text-sm font-extrabold text-slate-900">All Live Store Products ({products.length})</h4>
                 <button
                   onClick={() => setActiveTab('addProduct')}
-                  className="px-4 py-2 bg-[#0066cc] text-white text-xs font-bold rounded-xl flex items-center space-x-1"
+                  className="px-4 py-2 bg-brand-navy text-white text-xs font-bold rounded-xl flex items-center space-x-1"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Add Product</span>
@@ -1182,7 +1182,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                       <th className="p-3">Product</th>
                       <th className="p-3">Category</th>
                       <th className="p-3 text-amber-800">Kharida (Cost)</th>
-                      <th className="p-3 text-[#0066cc]">Becha (Sell)</th>
+                      <th className="p-3 text-brand-navy">Becha (Sell)</th>
                       <th className="p-3 text-emerald-700">Profit / Item</th>
                       <th className="p-3">Stock</th>
                       <th className="p-3 text-right">Action</th>
@@ -1200,7 +1200,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                           </td>
                           <td className="p-3 text-slate-500">{p.category}</td>
                           <td className="p-3 font-bold text-amber-800">₹{cost.toFixed(2)}</td>
-                          <td className="p-3 font-extrabold text-[#0066cc]">₹{p.price.toFixed(2)}</td>
+                          <td className="p-3 font-extrabold text-brand-navy">₹{p.price.toFixed(2)}</td>
                           <td className="p-3 font-black text-emerald-600">+₹{profit.toFixed(2)}</td>
                           <td className="p-3">
                             <div className="flex flex-col space-y-1">
@@ -1263,7 +1263,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                         </div>
                         <div>
                           <span className="text-slate-400 block font-bold">Becha (Sell)</span>
-                          <span className="font-extrabold text-[#0066cc]">₹{p.price.toFixed(2)}</span>
+                          <span className="font-extrabold text-brand-navy">₹{p.price.toFixed(2)}</span>
                         </div>
                         <div>
                           <span className="text-slate-400 block font-bold">Profit</span>
@@ -1338,7 +1338,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                           <select
                             value={ord.orderStatus}
                             onChange={(e) => onUpdateOrderStatus(ord.orderId, e.target.value)}
-                            className="text-xs font-extrabold bg-blue-50 text-[#0066cc] border border-blue-200 rounded px-2.5 py-1 focus:outline-none"
+                            className="text-xs font-extrabold bg-blue-50 text-brand-navy border border-blue-200 rounded px-2.5 py-1 focus:outline-none"
                           >
                             <option value="Order Placed">Order Placed</option>
                             <option value="Processing">Processing</option>
@@ -1382,7 +1382,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                                       <div className="flex items-center space-x-1.5 pt-0.5">
                                         <span className="text-slate-500 font-bold">Custom Photo: </span>
                                         <img src={item.customImage} alt="User Upload" className="w-5 h-5 object-cover rounded border bg-white" />
-                                        <a href={item.customImage} target="_blank" rel="noreferrer" className="text-[#0066cc] underline text-[9px] hover:text-blue-800 font-bold">View Link</a>
+                                        <a href={item.customImage} target="_blank" rel="noreferrer" className="text-brand-navy underline text-[9px] hover:text-blue-800 font-bold">View Link</a>
                                       </div>
                                     )}
                                   </div>
@@ -1396,7 +1396,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
 
                       <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-200/60 mt-2">
                         <span className="text-slate-500 font-bold">Grand total count: {ord.items.reduce((acc, it) => acc + it.quantity, 0)} unit(s)</span>
-                        <span className="font-black text-[#0066cc] text-sm">Amount Paid: ₹{ord.totalAmount.toFixed(2)}</span>
+                        <span className="font-black text-brand-navy text-sm">Amount Paid: ₹{ord.totalAmount.toFixed(2)}</span>
                       </div>
                     </div>
                   ))}
@@ -1422,7 +1422,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                         <div className="flex items-center space-x-2">
                           <span className="font-extrabold text-xs text-slate-900">{fb.name}</span>
                           <span className="text-[11px] text-slate-400">({fb.email})</span>
-                          <span className="bg-blue-100 text-[#0066cc] text-[10px] font-bold px-2 py-0.5 rounded">{fb.category}</span>
+                          <span className="bg-blue-100 text-brand-navy text-[10px] font-bold px-2 py-0.5 rounded">{fb.category}</span>
                         </div>
 
                         <div className="flex items-center space-x-1">
@@ -1547,7 +1547,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                     value={newCodCode}
                     onChange={(e) => setNewCodCode(e.target.value)}
                     placeholder="Enter new secret code (e.g. APNACOD)..."
-                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-[#0066cc] bg-white text-slate-855 uppercase font-bold"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-brand-navy bg-white text-slate-855 uppercase font-bold"
                   />
                   <p className="text-[10px] text-slate-400">
                     If a customer enters this code on checkout, the Cash on Delivery (COD) payment option will be unlocked.
@@ -1565,7 +1565,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                     value={newCommission}
                     onChange={(e) => setNewCommission(e.target.value)}
                     placeholder="e.g. 10..."
-                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-[#0066cc] bg-white text-slate-855 font-bold"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-brand-navy bg-white text-slate-855 font-bold"
                   />
                   <p className="text-[10px] text-slate-400">
                     The percentage cut the website receives from all sales generated by multiple sellers.
@@ -1587,7 +1587,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                 <button 
                   type="submit"
                   disabled={settingsLoading || !newCodCode.trim() || !newCommission.trim()}
-                  className="px-6 py-2.5 bg-[#0066cc] hover:bg-blue-700 text-white font-extrabold text-xs uppercase rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1 cursor-pointer"
+                  className="px-6 py-2.5 bg-brand-navy hover:bg-blue-700 text-white font-extrabold text-xs uppercase rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1 cursor-pointer"
                 >
                   {settingsLoading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                   <span>Save Settings</span>
@@ -1603,7 +1603,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                 <div>
                   <h4 className="text-sm font-extrabold text-slate-905">Sellers Directory & Commission Earnings</h4>
                   <p className="text-xs text-slate-500 mt-1">
-                    Manage active sellers and monitor website profit cuts (Currently set to: <strong className="text-[#0066cc]">{settings.commission_percentage || '10'}% Commission</strong>).
+                    Manage active sellers and monitor website profit cuts (Currently set to: <strong className="text-brand-navy">{settings.commission_percentage || '10'}% Commission</strong>).
                   </p>
                 </div>
                 <button
@@ -1618,7 +1618,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
               <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-xs">
                 {sellersLoading ? (
                   <div className="p-16 text-center space-y-2">
-                    <Loader2 className="w-8 h-8 text-[#0066cc] animate-spin mx-auto" />
+                    <Loader2 className="w-8 h-8 text-brand-navy animate-spin mx-auto" />
                     <p className="text-xs text-slate-450 font-black uppercase">Loading registered sellers...</p>
                   </div>
                 ) : sellers.length === 0 ? (
@@ -1649,7 +1649,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                             <td className="px-6 py-4.5">
                               <h4 
                                 onClick={() => setSelectedSeller(s)}
-                                className="text-xs font-black text-[#0066cc] hover:underline cursor-pointer flex items-center"
+                                className="text-xs font-black text-brand-navy hover:underline cursor-pointer flex items-center"
                               >
                                 <Eye className="w-3.5 h-3.5 mr-1" />
                                 {s.shopName}
@@ -1683,7 +1683,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                             </td>
 
                             <td className="px-6 py-4.5 text-xs font-black text-slate-700">
-                              <a href={`tel:${s.phone}`} className="text-[#0066cc] hover:underline">
+                              <a href={`tel:${s.phone}`} className="text-brand-navy hover:underline">
                                 {s.phone || 'N/A'}
                               </a>
                             </td>
@@ -1779,7 +1779,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                       </div>
 
                       <div className="border-t border-slate-100 pt-4 space-y-2.5">
-                        <span className="text-[10px] text-[#0066cc] font-black uppercase tracking-widest block font-sans">Bank Payout details</span>
+                        <span className="text-[10px] text-brand-navy font-black uppercase tracking-widest block font-sans">Bank Payout details</span>
                         <div className="bg-slate-50 border p-3 rounded-2xl grid grid-cols-2 gap-3 text-xs border-slate-200">
                           <div>
                             <span className="block text-[8px] text-slate-450 uppercase font-black leading-none mb-0.5">A/C Holder</span>

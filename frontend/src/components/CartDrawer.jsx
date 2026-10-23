@@ -26,9 +26,9 @@ export default function CartDrawer({ isOpen, onClose, cartItems, onUpdateQuantit
           {/* Header */}
           <div className="p-4 border-b flex items-center justify-between bg-slate-900 text-white">
             <div className="flex items-center space-x-2">
-              <ShoppingBag className="w-5 h-5 text-[#0066cc]" />
+              <ShoppingBag className="w-5 h-5 text-brand-navy" />
               <h3 className="font-extrabold text-base tracking-tight">Your Shopping Cart</h3>
-              <span className="bg-[#0066cc] text-white text-xs px-2 py-0.5 rounded-full font-bold">
+              <span className="bg-brand-navy text-white text-xs px-2 py-0.5 rounded-full font-bold">
                 {totalQty}
               </span>
             </div>
@@ -68,7 +68,7 @@ export default function CartDrawer({ isOpen, onClose, cartItems, onUpdateQuantit
                 </p>
                 <button
                   onClick={onClose}
-                  className="mt-2 px-6 py-2.5 bg-[#0066cc] text-white text-xs font-bold uppercase tracking-wider rounded-lg shadow-sm hover:bg-blue-700 transition-colors"
+                  className="mt-2 px-6 py-2.5 bg-brand-navy text-white text-xs font-bold uppercase tracking-wider rounded-lg shadow-sm hover:bg-blue-700 transition-colors"
                 >
                   Start Shopping
                 </button>
@@ -154,7 +154,7 @@ export default function CartDrawer({ isOpen, onClose, cartItems, onUpdateQuantit
                 </div>
                 <div className="flex justify-between text-sm font-extrabold text-slate-900 pt-2 border-t border-slate-200">
                   <span>Total</span>
-                  <span className="text-[#0066cc]">₹{total.toFixed(2)}</span>
+                  <span className="text-brand-navy">₹{total.toFixed(2)}</span>
                 </div>
               </div>
 
@@ -163,7 +163,7 @@ export default function CartDrawer({ isOpen, onClose, cartItems, onUpdateQuantit
                   onClose();
                   onProceedToCheckout();
                 }}
-                className="w-full py-3.5 bg-[#0066cc] hover:bg-blue-700 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md transition-all flex items-center justify-center space-x-2"
+                className="w-full py-3.5 bg-brand-navy hover:bg-blue-700 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md transition-all flex items-center justify-center space-x-2"
               >
                 <span>PROCEED TO CHECKOUT</span>
                 <ArrowRight className="w-4 h-4" />
