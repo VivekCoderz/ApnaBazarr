@@ -10,10 +10,12 @@ export const CAMPAIGNS = [
     start: '2026-10-01T00:00:00+05:30',
     end: '2026-11-08T23:59:59+05:30',
     kicker: 'Diwali 8 Nov · Panipat se Seedha',
-    headline: 'Is Diwali, Ghar Sajao Factory Daam pe',
-    subline: 'Bedsheet, cushion cover aur suit sets — seedha Panipat se. Ghar pe paise dein (COD).',
+    headline: 'Diwali ki Shopping, Factory Daam pe',
+    subline: 'Suit sets aur co-ord sets, seedha Panipat se. Ghar pe paise dein (COD).',
+    offer: '₹499+ par FREE Delivery',
     image: null,
     motif: 'diya',
+    featured: { tag: 'diwali' },
     cta: { label: 'Diwali Collection Dekhein', tag: 'diwali' },
     secondary: { label: 'Reseller baniye, ghar baithe kamaayein', to: '/reseller' },
     // 3rd item of the announcement bar until the Diwali cut-off, then the default
@@ -26,8 +28,10 @@ export const CAMPAIGNS = [
     kicker: 'Sardi Special · Panipat ke Kambal',
     headline: 'Sardi aa gayi — Panipat ke Kambal, Factory Daam pe',
     subline: 'Mink blanket, dohar aur bedsheet. Weight aur size saaf likha hai. Cash on Delivery.',
+    offer: '₹499+ par FREE Delivery',
     image: null,
     motif: 'blanket',
+    featured: { category: 'Kambal & Dohar' },
     cta: { label: 'Kambal Dekhein', category: 'Kambal & Dohar' },
     secondary: { label: 'Shaadi season ke Suit Sets', category: 'Suit Sets' }
   }
@@ -39,6 +43,7 @@ const DEFAULT_CAMPAIGN = {
   kicker: 'Panipat se Seedha, Aapke Ghar Tak',
   headline: 'Panipat ka Maal, Factory Daam pe',
   subline: 'Bedsheet, kambal aur suit sets — seedha Panipat se. Ghar pe paise dein (COD).',
+  offer: '₹499+ par FREE Delivery',
   image: null,
   motif: 'weave',
   cta: { label: 'Sab Products Dekhein', to: '/shop' },
@@ -96,6 +101,18 @@ export function resolveLink(link, products, { fallbackToAll = true } = {}) {
   return fallbackToAll ? { label: ALL_PRODUCTS_CTA.label, href: ALL_PRODUCTS_CTA.to } : null;
 }
 
+// Off-season items that are still live until the founder hides them in admin
+const NOT_FOR_HERO = /rakhi|thali|chain/i;
+const HERO_PRODUCT_COUNT = 3;
+
+// Products shown in the hero: the campaign's tag/category first, then other in-stock items
+export function getHeroProducts(campaign, products) {
+  const live = products.filter(p => p.inStock !== false && p.image && !NOT_FOR_HERO.test(`${p.name} ${p.category}`));
+  const featured = campaign.featured ? live.filter(p => countFor(campaign.featured, [p]) > 0) : [];
+  const rest = live.filter(p => !featured.includes(p));
+  return [...featured, ...rest].slice(0, HERO_PRODUCT_COUNT);
+}
+
 // Everything the hero needs, with the photo fallback and CTA guard applied
 export function getHero(products = [], now = getNow()) {
   const campaign = getActiveCampaign(now);
@@ -104,6 +121,8 @@ export function getHero(products = [], now = getNow()) {
     kicker: campaign.kicker,
     headline: campaign.headline,
     subline: campaign.subline,
+    offer: campaign.offer,
+    products: getHeroProducts(campaign, products),
     image: campaign.image || null,
     motif: campaign.motif || 'weave',
     cta: resolveLink(campaign.cta, products),

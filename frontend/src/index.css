@@ -9,7 +9,7 @@
   --color-brand-orange: #F47A1F;
   --color-brand-cta: #C2410C;
   --color-brand-cta-hover: #9A3412;
-  --color-brand-cream: #FFF8F1;
+  --color-brand-cream: #F3F5F9;
   --color-brand-peach: #FFE9D6;
 
   --color-blue-50: #EEF2F8;
@@ -46,7 +46,7 @@
   --color-emerald-800: #14532D;
   --color-emerald-900: #052E16;
 
-  --color-slate-50: #FFF8F1;
+  --color-slate-50: #F3F5F9;
 
   --font-sans: 'Mukta', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-heading: 'Baloo 2', 'Mukta', system-ui, sans-serif;
@@ -57,14 +57,14 @@
   --primary-hover: #08203F;
   --accent-gold: #F47A1F;
   --dark-text: #1A2233;
-  --light-bg: #FFF8F1;
+  --light-bg: #F3F5F9;
   --border-color: #e2e8f0;
 }
 
 body {
   font-family: 'Mukta', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   color: #1A2233;
-  background-color: #FFF8F1;
+  background-color: #FFFFFF;
   overflow-x: hidden;
   -webkit-tap-highlight-color: transparent;
 }
