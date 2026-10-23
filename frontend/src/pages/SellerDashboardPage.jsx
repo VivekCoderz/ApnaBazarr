@@ -636,7 +636,7 @@ export default function SellerDashboardPage({ currentUser, onLogout, onAuthSucce
     }
 
     order.items.forEach(item => {
-      const matchedProd = products.find(p => String(p._id) === String(item.productId));
+      const matchedProd = products.find(p => String(p.id || p._id) === String(item.productId));
       const costPrice = matchedProd && matchedProd.costPrice ? matchedProd.costPrice : (item.price * 0.6);
       totalCostOfItemsSold += costPrice * item.quantity;
 

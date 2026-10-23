@@ -4,6 +4,7 @@ const Product = require('../models/Product');
 const Review = require('../models/Review');
 const Order = require('../models/Order');
 const auth = require('../middlewares/auth');
+const { shippingPreview } = require('../utils/shipping');
 
 // GET /products - fetch all products from MongoDB
 router.get('/', async (req, res) => {
@@ -30,6 +31,7 @@ router.get('/', async (req, res) => {
     });
 
     // Format response to ensure ID maps correctly for frontend
+    // Public response: never include costPrice/margin, only the derived delivery hint
     const formatted = approvedProducts.map(p => {
       const prodReviews = allReviews.filter(r => String(r.productId) === String(p._id));
       const reviewsCount = prodReviews.length;
@@ -44,7 +46,6 @@ router.get('/', async (req, res) => {
         gender: p.gender,
         price: p.price,
         originalPrice: p.originalPrice,
-        costPrice: p.costPrice,
         discount: p.discount,
         badge: p.badge,
         stock: p.stock,
@@ -61,6 +62,7 @@ router.get('/', async (req, res) => {
         isCustomizable: p.isCustomizable,
         customizationType: p.customizationType,
         customizationPrompt: p.customizationPrompt,
+        shipping: shippingPreview(p),
         seller: p.seller ? {
           id: p.seller._id,
           name: p.seller.name,
@@ -148,6 +150,7 @@ router.get('/:id', async (req, res) => {
       }
     });
 
+    // Public response: never include costPrice/margin, only the derived delivery hint
     const formatted = {
       id: product._id,
       name: product.name,
@@ -155,7 +158,6 @@ router.get('/:id', async (req, res) => {
       gender: product.gender,
       price: product.price,
       originalPrice: product.originalPrice,
-      costPrice: product.costPrice,
       discount: product.discount,
       badge: product.badge,
       stock: product.stock,
@@ -172,6 +174,7 @@ router.get('/:id', async (req, res) => {
       isCustomizable: product.isCustomizable,
       customizationType: product.customizationType,
       customizationPrompt: product.customizationPrompt,
+      shipping: shippingPreview(product),
       seller: product.seller ? {
         id: product.seller._id,
         name: product.seller.name,
@@ -221,7 +224,8 @@ router.post('/', auth, async (req, res) => {
       inStock: newProduct.inStock,
       isCustomizable: newProduct.isCustomizable,
       customizationType: newProduct.customizationType,
-      customizationPrompt: newProduct.customizationPrompt
+      customizationPrompt: newProduct.customizationPrompt,
+      shipping: shippingPreview(newProduct)
     };
     res.status(201).json({ success: true, data: formatted });
   } catch (err) {
@@ -264,7 +268,8 @@ router.put('/:id', auth, async (req, res) => {
       inStock: updated.inStock,
       isCustomizable: updated.isCustomizable,
       customizationType: updated.customizationType,
-      customizationPrompt: updated.customizationPrompt
+      customizationPrompt: updated.customizationPrompt,
+      shipping: shippingPreview(updated)
     };
     res.json({ success: true, data: formatted });
   } catch (err) {

@@ -1,19 +1,16 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Plus, Minus, Trash2, ShoppingBag, ArrowRight, ArrowLeft } from 'lucide-react';
+import { useShippingQuote } from '../utils/shipping';
 
 export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem }) {
   const navigate = useNavigate();
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
-  const totalQty = cartItems.reduce((acc, item) => acc + item.quantity, 0);
-  const totalMargin = cartItems.reduce((acc, item) => {
-    const cost = item.costPrice || (item.price * 0.7);
-    const margin = Math.max(item.price - cost, 1);
-    return acc + margin * item.quantity;
-  }, 0);
-  const shipping = subtotal === 0 || totalMargin >= 120 ? 0 : Math.min(80, Math.max(80 + (15 * totalQty) - totalMargin, 0));
-  const total = subtotal + shipping;
+  // Shipping is quoted by the server (same rule it charges at checkout)
+  const { shipping, loading: shippingLoading } = useShippingQuote(cartItems);
+  const total = subtotal + (shipping || 0);
+  const belowMinimum = !shippingLoading && total < 100;
 
   return (
     <div className="py-10 bg-slate-50 min-h-screen">
@@ -136,7 +133,9 @@ export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem }) 
                 </div>
                 <div className="flex justify-between">
                   <span>Shipping Fee (India)</span>
-                  <span className="font-bold text-slate-800">{shipping === 0 ? <span className="text-emerald-600 font-extrabold">FREE</span> : `₹${shipping.toFixed(2)}`}</span>
+                  <span className="font-bold text-slate-800">
+                    {shippingLoading ? 'Calculating...' : shipping === null ? 'Calculated at checkout' : shipping === 0 ? <span className="text-emerald-600 font-extrabold">FREE</span> : `₹${shipping.toFixed(2)}`}
+                  </span>
                 </div>
                 <div className="flex justify-between text-base font-extrabold text-slate-900 pt-3 border-t border-slate-200">
                   <span>Total Amount</span>
@@ -144,7 +143,7 @@ export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem }) 
                 </div>
               </div>
 
-              {total < 100 && (
+              {belowMinimum && (
                 <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl space-y-1.5 text-[11px] text-rose-800 font-semibold leading-relaxed">
                   <p>
                     ⚠️ <span className="font-extrabold text-rose-950">English Note:</span> Minimum order value is <span className="font-extrabold text-rose-950">₹100.00</span>. Please add more items to checkout.
@@ -157,9 +156,9 @@ export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem }) 
 
               <button
                 onClick={() => navigate('/checkout')}
-                disabled={total < 100}
+                disabled={belowMinimum || shippingLoading}
                 className={`w-full py-3.5 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md transition-colors flex items-center justify-center space-x-2 ${
-                  total < 100
+                  belowMinimum || shippingLoading
                     ? 'bg-slate-300 cursor-not-allowed opacity-60'
                     : 'bg-[#0066cc] hover:bg-blue-700'
                 }`}

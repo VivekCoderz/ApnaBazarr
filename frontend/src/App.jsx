@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 
 import Header from './components/Header';
@@ -154,13 +154,40 @@ function AppContent() {
     }
   };
 
+  // Admin-only purchase prices, keyed by product id (public /products never includes costPrice)
+  const [adminCostPrices, setAdminCostPrices] = useState({});
+
+  const loadAdminCostPrices = async () => {
+    try {
+      const token = getToken();
+      const headers = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const res = await fetch(`${BASE_URL}/products/seller/my-products`, { headers, credentials: 'include' });
+      const result = await res.json();
+      if (result.success && result.data) {
+        setAdminCostPrices(Object.fromEntries(result.data.map(p => [String(p.id), p.costPrice])));
+      }
+    } catch (err) {
+      console.warn("Failed to load admin cost prices:", err);
+    }
+  };
+
   // Load all admin data when admin is authenticated
   useEffect(() => {
     if (isAdminAuthenticated) {
       loadUserOrders(); // loads all orders
       loadFeedbacks(); // loads all feedbacks
+      loadAdminCostPrices(); // loads costPrice for profit reports
+    } else {
+      setAdminCostPrices({});
     }
   }, [isAdminAuthenticated]);
+
+  // Public products + admin-only costPrice, used by the admin dashboard profit calculations
+  const adminProducts = useMemo(
+    () => products.map(p => ({ ...p, costPrice: p.costPrice ?? adminCostPrices[String(p.id)] })),
+    [products, adminCostPrices]
+  );
 
   // Load orders for a given user email from the backend
   const loadUserOrders = async (email) => {
@@ -769,7 +796,7 @@ function AppContent() {
             element={
               <ProtectedAdminRoute isAdminAuthenticated={isAdminAuthenticated} currentUser={currentUser}>
                 <AdminPage
-                  products={products}
+                  products={adminProducts}
                   orders={orders}
                   feedbacks={feedbacks}
                   onAddProduct={handleAddProduct}

@@ -12,6 +12,7 @@ const rzp = new Razorpay({
 const Product = require('../models/Product');
 const Setting = require('../models/Setting');
 const { resolveResellerForOrder } = require('./reseller');
+const { productMargin, orderShippingCharge: calcOrderShipping } = require('../utils/shipping');
 
 function calculateShipping(pickupPincode, deliveryPincode, weight, length, width, height) {
   return 0; // Free shipping
@@ -31,17 +32,13 @@ async function processOrderItems(items, deliveryPincode) {
     const dbProduct = await Product.findById(prodId).populate('seller');
     if (dbProduct) {
       dbProducts.push({ item, dbProduct });
-      const cost = dbProduct.costPrice || (dbProduct.price * 0.7);
-      const margin = Math.max(dbProduct.price - cost, 1);
-      totalMargin += margin * item.quantity;
+      totalMargin += productMargin(dbProduct) * item.quantity;
       totalQuantity += item.quantity;
     }
   }
 
   // 2. Shipping fee is 0 if totalMargin >= 120, else Math.min(80, Math.max(80 + 15 * totalQuantity - totalMargin, 0))
-  const orderShippingCharge = totalMargin >= 120 
-    ? 0 
-    : Math.round(Math.min(80, Math.max(80 + (15 * totalQuantity) - totalMargin, 0)));
+  const orderShippingCharge = calcOrderShipping(totalMargin, totalQuantity);
 
   const formatted = [];
   for (let idx = 0; idx < dbProducts.length; idx++) {
@@ -341,9 +338,10 @@ module.exports.getSellerOrders = async (req, res) => {
 
 module.exports.getShippingCalculation = async (req, res) => {
   try {
+    // deliveryPincode is optional: cart/product pages ask for a preview before an address exists
     const { items, deliveryPincode } = req.body;
-    if (!items || !deliveryPincode) {
-      return res.status(400).json({ success: false, message: 'Items list and delivery pincode are required.' });
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ success: false, message: 'Items list is required.' });
     }
 
     const formattedItems = await processOrderItems(items, deliveryPincode);

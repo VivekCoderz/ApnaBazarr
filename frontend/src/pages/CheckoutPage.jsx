@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, ArrowRight, ArrowLeft, Check, Smartphone, Banknote, CreditCard, Loader2, MapPin } from 'lucide-react';
 
 import { getReferral } from '../utils/referral';
+import { useShippingQuote } from '../utils/shipping';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const getToken = () => '';
@@ -37,16 +38,10 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
   const [codCodeInput, setCodCodeInput] = useState('');
   const [isCodEnabled, setIsCodEnabled] = useState(false);
 
-  const checkoutSubtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
-  const checkoutQty = cartItems.reduce((acc, item) => acc + item.quantity, 0);
-  const checkoutMargin = cartItems.reduce((acc, item) => {
-    const cost = item.costPrice || (item.price * 0.7);
-    const margin = Math.max(item.price - cost, 1);
-    return acc + margin * item.quantity;
-  }, 0);
-  const defaultShipping = checkoutSubtotal === 0 || checkoutMargin >= 120 ? 0 : Math.min(80, Math.max(80 + (15 * checkoutQty) - checkoutMargin, 0));
+  // Initial shipping quote from the server; refreshed again once the delivery pincode is entered
+  const { shipping: quotedShipping, loading: quoteLoading } = useShippingQuote(cartItems);
 
-  const [shippingCharges, setShippingCharges] = useState(defaultShipping);
+  const [shippingCharges, setShippingCharges] = useState(null);
   const [calculatingShipping, setCalculatingShipping] = useState(false);
 
   const calculateShippingFees = async (deliveryPincode) => {
@@ -106,14 +101,14 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
   };
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
-  const shipping = shippingCharges;
+  const shipping = shippingCharges ?? quotedShipping ?? 0;
   const total = subtotal + shipping;
 
   React.useEffect(() => {
-    if (cartItems.length > 0 && total < 100) {
+    if (cartItems.length > 0 && !quoteLoading && total < 100) {
       navigate('/cart');
     }
-  }, [cartItems, total, navigate]);
+  }, [cartItems, total, quoteLoading, navigate]);
 
   const indianStates = [
     "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", 

@@ -8,10 +8,8 @@ export default function ProductCard({ product, onAddToCart, onQuickView, onToggl
   const isOutOfStock = product.inStock === false || product.stock <= 0;
   const isClosed = product.seller && product.seller.isOpen === false;
 
-  const cost = product.costPrice || (product.price * 0.7);
-  const margin = Math.max(product.price - cost, 1);
-  const itemsForFreeDelivery = Math.ceil(120 / margin);
-  const deliveryChargeForOne = margin >= 120 ? 0 : Math.min(80, Math.max(80 + 15 - margin, 0));
+  // Delivery hint is computed server-side (GET /products) so cost/margin stays private
+  const { itemsForFreeDelivery, deliveryChargeForOne } = product.shipping || {};
 
   const handleCardClick = () => {
     navigate(`/product/${product.id}`);
@@ -197,7 +195,7 @@ export default function ProductCard({ product, onAddToCart, onQuickView, onToggl
           </div>
 
           {/* Delivery Promotion Badge */}
-          {!compact && (
+          {!compact && product.shipping && (
             <div className="mt-1 bg-slate-50 border border-slate-200 p-1 sm:p-1.5 rounded-lg text-[9px] sm:text-[10px] space-y-0.5 select-none font-bold">
               {itemsForFreeDelivery <= 1 || deliveryChargeForOne <= 0 ? (
                 <p className="text-emerald-700 font-extrabold flex items-center">

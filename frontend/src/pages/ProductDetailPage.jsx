@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Star, ShoppingBag, Heart, ShieldCheck, Truck, RotateCcw, Upload, CheckCircle, Sparkles, ArrowLeft, Video, Loader2, ThumbsUp, ThumbsDown, CornerDownRight, MessageSquare } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
 import { whatsappShareUrl } from '../utils/referral';
+import { useShippingQuote } from '../utils/shipping';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -164,6 +165,9 @@ export default function ProductDetailPage({
     }
   };
 
+  // Delivery fee for the selected quantity is quoted by the server so cost/margin stays private
+  const { shipping: deliveryCharge, loading: deliveryLoading } = useShippingQuote(product ? [{ id: product.id, quantity }] : []);
+
   if (!product) {
     return (
       <div className="py-20 text-center text-slate-500">
@@ -278,11 +282,7 @@ export default function ProductDetailPage({
     : (product.rating || 5);
   const roundedRating = Math.round(averageRating);
 
-  const cost = product.costPrice || (product.price * 0.7);
-  const margin = Math.max(product.price - cost, 1);
-  const totalMargin = margin * quantity;
-  const deliveryCharge = totalMargin >= 120 ? 0 : Math.min(80, Math.max(80 + (15 * quantity) - totalMargin, 0));
-  const itemsForFreeDelivery = Math.ceil(120 / margin);
+  const itemsForFreeDelivery = product.shipping?.itemsForFreeDelivery;
 
   return (
     <div className="bg-white min-h-screen py-8">
@@ -487,10 +487,10 @@ export default function ProductDetailPage({
               <div className="flex justify-between">
                 <span className="text-slate-700">Estimated Delivery Fee:</span>
                 <span className={deliveryCharge === 0 ? 'text-emerald-700 font-extrabold' : 'text-slate-900'}>
-                  {deliveryCharge === 0 ? 'FREE DELIVERY' : `+₹${deliveryCharge.toFixed(0)}`}
+                  {deliveryLoading ? 'Calculating...' : deliveryCharge === null ? 'Calculated at checkout' : deliveryCharge === 0 ? 'FREE DELIVERY' : `+₹${deliveryCharge.toFixed(0)}`}
                 </span>
               </div>
-              {deliveryCharge > 0 && (
+              {deliveryCharge > 0 && itemsForFreeDelivery > quantity && (
                 <p className="text-[10px] text-[#0066cc] font-extrabold pt-1 border-t border-slate-200/60">
                   💡 Hint: Buy {itemsForFreeDelivery} pieces for FREE shipping! (Only {itemsForFreeDelivery - quantity} more needed)
                 </p>
@@ -502,7 +502,7 @@ export default function ProductDetailPage({
               )}
               <div className="flex justify-between text-sm font-extrabold text-slate-900 pt-2 border-t border-slate-300">
                 <span>Total Amount:</span>
-                <span>₹{((product.price * quantity) + deliveryCharge).toFixed(2)}</span>
+                <span>₹{((product.price * quantity) + (deliveryCharge || 0)).toFixed(2)}</span>
               </div>
             </div>
 

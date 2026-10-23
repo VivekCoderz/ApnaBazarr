@@ -1,19 +1,16 @@
 import React from 'react';
 import { X, Plus, Minus, Trash2, ShoppingBag, ArrowRight } from 'lucide-react';
+import { useShippingQuote } from '../utils/shipping';
 
 export default function CartDrawer({ isOpen, onClose, cartItems, onUpdateQuantity, onRemoveItem, onProceedToCheckout }) {
+  // Shipping is quoted by the server (same rule it charges at checkout)
+  const { shipping, loading: shippingLoading } = useShippingQuote(isOpen ? cartItems : []);
+
   if (!isOpen) return null;
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const totalQty = cartItems.reduce((acc, item) => acc + item.quantity, 0);
-  const totalMargin = cartItems.reduce((acc, item) => {
-    const cost = item.costPrice || (item.price * 0.7);
-    const margin = Math.max(item.price - cost, 1);
-    return acc + margin * item.quantity;
-  }, 0);
-  const shipping = subtotal === 0 || totalMargin >= 120 ? 0 : Math.min(80, Math.max(80 + (15 * totalQty) - totalMargin, 0));
-  const total = subtotal + shipping;
-  const progressToFreeShipping = Math.min((totalMargin / 120) * 100, 100);
+  const total = subtotal + (shipping || 0);
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
@@ -43,26 +40,20 @@ export default function CartDrawer({ isOpen, onClose, cartItems, onUpdateQuantit
             </button>
           </div>
 
-          {/* Free Shipping Progress Indicator in ₹ */}
-          <div className="bg-blue-50/80 p-3 px-4 border-b border-blue-100 text-xs font-bold">
-            {totalMargin >= 120 || subtotal === 0 ? (
-              <p className="text-emerald-700 font-extrabold text-center">
-                🎉 Congratulations! You unlocked FREE Shipping!
-              </p>
-            ) : (
-              <div className="space-y-1">
-                <p className="text-slate-600">
-                  Add items to get <span className="text-[#0066cc] font-extrabold">₹{(120 - totalMargin).toFixed(0)}</span> more margin for <span className="font-extrabold text-emerald-700">FREE SHIPPING</span>
+          {/* Free Shipping Indicator */}
+          {cartItems.length > 0 && !shippingLoading && shipping !== null && (
+            <div className="bg-blue-50/80 p-3 px-4 border-b border-blue-100 text-xs font-bold">
+              {shipping === 0 ? (
+                <p className="text-emerald-700 font-extrabold text-center">
+                  🎉 Congratulations! You unlocked FREE Shipping!
                 </p>
-                <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
-                  <div 
-                    className="bg-[#0066cc] h-full transition-all duration-300 rounded-full"
-                    style={{ width: `${progressToFreeShipping}%` }}
-                  />
-                </div>
-              </div>
-            )}
-          </div>
+              ) : (
+                <p className="text-slate-600 text-center">
+                  Add more items to unlock <span className="font-extrabold text-emerald-700">FREE SHIPPING</span>
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Cart Item List */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4 divide-y divide-slate-100">
@@ -150,7 +141,11 @@ export default function CartDrawer({ isOpen, onClose, cartItems, onUpdateQuantit
                 <div className="flex justify-between">
                   <span>Estimated Delivery</span>
                   <span className="font-bold text-slate-800">
-                    {shipping === 0 ? (
+                    {shippingLoading ? (
+                      'Calculating...'
+                    ) : shipping === null ? (
+                      'Calculated at checkout'
+                    ) : shipping === 0 ? (
                       <span className="text-emerald-600 font-extrabold">FREE</span>
                     ) : (
                       `₹${shipping.toFixed(2)}`
