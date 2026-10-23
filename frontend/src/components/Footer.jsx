@@ -65,6 +65,9 @@ export default function Footer() {
                 <Link to="/shop" className="hover:text-white hover:underline transition-colors">Shop All Products</Link>
               </li>
               <li>
+                <Link to="/reseller" className="hover:text-white hover:underline transition-colors">Reseller Bano · Paise Kamao</Link>
+              </li>
+              <li>
                 <Link to="/terms" className="hover:text-white hover:underline transition-colors">Terms & Conditions</Link>
               </li>
               <li>

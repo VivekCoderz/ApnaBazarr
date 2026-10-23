@@ -11,6 +11,7 @@ const rzp = new Razorpay({
 });
 const Product = require('../models/Product');
 const Setting = require('../models/Setting');
+const { resolveResellerForOrder } = require('./reseller');
 
 function calculateShipping(pickupPincode, deliveryPincode, weight, length, width, height) {
   return 0; // Free shipping
@@ -77,7 +78,7 @@ async function processOrderItems(items, deliveryPincode) {
 
 module.exports.createOrder = async (req, res) => {
   try {
-    const { userEmail, items, shippingAddress, paymentMethod, totalAmount } = req.body;
+    const { userEmail, items, shippingAddress, paymentMethod, totalAmount, resellerCode } = req.body;
 
     if (!items || items.length === 0 || !shippingAddress || !totalAmount) {
       return res.status(400).json({ success: false, message: 'Invalid order details provided.' });
@@ -105,10 +106,14 @@ module.exports.createOrder = async (req, res) => {
     const totalShipping = formattedItems.reduce((acc, item) => acc + item.shippingCharges, 0);
     const calculatedTotal = totalItemCost + totalShipping;
 
+    const buyerEmail = userEmail || 'guest@apnabazarr.com';
+    const resellerFields = await resolveResellerForOrder(resellerCode, buyerEmail, formattedItems);
+
     const newOrder = await Order.create({
       orderId,
-      userEmail: userEmail || 'guest@apnabazarr.com',
+      userEmail: buyerEmail,
       items: formattedItems,
+      ...resellerFields,
       shippingAddress,
       paymentMethod: paymentMethod || 'UPI',
       paymentStatus: paymentMethod === 'COD' ? 'Pending COD' : 'Completed',
@@ -197,7 +202,8 @@ module.exports.verifyRazorpayPayment = async (req, res) => {
       items,
       shippingAddress,
       totalAmount,
-      email
+      email,
+      resellerCode
     } = req.body;
 
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
@@ -232,10 +238,14 @@ module.exports.verifyRazorpayPayment = async (req, res) => {
     const totalShipping = formattedItems.reduce((acc, item) => acc + item.shippingCharges, 0);
     const calculatedTotal = totalItemCost + totalShipping;
 
+    const buyerEmail = email || 'guest@apnabazarr.com';
+    const resellerFields = await resolveResellerForOrder(resellerCode, buyerEmail, formattedItems);
+
     const newOrder = await Order.create({
       orderId,
-      userEmail: email || 'guest@apnabazarr.com',
+      userEmail: buyerEmail,
       items: formattedItems,
+      ...resellerFields,
       shippingAddress,
       paymentMethod: 'Online (Razorpay)',
       paymentStatus: 'Completed',

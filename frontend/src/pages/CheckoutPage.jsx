@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, ArrowRight, ArrowLeft, Check, Smartphone, Banknote, CreditCard, Loader2, MapPin } from 'lucide-react';
 
+import { getReferral } from '../utils/referral';
+
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const getToken = () => '';
 
@@ -302,7 +304,8 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
                     selectedColor: item.selectedColor || ''
                   })),
                   shippingAddress: { ...address },
-                  totalAmount: total
+                  totalAmount: total,
+                  resellerCode: getReferral()
                 }),
               });
               const verifyResult = await safeParseJSON(verifyRes);
@@ -368,6 +371,7 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
             shippingAddress: { ...address },
             paymentMethod: 'COD',
             totalAmount: total,
+            resellerCode: getReferral(),
           }),
         });
         const result = await safeParseJSON(res);

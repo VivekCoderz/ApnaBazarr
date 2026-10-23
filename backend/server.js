@@ -19,6 +19,7 @@ const uploadRoute = require('./routes/upload.js');
 const feedbackRoute = require('./routes/feedback.js');
 const reviewRoute = require('./routes/review.js');
 const settingRoute = require('./routes/setting.js');
+const resellerRoute = require('./routes/reseller.js');
 
 const app = express();
 app.set('trust proxy', 1);
@@ -35,6 +36,7 @@ app.use('/api/upload', uploadRoute);
 app.use('/feedbacks', feedbackRoute);
 app.use('/reviews', reviewRoute);
 app.use('/settings', settingRoute);
+app.use('/reseller', resellerRoute);
 
 app.get('/api/health', (req, res) => {
   res.json({

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Star, ShoppingBag, Heart, ShieldCheck, Truck, RotateCcw, Upload, CheckCircle, Sparkles, ArrowLeft, Video, Loader2, ThumbsUp, ThumbsDown, CornerDownRight, MessageSquare } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
+import { whatsappShareUrl } from '../utils/referral';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -604,6 +605,16 @@ export default function ProductDetailPage({
                 <Heart className={`w-5 h-5 ${isWishlisted ? 'fill-red-500' : ''}`} />
               </button>
             </div>
+
+            <a
+              href={whatsappShareUrl(product, currentUser?.resellerProfile?.code)}
+              target="_blank"
+              rel="noreferrer"
+              className="w-full py-3 bg-[#25D366] hover:bg-[#1ebe5b] text-white font-extrabold text-xs uppercase tracking-wider rounded-2xl flex items-center justify-center space-x-2"
+            >
+              <MessageSquare className="w-4 h-4" />
+              <span>{currentUser?.resellerProfile?.code ? 'WhatsApp pe share karo aur kamao' : 'Share on WhatsApp'}</span>
+            </a>
 
             {/* Trust Badges */}
             <div className="grid grid-cols-3 gap-3 pt-4 text-center">

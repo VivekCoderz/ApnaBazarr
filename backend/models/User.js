@@ -38,6 +38,12 @@ const userSchema = new mongoose.Schema({
     deliveryInformation: { type: String, default: 'Delivered in 3-5 business days.' },
     followersCount: { type: Number, default: 0 }
   },
+  resellerProfile: {
+    code: { type: String, unique: true, sparse: true },
+    upiId: { type: String, default: '' },
+    phone: { type: String, default: '' },
+    joinedAt: { type: Date }
+  },
   addresses: [addressSchema],
   cart: [
     {

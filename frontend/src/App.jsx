@@ -25,6 +25,9 @@ import WishlistPage from './pages/WishlistPage';
 import PolicyPage from './pages/PolicyPage';
 import RegisterSellerPage from './pages/RegisterSellerPage';
 import SellerDashboardPage from './pages/SellerDashboardPage';
+import ResellerPage from './pages/ResellerPage';
+import AdminResellersPage from './pages/AdminResellersPage';
+import { captureReferral } from './utils/referral';
 
 import { Check, ShieldCheck } from 'lucide-react';
 
@@ -42,7 +45,7 @@ const clearToken = () => {
 
 function AppContent() {
   const navigate = useNavigate();
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
   const isAdminRoute = pathname.startsWith('/admin');
   const isNoNavRoute = pathname.startsWith('/admin') || pathname.startsWith('/seller') || pathname === '/register-seller';
 
@@ -66,6 +69,11 @@ function AppContent() {
       setProductsLoading(false);
     }
   };
+
+  // Remember the reseller who shared the link (?ref=CODE)
+  useEffect(() => {
+    captureReferral(search);
+  }, [search]);
 
   // Automatically scroll to the top of the page on route/path changes + fetch fresh products
   useEffect(() => {
@@ -734,6 +742,20 @@ function AppContent() {
           <Route
             path="/seller"
             element={<SellerDashboardPage currentUser={currentUser} onLogout={handleLogout} onAuthSuccess={handleAuthSuccess} />}
+          />
+
+          <Route
+            path="/reseller"
+            element={<ResellerPage currentUser={currentUser} products={products} onAuthSuccess={handleAuthSuccess} onOpenAuth={() => setIsAuthOpen(true)} />}
+          />
+
+          <Route
+            path="/admin/resellers"
+            element={
+              <ProtectedAdminRoute isAdminAuthenticated={isAdminAuthenticated} currentUser={currentUser}>
+                <AdminResellersPage />
+              </ProtectedAdminRoute>
+            }
           />
 
           <Route

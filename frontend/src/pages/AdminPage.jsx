@@ -28,6 +28,13 @@ export default function AdminPage({ products, orders, feedbacks = [], onAddProdu
           Apna Bazarr — 100% Full-Screen Admin Workspace
         </span>
 
+        <div className="flex items-center gap-2 shrink-0">
+        <button
+          onClick={() => navigate('/admin/resellers')}
+          className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-lg transition-colors cursor-pointer"
+        >
+          Reseller Payouts
+        </button>
         <button
           onClick={handleLogout}
           className="px-3 py-1.5 bg-red-600/95 hover:bg-red-650 text-white text-xs font-black rounded-lg transition-colors flex items-center space-x-1.5 shadow-xs shrink-0 cursor-pointer"
@@ -35,6 +42,7 @@ export default function AdminPage({ products, orders, feedbacks = [], onAddProdu
           <LogOut className="w-3.5 h-3.5" />
           <span>Logout</span>
         </button>
+        </div>
       </div>
 
       <div className="flex-1 w-full">

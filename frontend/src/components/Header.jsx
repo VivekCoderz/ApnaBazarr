@@ -348,6 +348,17 @@ export default function Header({
                         </Link>
                       ) : null}
 
+                      {currentUser.email !== 'admin@apnabazarr.com' && (
+                        <Link
+                          to="/reseller"
+                          onClick={() => setShowProfileMenu(false)}
+                          className="flex items-center space-x-2.5 px-4 py-2.5 text-xs font-black text-emerald-700 hover:bg-emerald-50 border-b border-slate-100 transition-colors"
+                        >
+                          <Package className="w-4 h-4 text-emerald-600" />
+                          <span>{currentUser.resellerProfile?.code ? 'Reseller Dashboard' : 'Reseller Bano · Paise Kamao'}</span>
+                        </Link>
+                      )}
+
                       <Link
                         to="/profile"
                         onClick={() => setShowProfileMenu(false)}

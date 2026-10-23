@@ -19,6 +19,10 @@ export default function MobileDrawer({ isOpen, onClose, cartCount, wishlistCount
     navLinks.push({ label: 'Become a Seller', to: '/register-seller' });
   }
 
+  if (currentUser?.email !== 'admin@apnabazarr.com') {
+    navLinks.push({ label: currentUser?.resellerProfile?.code ? 'Reseller Dashboard' : 'Reseller Bano · Paise Kamao', to: '/reseller' });
+  }
+
   return (
     <div className="fixed inset-0 z-50 lg:hidden">
       {/* Backdrop */}
