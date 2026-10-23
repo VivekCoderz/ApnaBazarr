@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'apnabazarr_secret_key_2026';
+const JWT_SECRET = process.env.JWT_SECRET;
 
 module.exports = async (req, res, next) => {
   try {
@@ -10,7 +10,8 @@ module.exports = async (req, res, next) => {
       return res.status(401).json({ success: false, message: 'Authentication required. Please log in.' });
     }
 
-    if (token === 'apnabazarr_admin_token_2026') {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    if (decoded.admin) {
       req.user = {
         _id: new (require('mongoose').Types.ObjectId)('000000000000000000000000'),
         email: 'admin@apnabazarr.com',
@@ -20,7 +21,6 @@ module.exports = async (req, res, next) => {
       return next();
     }
 
-    const decoded = jwt.verify(token, JWT_SECRET);
     const user = await User.findById(decoded.id).select('-password');
     if (!user) {
       return res.status(404).json({ success: false, message: 'User account not found.' });

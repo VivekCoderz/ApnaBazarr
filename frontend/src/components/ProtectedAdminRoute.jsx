@@ -15,7 +15,8 @@ export default function ProtectedAdminRoute({ children, isAdminAuthenticated, cu
     return <Navigate to="/" replace />;
   }
 
-  if (!isAdminAuthenticated && token !== 'apnabazarr_admin_token_2026') {
+  // The backend verifies the token on every admin API call
+  if (!isAdminAuthenticated && !token) {
     return <Navigate to="/admin/login" replace />;
   }
 

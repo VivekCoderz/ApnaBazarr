@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, Lock, Mail, ArrowRight, AlertCircle } from 'lucide-react';
 
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 export default function AdminLoginPage({ onAdminLogin }) {
   const navigate = useNavigate();
 
@@ -10,26 +12,31 @@ export default function AdminLoginPage({ onAdminLogin }) {
   const [errorMsg, setErrorMsg] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setErrorMsg('');
     setLoading(true);
 
-    setTimeout(() => {
-      setLoading(false);
-      if (email.toLowerCase() === 'admin@apnabazarr.com' && password === 'admin@admin123') {
-        const adminData = {
-          email: 'admin@apnabazarr.com',
-          role: 'admin',
-          token: 'apnabazarr_admin_token_2026'
-        };
+    try {
+      const res = await fetch(`${BASE_URL}/auth/admin/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const result = await res.json();
+      if (result.success) {
+        const adminData = result.admin;
         document.cookie = "apna_admin_token=" + adminData.token + "; path=/; max-age=604800; SameSite=Lax";
         onAdminLogin(adminData);
         navigate('/admin');
       } else {
-        setErrorMsg('Invalid Admin Email or Password!');
+        setErrorMsg(result.message || 'Invalid Admin Email or Password!');
       }
-    }, 600);
+    } catch {
+      setErrorMsg('Could not reach the server. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

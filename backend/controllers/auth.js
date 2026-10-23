@@ -2,7 +2,7 @@ const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'apnabazarr_secret_key_2026';
+const JWT_SECRET = process.env.JWT_SECRET;
 
 module.exports.signup = async (req, res) => {
   try {
@@ -390,4 +390,21 @@ module.exports.updateSellerStatus = async (req, res) => {
     console.error('Update Seller Status Error:', error);
     res.status(500).json({ success: false, message: 'Server error updating seller status.' });
   }
+};
+
+module.exports.adminLogin = async (req, res) => {
+  const { email, password } = req.body;
+  const adminEmail = process.env.ADMIN_EMAIL;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+
+  if (!adminEmail || !adminPassword) {
+    return res.status(500).json({ success: false, message: 'Admin login is not configured on the server.' });
+  }
+
+  if (!email || !password || email.toLowerCase() !== adminEmail.toLowerCase() || password !== adminPassword) {
+    return res.status(401).json({ success: false, message: 'Invalid Admin Email or Password!' });
+  }
+
+  const token = jwt.sign({ admin: true, email: adminEmail }, JWT_SECRET, { expiresIn: '7d' });
+  res.json({ success: true, admin: { email: adminEmail, role: 'admin', token } });
 };

@@ -1,4 +1,12 @@
 require('dotenv').config();
+
+const missingEnv = ['MONGO_URI', 'JWT_SECRET', 'RAZORPAY_KEY_ID', 'RAZORPAY_KEY_SECRET', 'ADMIN_EMAIL', 'ADMIN_PASSWORD']
+  .filter(key => !process.env[key]);
+if (missingEnv.length) {
+  console.error(`❌ Missing environment variables: ${missingEnv.join(', ')}. See backend/.env.example`);
+  process.exit(1);
+}
+
 const express = require("express");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
@@ -38,7 +46,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Database Connection
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://careerconnect-prod-oct:VfwTFVGAkWTXhZpa@business.kyssclv.mongodb.net/ApnaBazar';
+const MONGODB_URI = process.env.MONGO_URI || process.env.MONGODB_URI;
 mongoose.connect(MONGODB_URI)
   .then(() => {
     console.log("✅ Database connected to Apna Bazarr MongoDB");

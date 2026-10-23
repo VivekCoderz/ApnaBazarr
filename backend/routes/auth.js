@@ -6,6 +6,7 @@ const auth = require("../middlewares/auth.js");
 router.post("/signup", authController.signup);
 router.post("/login", authController.login);
 router.post("/logout", authController.logout);
+router.post("/admin/login", authController.adminLogin);
 router.get("/me", authController.getme);
 router.post("/cart", authController.updateCart);
 router.post("/wishlist", authController.updateWishlist);

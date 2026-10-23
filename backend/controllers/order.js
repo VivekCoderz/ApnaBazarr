@@ -2,8 +2,8 @@ const Order = require('../models/Order');
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
 
-const razorpayKeyId = process.env.RAZORPAY_KEY_ID || 'rzp_live_TPLlrlsuMCFF5M';
-const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET || 'Sx34u8ER6rUxqYhJZmeGRJ3R';
+const razorpayKeyId = process.env.RAZORPAY_KEY_ID;
+const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET;
 
 const rzp = new Razorpay({
   key_id: razorpayKeyId,
@@ -130,8 +130,14 @@ module.exports.createOrder = async (req, res) => {
 
 module.exports.getOrders = async (req, res) => {
   try {
+    // Customers only ever see their own orders; admin can see all or filter by email
     const { email } = req.query;
-    const queryFilter = email ? { userEmail: email } : {};
+    let queryFilter;
+    if (req.user.role === 'admin') {
+      queryFilter = email ? { userEmail: email } : {};
+    } else {
+      queryFilter = { userEmail: req.user.email };
+    }
     const orders = await Order.find(queryFilter).sort({ createdAt: -1 });
 
     res.json({ success: true, count: orders.length, orders });
@@ -258,6 +264,15 @@ exports.updateOrderStatus = async (req, res) => {
 
     if (!status) {
       return res.status(400).json({ success: false, message: 'Status is required.' });
+    }
+
+    if (req.user.role !== 'admin') {
+      const sellerProducts = await Product.find({ seller: req.user._id }).select('_id');
+      const productIds = sellerProducts.map(p => String(p._id));
+      const owns = await Order.exists({ orderId, 'items.productId': { $in: productIds } });
+      if (!owns) {
+        return res.status(403).json({ success: false, message: 'Not allowed to update this order.' });
+      }
     }
 
     const order = await Order.findOneAndUpdate(
