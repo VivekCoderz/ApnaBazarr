@@ -12,7 +12,7 @@ const rzp = new Razorpay({
 const Product = require('../models/Product');
 const Setting = require('../models/Setting');
 const { resolveResellerForOrder } = require('./reseller');
-const { productMargin, orderShippingCharge: calcOrderShipping } = require('../utils/shipping');
+const { orderShippingCharge: calcOrderShipping } = require('../utils/shipping');
 
 function calculateShipping(pickupPincode, deliveryPincode, weight, length, width, height) {
   return 0; // Free shipping
@@ -22,23 +22,21 @@ async function processOrderItems(items, deliveryPincode) {
   let commissionSetting = await Setting.findOne({ key: 'commission_percentage' });
   const commissionPercent = commissionSetting ? Number(commissionSetting.value) : 10;
 
-  // 1. Calculate total margin and total quantity of the items
-  let totalMargin = 0;
-  let totalQuantity = 0;
+  // 1. Look up the products and the order value
+  let subtotal = 0;
   const dbProducts = [];
-  
+
   for (const item of items) {
     const prodId = item.productId || item.id;
     const dbProduct = await Product.findById(prodId).populate('seller');
     if (dbProduct) {
       dbProducts.push({ item, dbProduct });
-      totalMargin += productMargin(dbProduct) * item.quantity;
-      totalQuantity += item.quantity;
+      subtotal += dbProduct.price * item.quantity;
     }
   }
 
-  // 2. Shipping fee is 0 if totalMargin >= 120, else Math.min(80, Math.max(80 + 15 * totalQuantity - totalMargin, 0))
-  const orderShippingCharge = calcOrderShipping(totalMargin, totalQuantity);
+  // 2. Free shipping on ₹499+, otherwise flat ₹49
+  const orderShippingCharge = calcOrderShipping(subtotal);
 
   const formatted = [];
   for (let idx = 0; idx < dbProducts.length; idx++) {

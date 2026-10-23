@@ -1,27 +1,21 @@
-// Shipping rules shared by order processing and public product previews.
-// Margin is derived from costPrice here so it never has to leave the server.
+// Shipping rule shared by order processing and public product previews.
+// Flat and based on the order value only, so it never reveals cost or margin.
 
-const FREE_SHIPPING_MARGIN = 120;
+const FREE_SHIPPING_ABOVE = 499;
+const FLAT_SHIPPING_CHARGE = 49;
 
-// Per-piece margin (price - costPrice), falls back to 30% when costPrice is missing
-function productMargin(product) {
-  const cost = product.costPrice || (product.price * 0.7);
-  return Math.max(product.price - cost, 1);
+// Free delivery on orders of ₹499 or more, otherwise a flat ₹49
+function orderShippingCharge(subtotal) {
+  if (subtotal <= 0 || subtotal >= FREE_SHIPPING_ABOVE) return 0;
+  return FLAT_SHIPPING_CHARGE;
 }
 
-// Free if total margin >= 120, else Math.min(80, Math.max(80 + 15 * totalQuantity - totalMargin, 0))
-function orderShippingCharge(totalMargin, totalQuantity) {
-  if (totalMargin >= FREE_SHIPPING_MARGIN) return 0;
-  return Math.round(Math.min(80, Math.max(80 + (15 * totalQuantity) - totalMargin, 0)));
-}
-
-// Public delivery hint for a single product (no cost/margin values exposed)
+// Public delivery hint for a single product
 function shippingPreview(product) {
-  const margin = productMargin(product);
   return {
-    deliveryChargeForOne: orderShippingCharge(margin, 1),
-    itemsForFreeDelivery: Math.ceil(FREE_SHIPPING_MARGIN / margin)
+    deliveryChargeForOne: orderShippingCharge(product.price),
+    itemsForFreeDelivery: Math.max(1, Math.ceil(FREE_SHIPPING_ABOVE / product.price))
   };
 }
 
-module.exports = { productMargin, orderShippingCharge, shippingPreview };
+module.exports = { FREE_SHIPPING_ABOVE, FLAT_SHIPPING_CHARGE, orderShippingCharge, shippingPreview };
