@@ -34,9 +34,10 @@ export const whatsappShareUrl = (product, resellerCode) => {
     product.originalPrice && product.originalPrice > product.price
       ? `Sirf ₹${product.price} (₹${product.originalPrice} ki jagah)`
       : `Sirf ₹${product.price}`,
-    'Panipat se seedha aapke ghar 🏠',
+    'Panipat se seedha aapke ghar. Cash on Delivery available.',
     '',
-    `Order karein 👉 ${productShareLink(product.id, resellerCode)}`
+    `Order karein: ${productShareLink(product.id, resellerCode)}`
   ];
-  return `https://wa.me/?text=${encodeURIComponent(lines.join('\n'))}`;
+  // No emojis outside the basic range: wa.me turns them into "�" on WhatsApp Web/Desktop
+  return `https://api.whatsapp.com/send?text=${encodeURIComponent(lines.join('\n'))}`;
 };
