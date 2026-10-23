@@ -1,18 +1,42 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, ArrowRight, ArrowLeft, Check, Smartphone, Banknote, CreditCard, Loader2, MapPin } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { ArrowRight, ArrowLeft, Check, Banknote, CreditCard, Loader2, MessageCircle } from 'lucide-react';
 
 import { getReferral } from '../utils/referral';
 import { useShippingQuote } from '../utils/shipping';
+import { formatPrice } from '../utils/format';
+import { COD_MAX_AMOUNT, whatsappUrl } from '../config/store';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-const getToken = () => '';
+const MIN_ORDER = 100;
+const GUEST_EMAIL = 'guest@apnabazarr.com';
+
+const INDIAN_STATES = [
+  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
+  "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka",
+  "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya",
+  "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim",
+  "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand",
+  "West Bengal", "Andaman and Nicobar Islands", "Chandigarh",
+  "Dadra and Nagar Haveli and Daman and Diu", "Delhi",
+  "Jammu and Kashmir", "Ladakh", "Lakshadweep", "Puducherry"
+];
+
+const inputClass = 'w-full px-3 py-2.5 text-base border border-slate-300 rounded-lg focus:outline-none focus:border-brand-navy bg-white';
+const labelClass = 'block text-sm font-semibold text-slate-700 mb-1';
+
+// Plain-text WhatsApp message (no emojis: they break on WhatsApp Web)
+const confirmMessage = (order) =>
+  `Namaste Apna Bazarr, mera order #${order.orderId} confirm hai. ` +
+  `Naam: ${order.shippingAddress?.fullName || ''}. ` +
+  `Kul: Rs ${Math.round(order.totalAmount)} (${order.paymentMethod === 'COD' ? 'Cash on Delivery' : 'Online paid'}). Haan, bhej dijiye.`;
 
 export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }) {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [orderLoading, setOrderLoading] = useState(false);
   const [orderError, setOrderError] = useState('');
+  const [formErrors, setFormErrors] = useState({});
 
   const [address, setAddress] = useState({
     fullName: '',
@@ -21,32 +45,21 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
     flatNo: '',
     area: '',
     city: '',
-    state: 'Delhi',
+    state: '',
     addressType: 'Home'
   });
+  const [email, setEmail] = useState(currentUser?.email || '');
 
-  const [locationOption, setLocationOption] = useState('manual'); // 'auto' or 'manual'
-  const [fetchingLocation, setFetchingLocation] = useState(false);
-  const [locationError, setLocationError] = useState('');
-  const [locationSuccess, setLocationSuccess] = useState('');
-
-  const [paymentMethod, setPaymentMethod] = useState('UPI');
-  const [upiId, setUpiId] = useState('');
+  // COD first (trust first). Switched to online automatically when the order is above the COD limit.
+  const [paymentMethod, setPaymentMethod] = useState('COD');
   const [placedOrder, setPlacedOrder] = useState(null);
-
-  // COD configurations
-  const [codCodeInput, setCodCodeInput] = useState('');
-  const [isCodEnabled, setIsCodEnabled] = useState(false);
 
   // Initial shipping quote from the server; refreshed again once the delivery pincode is entered
   const { shipping: quotedShipping, loading: quoteLoading } = useShippingQuote(cartItems);
-
   const [shippingCharges, setShippingCharges] = useState(null);
-  const [calculatingShipping, setCalculatingShipping] = useState(false);
 
   const calculateShippingFees = async (deliveryPincode) => {
     if (!deliveryPincode || deliveryPincode.trim().length !== 6) return;
-    setCalculatingShipping(true);
     try {
       const res = await fetch(`${BASE_URL}/orders/calculate-shipping`, {
         method: 'POST',
@@ -60,170 +73,45 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
         })
       });
       const data = await res.json();
-      if (data.success) {
-        setShippingCharges(data.shippingCharges);
-      }
+      if (data.success) setShippingCharges(data.shippingCharges);
     } catch (err) {
       console.warn("Failed to calculate shipping:", err);
-    } finally {
-      setCalculatingShipping(false);
-    }
-  };
-  const [codVerificationError, setCodVerificationError] = useState('');
-  const [codVerificationSuccess, setCodVerificationSuccess] = useState('');
-  const [verifyingCodCode, setVerifyingCodCode] = useState(false);
-
-  const handleVerifyCodCode = async () => {
-    if (!codCodeInput.trim()) return;
-    setVerifyingCodCode(true);
-    setCodVerificationError('');
-    setCodVerificationSuccess('');
-
-    try {
-      const res = await fetch(`${BASE_URL}/settings/verify-cod`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: codCodeInput })
-      });
-      const data = await res.json();
-      if (data.success && data.isValid) {
-        setIsCodEnabled(true);
-        setCodVerificationSuccess('✅ Secret COD Code accepted! Cash on Delivery option is now available.');
-      } else {
-        setIsCodEnabled(false);
-        setCodVerificationError('❌ Invalid Secret COD Code. Please contact admin.');
-      }
-    } catch (err) {
-      setCodVerificationError('Failed to verify code. Please try again.');
-    } finally {
-      setVerifyingCodCode(false);
     }
   };
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const shipping = shippingCharges ?? quotedShipping ?? 0;
   const total = subtotal + shipping;
+  const codAllowed = total <= COD_MAX_AMOUNT;
+  const effectiveMethod = !codAllowed && paymentMethod === 'COD' ? 'UPI' : paymentMethod;
 
   React.useEffect(() => {
-    if (cartItems.length > 0 && !quoteLoading && total < 100) {
+    if (cartItems.length > 0 && !quoteLoading && total < MIN_ORDER) {
       navigate('/cart');
     }
   }, [cartItems, total, quoteLoading, navigate]);
 
-  const indianStates = [
-    "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", 
-    "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", 
-    "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", 
-    "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", 
-    "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", 
-    "West Bengal", "Andaman and Nicobar Islands", "Chandigarh", 
-    "Dadra and Nagar Haveli and Daman and Diu", "Delhi", 
-    "Jammu and Kashmir", "Ladakh", "Lakshadweep", "Puducherry"
-  ];
-
-  const handlePincodeChange = (val) => {
-    setAddress(prev => ({ ...prev, pincode: val }));
-    if (val === '110001') setAddress(prev => ({ ...prev, city: 'New Delhi', state: 'Delhi' }));
-    else if (val === '400001') setAddress(prev => ({ ...prev, city: 'Mumbai', state: 'Maharashtra' }));
-    else if (val === '560001') setAddress(prev => ({ ...prev, city: 'Bengaluru', state: 'Karnataka' }));
-  };
-
-  const fetchLiveLocation = () => {
-    setFetchingLocation(true);
-    setLocationError('');
-    setLocationSuccess('');
-
-    if (!navigator.geolocation) {
-      setLocationError('Geolocation is not supported by your browser.');
-      setFetchingLocation(false);
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude, longitude } = position.coords;
-        try {
-          const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
-            {
-              headers: {
-                'User-Agent': 'ApnaBazarr/1.0 (apnabazarr@example.com)'
-              }
-            }
-          );
-          if (!response.ok) {
-            throw new Error('Failed to fetch address details.');
-          }
-          const data = await response.json();
-          
-          const addr = data.address || {};
-          const pincode = addr.postcode || '';
-          const city = addr.city || addr.town || addr.village || addr.suburb || addr.county || '';
-          const state = addr.state || '';
-          
-          // Construct area name
-          const areaParts = [];
-          if (addr.road) areaParts.push(addr.road);
-          if (addr.neighbourhood) areaParts.push(addr.neighbourhood);
-          if (addr.suburb && addr.suburb !== city) areaParts.push(addr.suburb);
-          const area = areaParts.join(', ') || data.display_name || '';
-
-          let matchedState = 'Delhi';
-          if (state) {
-            const found = indianStates.find(s => s.toLowerCase() === state.toLowerCase());
-            if (found) {
-              matchedState = found;
-            } else {
-              const foundPartial = indianStates.find(s => s.toLowerCase().includes(state.toLowerCase()) || state.toLowerCase().includes(s.toLowerCase()));
-              if (foundPartial) {
-                matchedState = foundPartial;
-              }
-            }
-          }
-
-          const cleanedPincode = pincode.replace(/\s+/g, '').substring(0, 6);
-
-          setAddress(prev => ({
-            ...prev,
-            pincode: cleanedPincode || prev.pincode,
-            city: city || prev.city,
-            state: matchedState || prev.state,
-            area: area || prev.area
-          }));
-
-          if (cleanedPincode && cleanedPincode.trim().length === 6) {
-            calculateShippingFees(cleanedPincode);
-          }
-
-          setLocationSuccess('📍 Location fetched successfully! Please fill in your name, phone, and flat number.');
-        } catch (err) {
-          console.error(err);
-          setLocationError('Failed to fetch address details. Please fill manually.');
-        } finally {
-          setFetchingLocation(false);
-        }
-      },
-      (error) => {
-        console.error(error);
-        let errorMsg = 'Unable to retrieve location.';
-        if (error.code === error.PERMISSION_DENIED) {
-          errorMsg = 'Location permission denied. Please allow permission or enter manually.';
-        }
-        setLocationError(errorMsg);
-        setFetchingLocation(false);
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-    );
+  const setField = (field, value) => {
+    setAddress(prev => ({ ...prev, [field]: value }));
+    setFormErrors(prev => ({ ...prev, [field]: '' }));
   };
 
   const handleAddressSubmit = async (e) => {
     e.preventDefault();
-    if (!address.fullName || !address.phone || !address.pincode || !address.flatNo || !address.area) {
-      alert("Please fill in all required delivery address fields.");
-      return;
-    }
-    await calculateShippingFees(address.pincode);
+    const errors = {};
+    if (!address.fullName.trim()) errors.fullName = 'Naam daalein.';
+    if (!/^[6-9]\d{9}$/.test(address.phone.trim())) errors.phone = 'Mobile number 10 digit ka daalein.';
+    if (!/^\d{6}$/.test(address.pincode.trim())) errors.pincode = 'Pincode 6 number ka hona chahiye.';
+    if (!address.flatNo.trim()) errors.flatNo = 'Ghar / flat number daalein.';
+    if (!address.area.trim()) errors.area = 'Area / gali daalein.';
+    if (!address.city.trim()) errors.city = 'Shahar daalein.';
+    if (!address.state) errors.state = 'State chunein.';
+    setFormErrors(errors);
+    if (Object.keys(errors).length > 0) return;
+
+    await calculateShippingFees(address.pincode.trim());
     setStep(2);
+    window.scrollTo({ top: 0, behavior: 'instant' });
   };
 
   const loadRazorpayScript = () => {
@@ -238,9 +126,40 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
   const safeParseJSON = async (response) => {
     const contentType = response.headers.get("content-type");
     if (!contentType || !contentType.includes("application/json")) {
-      throw new Error("Server is waking up or temporarily busy. Please try again in 10-15 seconds.");
+      throw new Error("Server abhi start ho raha hai. 10-15 second baad dobara try karein.");
     }
     return await response.json();
+  };
+
+  const buyerEmail = (currentUser?.email || email.trim() || GUEST_EMAIL);
+  const orderItems = () => cartItems.map(item => ({
+    productId: item.id,
+    name: item.name,
+    image: item.image,
+    price: item.price,
+    quantity: item.quantity,
+    customText: item.customText || '',
+    customImage: item.customImage || '',
+    selectedSize: item.selectedSize || '',
+    selectedColor: item.selectedColor || ''
+  }));
+  const shippingAddress = () => ({
+    ...address,
+    fullName: address.fullName.trim(),
+    phone: address.phone.trim(),
+    pincode: address.pincode.trim()
+  });
+
+  // The success screen uses the order returned by the create/verify call (no extra lookup)
+  const finishOrder = (savedOrder) => {
+    const normalisedOrder = {
+      ...savedOrder,
+      createdAt: savedOrder.createdAt || new Date().toISOString(),
+    };
+    setPlacedOrder(normalisedOrder);
+    setStep(3);
+    onOrderComplete(normalisedOrder);
+    window.scrollTo({ top: 0, behavior: 'instant' });
   };
 
   const handlePlaceOrder = async () => {
@@ -248,37 +167,34 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
     setOrderError('');
 
     try {
-      if (paymentMethod === 'UPI') {
+      if (effectiveMethod === 'UPI') {
         // Online Payment Flow (Razorpay)
         const scriptLoaded = await loadRazorpayScript();
         if (!scriptLoaded) {
-          throw new Error("Failed to load Razorpay SDK. Please check your internet connection.");
+          throw new Error("Payment page load nahi hua. Internet check karke dobara try karein.");
         }
 
-        // 1. Create Razorpay order on backend
         const orderRes = await fetch(`${BASE_URL}/orders/razorpay`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ amount: total }),
+          body: JSON.stringify({ items: orderItems() }),
         });
         const orderData = await safeParseJSON(orderRes);
         if (!orderData.success) {
-          throw new Error(orderData.message || "Failed to create payment order.");
+          throw new Error(orderData.message || "Payment shuru nahi ho paya.");
         }
 
-        // 2. Open Razorpay Checkout Modal
         const options = {
           key: orderData.key,
           amount: orderData.amount,
           currency: 'INR',
           name: 'Apna Bazarr',
-          description: 'Secure Payment Gateway',
-          image: '/logo.png',
+          description: 'Order payment',
+          image: '/brand-icon.png',
           order_id: orderData.order_id,
           handler: async function (response) {
             try {
               setOrderLoading(true);
-              // 3. Verify payment signature on backend and save order
               const verifyRes = await fetch(`${BASE_URL}/orders/verify`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -286,39 +202,20 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
                   razorpay_order_id: response.razorpay_order_id,
                   razorpay_payment_id: response.razorpay_payment_id,
                   razorpay_signature: response.razorpay_signature,
-                  email: currentUser?.email || 'guest@apnabazarr.com',
-                  items: cartItems.map(item => ({
-                    productId: item.id,
-                    name: item.name,
-                    image: item.image,
-                    price: item.price,
-                    quantity: item.quantity,
-                    customText: item.customText || '',
-                    customImage: item.customImage || '',
-                    selectedSize: item.selectedSize || '',
-                    selectedColor: item.selectedColor || ''
-                  })),
-                  shippingAddress: { ...address },
+                  email: buyerEmail,
+                  items: orderItems(),
+                  shippingAddress: shippingAddress(),
                   totalAmount: total,
                   resellerCode: getReferral()
                 }),
               });
               const verifyResult = await safeParseJSON(verifyRes);
               if (!verifyResult.success) {
-                throw new Error(verifyResult.message || "Payment verification failed.");
+                throw new Error(verifyResult.message || "Payment verify nahi hua.");
               }
-
-              const savedOrder = verifyResult.order;
-              const normalisedOrder = {
-                ...savedOrder,
-                createdAt: savedOrder.createdAt || new Date().toISOString(),
-              };
-
-              setPlacedOrder(normalisedOrder);
-              setStep(3);
-              onOrderComplete(normalisedOrder);
+              finishOrder(verifyResult.order);
             } catch (err) {
-              setOrderError(err.message || 'Payment verification failed.');
+              setOrderError(err.message || 'Payment verify nahi hua. WhatsApp karein: +91 93068 10726');
             } finally {
               setOrderLoading(false);
             }
@@ -326,7 +223,7 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
           prefill: {
             name: address.fullName,
             contact: address.phone,
-            email: currentUser?.email || 'guest@apnabazarr.com'
+            email: buyerEmail === GUEST_EMAIL ? undefined : buyerEmail
           },
           theme: {
             color: '#0B2A55'
@@ -341,179 +238,109 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
         const rzp = new window.Razorpay(options);
         rzp.open();
       } else {
-        // Cash on Delivery (COD) Flow
-        const token = getToken();
-        const headers = { 'Content-Type': 'application/json' };
-        if (token) headers['Authorization'] = `Bearer ${token}`;
-
+        // Cash on Delivery: open to everyone, up to the COD limit (also checked on the server)
         const res = await fetch(`${BASE_URL}/orders`, {
           method: 'POST',
-          headers,
+          headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
           body: JSON.stringify({
-            userEmail: currentUser?.email || 'guest@apnabazarr.com',
-            items: cartItems.map(item => ({
-              productId: item.id,
-              name: item.name,
-              image: item.image,
-              price: item.price,
-              quantity: item.quantity,
-              customText: item.customText || '',
-              customImage: item.customImage || '',
-              selectedSize: item.selectedSize || '',
-              selectedColor: item.selectedColor || ''
-            })),
-            shippingAddress: { ...address },
+            userEmail: buyerEmail,
+            items: orderItems(),
+            shippingAddress: shippingAddress(),
             paymentMethod: 'COD',
             totalAmount: total,
             resellerCode: getReferral(),
           }),
         });
         const result = await safeParseJSON(res);
-        if (!res.ok) throw new Error(result.message || `Request failed: ${res.status}`);
-
-        const savedOrder = result.order;
-        const normalisedOrder = {
-          ...savedOrder,
-          createdAt: savedOrder.createdAt || new Date().toISOString(),
-        };
-
-        setPlacedOrder(normalisedOrder);
-        setStep(3);
-        onOrderComplete(normalisedOrder);
+        if (!res.ok || !result.success) throw new Error(result.message || `Order nahi ho paya (${res.status}).`);
+        finishOrder(result.order);
       }
     } catch (err) {
-      setOrderError(err.message || 'Failed to place order. Please try again.');
+      setOrderError(err.message || 'Order nahi ho paya. Dobara try karein.');
     } finally {
-      if (paymentMethod !== 'UPI') {
+      if (effectiveMethod !== 'UPI') {
         setOrderLoading(false);
       }
     }
   };
 
+  const fieldError = (field) => formErrors[field] && (
+    <p className="text-sm text-red-600 font-semibold mt-1">{formErrors[field]}</p>
+  );
+
   return (
-    <div className="py-10 bg-slate-50 min-h-screen">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-        
+    <div className="py-6 sm:py-10 bg-slate-50 min-h-screen">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4 sm:space-y-6">
+
         {/* Header */}
-        <div className="bg-slate-900 text-white p-6 rounded-2xl flex flex-col sm:flex-row justify-between gap-3 items-start sm:items-center shadow-md">
-          <div className="flex items-center space-x-2">
-            <ShieldCheck className="w-6 h-6 text-brand-navy" />
-            <h1 className="text-xl font-extrabold">Secure Checkout (India)</h1>
+        {step < 3 && (
+          <div className="flex items-center justify-between gap-3">
+            <h1 className="text-2xl font-bold text-brand-navy">Order details</h1>
+            <span className="text-sm font-semibold text-slate-500">Step {step} / 2</span>
           </div>
-          <span className="text-xs text-slate-400 font-bold shrink-0">100% Encrypted Payment</span>
-        </div>
+        )}
 
-        {/* Form Container */}
-        <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-xs">
+        <div className="bg-white p-4 sm:p-8 rounded-2xl border border-slate-200 shadow-xs">
           {step === 1 && (
-            <form onSubmit={handleAddressSubmit} className="space-y-4">
-              <h3 className="font-extrabold text-base text-slate-900 border-b pb-2">1. Enter Delivery Address</h3>
+            <form onSubmit={handleAddressSubmit} noValidate className="space-y-4">
+              <h3 className="font-bold text-lg text-slate-900 border-b pb-2">1. Delivery address</h3>
 
-              {/* Location Mode Toggle */}
-              <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200 mt-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setLocationOption('auto');
-                    setLocationError('');
-                    setLocationSuccess('');
-                  }}
-                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center space-x-1.5 ${locationOption === 'auto' ? 'bg-white text-brand-navy shadow-xs' : 'text-slate-600 hover:text-slate-950'}`}
-                >
-                  <MapPin className="w-3.5 h-3.5" />
-                  <span>Auto-detect Live Location</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setLocationOption('manual');
-                    setLocationError('');
-                    setLocationSuccess('');
-                  }}
-                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center space-x-1.5 ${locationOption === 'manual' ? 'bg-white text-brand-navy shadow-xs' : 'text-slate-600 hover:text-slate-955'}`}
-                >
-                  <span>Enter Location Manually</span>
-                </button>
-              </div>
-
-              {/* Auto Fetch Action Box */}
-              {locationOption === 'auto' && (
-                <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100 text-center space-y-2.5">
-                  <p className="text-xs text-slate-650 font-semibold leading-relaxed">
-                    We will automatically detect your coordinates and fill the Address, Pincode, City and State fields.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={fetchLiveLocation}
-                    disabled={fetchingLocation}
-                    className="px-5 py-2.5 bg-brand-navy text-white font-extrabold text-xs uppercase tracking-wider rounded-lg hover:bg-blue-700 transition-all flex items-center justify-center space-x-2 mx-auto disabled:opacity-75 cursor-pointer shadow-xs animate-pulse hover:animate-none"
-                  >
-                    {fetchingLocation ? (
-                      <>
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        <span>Detecting Location...</span>
-                      </>
-                    ) : (
-                      <>
-                        <MapPin className="w-3.5 h-3.5" />
-                        <span>Detect My Live Location</span>
-                      </>
-                    )}
-                  </button>
-
-                  {locationError && (
-                    <div className="text-xs font-bold text-rose-600 bg-rose-50 p-2 rounded-lg border border-rose-100 max-w-md mx-auto">
-                      ⚠️ {locationError}
-                    </div>
-                  )}
-                  {locationSuccess && (
-                    <div className="text-xs font-bold text-emerald-600 bg-emerald-50 p-2 rounded-lg border border-emerald-100 max-w-md mx-auto">
-                      {locationSuccess}
-                    </div>
-                  )}
-                </div>
-              )}
-              
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Full Name *</label>
-                  <input type="text" required value={address.fullName} onChange={(e) => setAddress({ ...address, fullName: e.target.value })} placeholder="Enter your name" className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-brand-navy" />
+                  <label className={labelClass} htmlFor="co-name">Naam *</label>
+                  <input id="co-name" type="text" autoComplete="name" value={address.fullName} onChange={(e) => setField('fullName', e.target.value)} placeholder="Aapka naam" className={inputClass} />
+                  {fieldError('fullName')}
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Mobile (+91) *</label>
-                  <input type="tel" required maxLength={10} value={address.phone} onChange={(e) => setAddress({ ...address, phone: e.target.value })} placeholder="9876543210" className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-brand-navy" />
+                  <label className={labelClass} htmlFor="co-phone">Mobile (WhatsApp) *</label>
+                  <input id="co-phone" type="tel" inputMode="numeric" autoComplete="tel-national" maxLength={10} value={address.phone} onChange={(e) => setField('phone', e.target.value.replace(/\D/g, ''))} placeholder="9876543210" className={inputClass} />
+                  <p className="text-xs text-slate-500 mt-1">Isi number pe WhatsApp/call aayega</p>
+                  {fieldError('phone')}
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Pincode (6 digits) *</label>
-                  <input type="text" required maxLength={6} value={address.pincode} onChange={(e) => handlePincodeChange(e.target.value)} placeholder="110001" className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-brand-navy" />
+                  <label className={labelClass} htmlFor="co-pincode">Pincode *</label>
+                  <input id="co-pincode" type="text" inputMode="numeric" autoComplete="postal-code" maxLength={6} value={address.pincode} onChange={(e) => setField('pincode', e.target.value.replace(/\D/g, ''))} placeholder="132103" className={inputClass} />
+                  {fieldError('pincode')}
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Flat / House No *</label>
-                  <input type="text" required value={address.flatNo} onChange={(e) => setAddress({ ...address, flatNo: e.target.value })} placeholder="Flat 402, Building C" className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-brand-navy" />
+                  <label className={labelClass} htmlFor="co-flat">Ghar / Flat no. *</label>
+                  <input id="co-flat" type="text" autoComplete="address-line1" value={address.flatNo} onChange={(e) => setField('flatNo', e.target.value)} placeholder="H.No. 12, 2nd floor" className={inputClass} />
+                  {fieldError('flatNo')}
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Street / Area / Locality *</label>
-                <input type="text" required value={address.area} onChange={(e) => setAddress({ ...address, area: e.target.value })} placeholder="Connaught Place, Near Metro" className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-brand-navy" />
+                <label className={labelClass} htmlFor="co-area">Area / Gali *</label>
+                <input id="co-area" type="text" autoComplete="address-line2" value={address.area} onChange={(e) => setField('area', e.target.value)} placeholder="Model Town, mandir ke paas" className={inputClass} />
+                {fieldError('area')}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">City *</label>
-                  <input type="text" required value={address.city} onChange={(e) => setAddress({ ...address, city: e.target.value })} placeholder="New Delhi" className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-brand-navy" />
+                  <label className={labelClass} htmlFor="co-city">Shahar *</label>
+                  <input id="co-city" type="text" autoComplete="address-level2" value={address.city} onChange={(e) => setField('city', e.target.value)} placeholder="Panipat" className={inputClass} />
+                  {fieldError('city')}
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">State *</label>
-                  <select value={address.state} onChange={(e) => setAddress({ ...address, state: e.target.value })} className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-brand-navy">
-                    {indianStates.map((st, idx) => <option key={idx} value={st}>{st}</option>)}
+                  <label className={labelClass} htmlFor="co-state">State *</label>
+                  <select id="co-state" value={address.state} onChange={(e) => setField('state', e.target.value)} className={inputClass}>
+                    <option value="">State chunein</option>
+                    {INDIAN_STATES.map((st) => <option key={st} value={st}>{st}</option>)}
                   </select>
+                  {fieldError('state')}
                 </div>
               </div>
 
-              <button type="submit" className="w-full py-3.5 bg-brand-navy text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md flex items-center justify-center space-x-2">
-                <span>CONTINUE TO PAYMENT (₹{total.toFixed(2)})</span>
+              {!currentUser && (
+                <div>
+                  <label className={labelClass} htmlFor="co-email">Email (zaroori nahi)</label>
+                  <input id="co-email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="aap@gmail.com" className={inputClass} />
+                </div>
+              )}
+
+              <button type="submit" className="w-full py-3.5 bg-brand-cta hover:bg-brand-cta-hover text-white font-semibold text-base rounded-xl shadow-md flex items-center justify-center gap-2">
+                <span>Aage badhein · {formatPrice(total)}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </form>
@@ -521,110 +348,83 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
 
           {step === 2 && (
             <div className="space-y-4">
-              <h3 className="font-extrabold text-base text-slate-900 border-b pb-2">2. Select Payment Option</h3>
-              
-              {/* Dynamic Billing Summary */}
-              <div className="bg-slate-50 p-4.5 rounded-2xl border border-slate-250 space-y-2 text-xs">
-                <h4 className="font-black text-slate-800 uppercase tracking-widest mb-1.5">Order Invoice Summary</h4>
-                <div className="flex justify-between font-semibold">
-                  <span className="text-slate-550">Items Subtotal:</span>
-                  <span className="text-slate-800">₹{subtotal.toFixed(2)}</span>
+              <h3 className="font-bold text-lg text-slate-900 border-b pb-2">2. Payment</h3>
+
+              {/* Order summary */}
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-slate-600">Saman</span>
+                  <span className="font-semibold text-slate-800">{formatPrice(subtotal)}</span>
                 </div>
-                <div className="flex justify-between font-semibold">
-                  <span className="text-slate-550">Volumetric Shipping Charges:</span>
-                  <span className="text-brand-navy">₹{shipping.toFixed(2)}</span>
+                <div className="flex justify-between">
+                  <span className="text-slate-600">Delivery</span>
+                  <span className={`font-semibold ${shipping === 0 ? 'text-emerald-700' : 'text-slate-800'}`}>{shipping === 0 ? 'FREE' : formatPrice(shipping)}</span>
                 </div>
-                <div className="flex justify-between font-black border-t border-slate-200/80 pt-2 text-sm mt-1">
-                  <span className="text-slate-900">Total Payable Amount:</span>
-                  <span className="text-slate-900">₹{total.toFixed(2)}</span>
+                <div className="flex justify-between font-bold border-t border-slate-200 pt-2 text-base">
+                  <span className="text-slate-900">Kul</span>
+                  <span className="font-heading text-lg text-brand-cta">{formatPrice(total)}</span>
                 </div>
               </div>
-              
-              <div className="space-y-3">
-                <div onClick={() => setPaymentMethod('UPI')} className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex items-center justify-between ${paymentMethod === 'UPI' ? 'border-brand-navy bg-blue-50/50' : 'border-slate-200'}`}>
-                  <div className="flex items-center space-x-3">
-                    <Smartphone className="w-5 h-5 text-brand-navy" />
-                    <div>
-                      <h4 className="text-xs font-bold text-slate-800">UPI (GPay / PhonePe / Paytm / BHIM)</h4>
-                      <p className="text-[11px] text-slate-500">Instant approval</p>
-                    </div>
-                  </div>
-                  <span className="bg-emerald-100 text-emerald-700 font-extrabold text-[10px] px-2 py-0.5 rounded">FASTEST</span>
-                </div>
 
-                {isCodEnabled && (
-                  <div onClick={() => setPaymentMethod('COD')} className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex items-center justify-between ${paymentMethod === 'COD' ? 'border-brand-navy bg-blue-50/50' : 'border-slate-200'}`}>
-                    <div className="flex items-center space-x-3">
-                      <Banknote className="w-5 h-5 text-emerald-600" />
-                      <div>
-                        <h4 className="text-xs font-bold text-slate-800">Cash on Delivery (COD)</h4>
-                        <p className="text-[11px] text-slate-500">Pay cash upon delivery</p>
-                      </div>
-                    </div>
+              <div className="space-y-3" role="radiogroup" aria-label="Payment ka tareeka">
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={effectiveMethod === 'UPI'}
+                  onClick={() => setPaymentMethod('UPI')}
+                  className={`w-full text-left p-4 rounded-xl border-2 cursor-pointer transition-all flex items-center gap-3 ${effectiveMethod === 'UPI' ? 'border-brand-navy bg-blue-50/50' : 'border-slate-200'}`}
+                >
+                  <CreditCard className="w-5 h-5 text-brand-navy shrink-0" />
+                  <div>
+                    <h4 className="text-base font-semibold text-slate-800">Online Payment (UPI / Card)</h4>
+                    <p className="text-sm text-slate-500">Sabse fast confirm</p>
                   </div>
-                )}
-              </div>
+                </button>
 
-              {/* COD note and Verification */}
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3 text-xs mt-4">
-                <div className="text-slate-700 font-bold text-center leading-relaxed space-y-1.5">
-                  <p>
-                    📢 <span className="text-rose-700 font-extrabold">English Note:</span> If you want <span className="font-extrabold text-slate-900">Cash on Delivery (COD)</span>, please contact us at <span className="font-black text-rose-700 text-sm">9306810726</span>.
-                  </p>
-                  <p className="border-t border-slate-200/50 pt-1.5 mt-1.5">
-                    📢 <span className="text-rose-700 font-extrabold">Hindi Note:</span> अगर आपको <span className="font-extrabold text-slate-900">Cash on Delivery (COD)</span> चाहिए, तो कृपया हमसे <span className="font-black text-rose-700 text-sm">9306810726</span> पर संपर्क करें।
-                  </p>
-                </div>
-                
-                <div className="border-t border-slate-200/80 pt-3 space-y-2">
-                  <label className="block text-[11px] font-extrabold text-slate-650 uppercase">
-                    Have a Secret COD Code?
-                  </label>
-                  <div className="flex space-x-2">
-                    <input 
-                      type="text"
-                      value={codCodeInput}
-                      onChange={(e) => setCodCodeInput(e.target.value)}
-                      placeholder="Enter secret COD code..."
-                      className="flex-1 px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-brand-navy bg-white text-slate-850 uppercase font-bold"
-                    />
-                    <button 
-                      onClick={handleVerifyCodCode}
-                      disabled={verifyingCodCode || !codCodeInput.trim()}
-                      className="px-4 py-2 bg-brand-navy hover:bg-blue-700 text-white font-extrabold text-xs uppercase rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shrink-0 flex items-center space-x-1 cursor-pointer"
-                    >
-                      {verifyingCodCode && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                      <span>Verify</span>
-                    </button>
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={effectiveMethod === 'COD'}
+                  disabled={!codAllowed}
+                  onClick={() => setPaymentMethod('COD')}
+                  className={`w-full text-left p-4 rounded-xl border-2 transition-all flex items-center gap-3 ${
+                    !codAllowed ? 'border-slate-200 opacity-60 cursor-not-allowed' : effectiveMethod === 'COD' ? 'border-emerald-600 bg-emerald-50/60 cursor-pointer' : 'border-slate-200 cursor-pointer'
+                  }`}
+                >
+                  <Banknote className="w-5 h-5 text-emerald-600 shrink-0" />
+                  <div>
+                    <h4 className="text-base font-semibold text-slate-800">Cash on Delivery</h4>
+                    <p className="text-sm text-slate-500">
+                      {codAllowed ? 'Saman aane par paise dein' : `COD sirf ${formatPrice(COD_MAX_AMOUNT)} tak ke order par hai`}
+                    </p>
                   </div>
-                  {codVerificationError && (
-                    <p className="text-[10px] text-red-600 font-bold mt-1">{codVerificationError}</p>
-                  )}
-                  {codVerificationSuccess && (
-                    <p className="text-[10px] text-emerald-600 font-bold mt-1">{codVerificationSuccess}</p>
-                  )}
-                </div>
+                </button>
+                <p className="text-xs text-slate-500">
+                  Cash on Delivery {formatPrice(COD_MAX_AMOUNT)} tak ke order par. Order ke baad hum WhatsApp pe confirm karte hain.
+                </p>
               </div>
 
               {orderError && (
-                <p className="text-xs text-red-600 font-semibold bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-                  ⚠️ {orderError}
+                <p className="text-sm text-red-700 font-semibold bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                  {orderError}
                 </p>
               )}
-              <div className="flex space-x-3 pt-3">
-                <button onClick={() => setStep(1)} disabled={orderLoading} className="px-4 py-3 bg-slate-100 text-slate-700 text-xs font-bold rounded-xl flex items-center space-x-1 disabled:opacity-50">
+              <div className="flex gap-3 pt-2">
+                <button onClick={() => setStep(1)} disabled={orderLoading} className="px-4 py-3 bg-slate-100 text-slate-700 text-sm font-semibold rounded-xl flex items-center gap-1 disabled:opacity-50">
                   <ArrowLeft className="w-4 h-4" />
-                  <span>Back</span>
+                  <span>Peeche</span>
                 </button>
                 <button
                   onClick={handlePlaceOrder}
                   disabled={orderLoading}
-                  className="flex-1 py-3.5 bg-brand-cta hover:bg-brand-cta-hover text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md disabled:opacity-70 flex items-center justify-center space-x-2"
+                  className="flex-1 py-3.5 bg-brand-cta hover:bg-brand-cta-hover text-white font-semibold text-base rounded-xl shadow-md disabled:opacity-70 flex items-center justify-center gap-2"
                 >
                   {orderLoading ? (
-                    <><Loader2 className="w-4 h-4 animate-spin" /><span>PLACING ORDER...</span></>
+                    <><Loader2 className="w-4 h-4 animate-spin" /><span>Order ho raha hai...</span></>
+                  ) : effectiveMethod === 'COD' ? (
+                    <span>Order Karein · {formatPrice(total)} COD</span>
                   ) : (
-                    <span>PLACE ORDER NOW (₹{total.toFixed(2)})</span>
+                    <span>{formatPrice(total)} Pay Karein</span>
                   )}
                 </button>
               </div>
@@ -632,20 +432,54 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
           )}
 
           {step === 3 && placedOrder && (
-            <div className="text-center space-y-4 py-6">
+            <div className="text-center space-y-4 py-4">
               <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
                 <Check className="w-8 h-8 stroke-[3]" />
               </div>
-              <h2 className="text-2xl font-extrabold text-slate-900">Order Placed Successfully!</h2>
-              <span className="inline-block px-3 py-1 bg-blue-50 text-brand-navy font-extrabold text-xs rounded-full border border-blue-100">
-                Order ID: {placedOrder.orderId}
-              </span>
-              <div className="pt-2">
-                <button onClick={() => navigate('/orders')} className="px-8 py-3.5 bg-brand-navy text-white text-xs font-extrabold rounded-xl shadow-md">
-                  VIEW IN MY ORDERS
-                </button>
+              <h2 className="text-2xl font-bold text-brand-navy">
+                Shukriya {placedOrder.shippingAddress?.fullName?.split(' ')[0] || ''}! Order #{placedOrder.orderId} mil gaya.
+              </h2>
+              <p className="text-base text-slate-700">2 din mein dispatch hoga.</p>
+
+              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-sm text-left space-y-1 max-w-md mx-auto">
+                <div className="flex justify-between"><span className="text-slate-500">Kul</span><span className="font-semibold">{formatPrice(placedOrder.totalAmount)}</span></div>
+                <div className="flex justify-between"><span className="text-slate-500">Payment</span><span className="font-semibold">{placedOrder.paymentMethod === 'COD' ? 'Cash on Delivery' : 'Online (paid)'}</span></div>
+                <div className="flex justify-between gap-3"><span className="text-slate-500 shrink-0">Address</span><span className="font-semibold text-right">{placedOrder.shippingAddress?.city}, {placedOrder.shippingAddress?.pincode}</span></div>
+              </div>
+
+              {placedOrder.paymentMethod === 'COD' && (
+                <p className="text-base font-semibold text-slate-800 max-w-md mx-auto">
+                  Order confirm karne ke liye WhatsApp pe "Haan" bhejein. Confirm hone ke baad hi saman bheja jayega.
+                </p>
+              )}
+
+              <a
+                href={whatsappUrl(confirmMessage(placedOrder))}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center justify-center gap-2 w-full max-w-md px-6 py-3.5 bg-[#25D366] text-brand-navy text-base font-bold rounded-xl shadow-md"
+              >
+                <MessageCircle className="w-5 h-5" />
+                <span>WhatsApp pe order confirm karein</span>
+              </a>
+
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+                {currentUser && (
+                  <button onClick={() => navigate('/orders')} className="px-6 py-3 bg-brand-navy text-white text-sm font-semibold rounded-xl">
+                    Mere Orders
+                  </button>
+                )}
+                <Link to="/shop" className="px-6 py-3 text-brand-navy text-sm font-semibold underline underline-offset-4">
+                  Shopping jaari rakhein
+                </Link>
               </div>
             </div>
+          )}
+
+          {step < 3 && cartItems.length === 0 && (
+            <p className="text-sm text-slate-600 mt-4">
+              Cart khaali hai. <Link to="/shop" className="text-brand-navy font-semibold underline">Shopping shuru karein</Link>
+            </p>
           )}
         </div>
 

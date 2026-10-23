@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Star, ShoppingBag, Heart, ShieldCheck, Truck, RotateCcw, Upload, CheckCircle, Sparkles, ArrowLeft, Video, Loader2, ThumbsUp, ThumbsDown, CornerDownRight, MessageSquare } from 'lucide-react';
+import { Star, ShoppingBag, Heart, Truck, RotateCcw, Upload, CheckCircle, Sparkles, ArrowLeft, Video, Loader2, ThumbsUp, ThumbsDown, CornerDownRight, MessageSquare, Banknote, Package, MessageCircle } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
 import { whatsappShareUrl } from '../utils/referral';
 import { useShippingQuote } from '../utils/shipping';
+import { formatPrice } from '../utils/format';
+import { FREE_DELIVERY_ABOVE, RETURN_POLICY_LINE, whatsappUrl } from '../config/store';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -35,7 +37,8 @@ export default function ProductDetailPage({
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const product = products.find(p => p.id === parseInt(id) || p.id === id) || products[0];
+  // Only live products are in `products`; a hidden or deleted id shows the 'not available' view
+  const product = products.find(p => String(p.id) === String(id));
   const isOutOfStock = product?.inStock === false || product?.stock <= 0;
 
   const [selectedSize, setSelectedSize] = useState(product?.sizes && product.sizes.length > 0 ? product.sizes[0] : '');
@@ -82,11 +85,11 @@ export default function ProductDetailPage({
     if (product.isCustomizable) {
       if ((product.customizationType === 'text' || product.customizationType === 'both') && !customTextVal.trim()) {
         alert(product.customizationPrompt || "Please enter the required customization text.");
-        return;
+        return false;
       }
       if ((product.customizationType === 'image' || product.customizationType === 'both') && !customImageVal) {
         alert(product.customizationPrompt || "Please upload the required customization photo.");
-        return;
+        return false;
       }
     }
     onAddToCart(product, quantity, {
@@ -95,6 +98,7 @@ export default function ProductDetailPage({
       selectedSize: selectedSize,
       selectedColor: selectedColor
     });
+    return true;
   };
 
   const handleLikeReview = async (reviewId) => {
@@ -167,24 +171,6 @@ export default function ProductDetailPage({
 
   // Delivery fee for the selected quantity is quoted by the server so cost/margin stays private
   const { shipping: deliveryCharge, loading: deliveryLoading } = useShippingQuote(product ? [{ id: product.id, quantity }] : []);
-
-  if (!product) {
-    return (
-      <div className="py-20 text-center text-slate-500">
-        <p className="text-sm font-bold">Product not found.</p>
-        <button onClick={() => navigate('/shop')} className="mt-4 px-4 py-2 bg-brand-navy text-white text-xs font-bold rounded-xl">
-          Back to Shop
-        </button>
-      </div>
-    );
-  }
-
-  const isWishlisted = wishlistItems.some(i => i.id === product.id);
-
-  // Related products engine (same category or gender)
-  const relatedProducts = products
-    .filter(p => p.id !== product.id && (p.category === product.category || p.gender === product.gender))
-    .slice(0, 4);
 
   // Track product view on mount
   useEffect(() => {
@@ -276,13 +262,40 @@ export default function ProductDetailPage({
     }
   };
 
-  const imagesList = product.images && product.images.length > 0 ? product.images : [product.image];
-  const averageRating = reviews.length > 0
-    ? Number((reviews.reduce((sum, r) => sum + (r.rating || 5), 0) / reviews.length).toFixed(1))
-    : (product.rating || 5);
-  const roundedRating = Math.round(averageRating);
+  if (!product) {
+    return (
+      <div className="py-20 px-4 text-center text-slate-600 space-y-4">
+        <p className="text-lg font-semibold text-slate-800">Ye product abhi available nahi hai.</p>
+        <p className="text-sm">Ho sakta hai stock khatam ho gaya ho ya season badal gaya ho.</p>
+        <button onClick={() => navigate('/shop')} className="px-5 py-3 bg-brand-cta hover:bg-brand-cta-hover text-white text-sm font-semibold rounded-xl">
+          Baaki products dekhein
+        </button>
+      </div>
+    );
+  }
 
-  const itemsForFreeDelivery = product.shipping?.itemsForFreeDelivery;
+  const isWishlisted = wishlistItems.some(i => i.id === product.id);
+
+  // Related products engine (same category or gender)
+  const relatedProducts = products
+    .filter(p => p.id !== product.id && (p.category === product.category || p.gender === product.gender))
+    .slice(0, 4);
+
+  const imagesList = product.images && product.images.length > 0 ? product.images : [product.image];
+  // Rating only from real reviews; nothing is shown when there are none
+  const reviewCount = reviewsLoading ? (product.reviewsCount || 0) : reviews.length;
+  const averageRating = !reviewsLoading && reviews.length > 0
+    ? Number((reviews.reduce((sum, r) => sum + (r.rating || 5), 0) / reviews.length).toFixed(1))
+    : product.rating;
+  const showRating = reviewCount > 0 && averageRating != null;
+
+  const lineTotal = product.price * quantity;
+  const neededForFree = Math.max(0, FREE_DELIVERY_ABOVE - lineTotal);
+
+  // "Abhi Khareedein": add to cart and go straight to checkout
+  const handleBuyNow = () => {
+    if (handleAddToCartWithCustomization()) navigate('/checkout');
+  };
 
   return (
     <div className="bg-white min-h-screen py-8">
@@ -291,7 +304,7 @@ export default function ProductDetailPage({
         {/* Back Link */}
         <div className="flex items-center space-x-2 text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors">
           <ArrowLeft className="w-4 h-4" />
-          <Link to="/">Back to Home</Link>
+          <Link to="/">Home</Link>
         </div>
 
         {/* TOP SECTION: Full-Page Product View */}
@@ -305,11 +318,16 @@ export default function ProductDetailPage({
                 alt={product.name}
                 className="w-full h-[300px] sm:h-[450px] md:h-[500px] object-cover object-center"
               />
-              {product.discount && (
-                <span className="absolute top-4 left-4 bg-rose-700 text-white font-extrabold text-xs px-3 py-1 rounded-full shadow-md">
-                  {product.discount}
-                </span>
-              )}
+              <button
+                onClick={() => onToggleWishlist(product)}
+                className={`absolute top-3 right-3 p-2.5 rounded-full shadow-md transition-colors ${
+                  isWishlisted ? 'bg-red-500 text-white' : 'bg-white/95 text-slate-700 hover:text-red-500'
+                }`}
+                title="Wishlist mein rakhein"
+                aria-label="Wishlist mein rakhein"
+              >
+                <Heart className={`w-5 h-5 ${isWishlisted ? 'fill-current' : ''}`} />
+              </button>
             </div>
 
             {/* Thumbnail Row */}
@@ -332,28 +350,21 @@ export default function ProductDetailPage({
           <div className="lg:col-span-6 space-y-6">
             
             <div className="space-y-2">
-              <div className="flex items-center space-x-2 text-xs font-bold text-brand-navy">
-                <span>{product.category}</span>
-                <span>•</span>
-                <span>{product.gender || 'Unisex'}</span>
-              </div>
-              <h1 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-tight">
+              <Link to={`/shop?category=${encodeURIComponent(product.category)}`} className="inline-block text-sm font-semibold text-brand-navy hover:underline">
+                {product.category}
+              </Link>
+              <h1 className="text-2xl sm:text-4xl font-bold text-slate-900 tracking-tight leading-tight">
                 {product.name}
               </h1>
 
-              {/* Rating */}
-              <div className="flex items-center space-x-2 pt-1">
-                <div className="flex text-amber-400">
-                  {[...Array(5)].map((_, i) => (
-                    <Star 
-                      key={i} 
-                      className={`w-4 h-4 ${i < roundedRating ? 'fill-amber-450 text-amber-400 fill-amber-400' : 'text-slate-300'}`} 
-                    />
-                  ))}
+              {/* Rating: only when there are real reviews */}
+              {showRating && (
+                <div className="flex items-center gap-1.5 pt-1">
+                  <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
+                  <span className="text-sm font-semibold text-slate-800">{averageRating.toFixed(1)}</span>
+                  <span className="text-sm text-slate-500">({reviewCount} {reviewCount === 1 ? 'review' : 'reviews'})</span>
                 </div>
-                <span className="text-xs font-bold text-slate-700">{averageRating.toFixed(1)} / 5.0</span>
-                <span className="text-xs text-slate-400">({reviews.length} Verified Customer Reviews)</span>
-              </div>
+              )}
 
               {/* Seller Information */}
               {product.seller && (
@@ -370,28 +381,31 @@ export default function ProductDetailPage({
             </div>
 
             {/* Price Box in ₹ INR */}
-            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex items-baseline space-x-3">
-              <span className="text-3xl font-black text-brand-navy">₹{product.price.toFixed(2)}</span>
-              {product.originalPrice && (
-                <span className="text-sm font-bold text-slate-400 line-through">₹{product.originalPrice.toFixed(2)}</span>
-              )}
-              {product.discount && (
-                <span className="text-xs font-extrabold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                  Save {product.discount}
-                </span>
-              )}
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200">
+              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <span className="font-heading text-3xl font-bold text-brand-cta">{formatPrice(product.price)}</span>
+                {product.originalPrice > product.price && (
+                  <>
+                    <span className="text-sm font-semibold text-slate-400 line-through">{formatPrice(product.originalPrice)}</span>
+                    <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                      {formatPrice(product.originalPrice - product.price)} bachao
+                    </span>
+                  </>
+                )}
+              </div>
+              <p className="text-xs text-slate-500 mt-1">Sabhi taxes shamil</p>
             </div>
 
             {/* Description */}
             <p className="text-xs sm:text-sm text-slate-600 font-semibold leading-relaxed">
-              {product.description || "Premium quality product crafted with express India delivery, soft breathable fabric, and long-lasting durability for festive occasions."}
+              {product.description}
             </p>
 
             {/* Sizes Selector */}
             {product.sizes && product.sizes.length > 0 && (
               <div className="space-y-2.5 pt-2 animate-fade-in">
                 <div className="flex justify-between items-center">
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Select Size</label>
+                  <label className="block text-sm font-semibold text-slate-700">Size chunein</label>
                   {product.category === 'Clothing' && (
                     <span className="text-[10px] text-slate-400 font-semibold">Standard Fit</span>
                   )}
@@ -418,7 +432,7 @@ export default function ProductDetailPage({
             {/* Colors Selector */}
             {product.colors && product.colors.length > 0 && (
               <div className="space-y-2.5 pt-2 animate-fade-in">
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Select Color</label>
+                <label className="block text-sm font-semibold text-slate-700">Rang chunein</label>
                 <div className="flex flex-wrap gap-3">
                   {product.colors.map((color) => {
                     const isHex = color.startsWith('#');
@@ -455,7 +469,7 @@ export default function ProductDetailPage({
 
             {/* Quantity Selector */}
             <div className="space-y-2 pt-2">
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Quantity</label>
+              <label className="block text-sm font-semibold text-slate-700">Kitne chahiye</label>
               <div className="flex items-center space-x-3">
                 <div className="flex items-center border border-slate-300 rounded-xl overflow-hidden bg-slate-50">
                   <button
@@ -473,37 +487,22 @@ export default function ProductDetailPage({
                   </button>
                 </div>
                 <span className={`text-xs font-semibold ${isOutOfStock ? 'text-red-600' : 'text-emerald-600'}`}>
-                  {isOutOfStock ? '✗ Out of Stock (Currently Unavailable)' : '✓ In Stock (Express Shipping Available)'}
+                  {isOutOfStock ? 'Stock khatam' : 'Stock mein hai'}
                 </span>
               </div>
             </div>
 
-            {/* Price & Delivery Charge Summary */}
-            <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl space-y-2 select-none font-bold text-xs">
-              <div className="flex justify-between text-slate-700">
-                <span>Items Subtotal ({quantity} {quantity === 1 ? 'Pc' : 'Pcs'}):</span>
-                <span>₹{(product.price * quantity).toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-700">Estimated Delivery Fee:</span>
-                <span className={deliveryCharge === 0 ? 'text-emerald-700 font-extrabold' : 'text-slate-900'}>
-                  {deliveryLoading ? 'Calculating...' : deliveryCharge === null ? 'Calculated at checkout' : deliveryCharge === 0 ? 'FREE DELIVERY' : `+₹${deliveryCharge.toFixed(0)}`}
+            {/* Delivery charge (flat rule, quoted by the server) */}
+            <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl text-sm font-semibold">
+              {deliveryLoading ? (
+                <span className="text-slate-500">Delivery: ...</span>
+              ) : deliveryCharge === 0 || (deliveryCharge === null && neededForFree === 0) ? (
+                <span className="text-emerald-700">Delivery: FREE</span>
+              ) : (
+                <span className="text-slate-800">
+                  Delivery: ₹{deliveryCharge ?? 49} · {formatPrice(neededForFree)} aur ka saman lein, delivery free
                 </span>
-              </div>
-              {deliveryCharge > 0 && itemsForFreeDelivery > quantity && (
-                <p className="text-[10px] text-brand-navy font-extrabold pt-1 border-t border-slate-200/60">
-                  💡 Hint: Buy {itemsForFreeDelivery} pieces for FREE shipping! (Only {itemsForFreeDelivery - quantity} more needed)
-                </p>
               )}
-              {deliveryCharge === 0 && (
-                <p className="text-[10px] text-emerald-700 font-extrabold pt-1 border-t border-slate-200/60">
-                  🎉 Congrats! You have unlocked FREE Express Delivery!
-                </p>
-              )}
-              <div className="flex justify-between text-sm font-extrabold text-slate-900 pt-2 border-t border-slate-300">
-                <span>Total Amount:</span>
-                <span>₹{((product.price * quantity) + (deliveryCharge || 0)).toFixed(2)}</span>
-              </div>
             </div>
 
             {/* Product Customization Fields */}
@@ -583,54 +582,67 @@ export default function ProductDetailPage({
             )}
 
             {/* Action Buttons */}
-            <div className="flex items-center space-x-4 pt-4">
+            <div className="flex flex-col sm:flex-row gap-3 pt-2">
               <button
                 disabled={isOutOfStock}
-                onClick={() => !isOutOfStock && handleAddToCartWithCustomization()}
-                className={`flex-1 py-4 text-white font-extrabold text-xs uppercase tracking-wider rounded-2xl shadow-lg transition-colors flex items-center justify-center space-x-2 ${
+                onClick={() => !isOutOfStock && handleBuyNow()}
+                className={`flex-1 py-4 text-white font-semibold text-base rounded-2xl shadow-lg transition-colors flex items-center justify-center gap-2 ${
                   isOutOfStock ? 'bg-slate-400 cursor-not-allowed shadow-none' : 'bg-brand-cta hover:bg-brand-cta-hover'
                 }`}
               >
-                <ShoppingBag className="w-5 h-5" />
-                <span>{isOutOfStock ? 'OUT OF STOCK' : `ADD TO SHOPPING CART (₹${(product.price * quantity).toFixed(2)})`}</span>
+                <span>{isOutOfStock ? 'Stock khatam' : 'Abhi Khareedein · COD'}</span>
               </button>
-
-              <button
-                onClick={() => onToggleWishlist(product)}
-                className={`p-4 border-2 rounded-2xl transition-colors ${
-                  isWishlisted ? 'border-red-500 bg-red-50 text-red-500' : 'border-slate-300 hover:border-slate-800 text-slate-700'
-                }`}
-                title="Save to Wishlist"
-              >
-                <Heart className={`w-5 h-5 ${isWishlisted ? 'fill-red-500' : ''}`} />
-              </button>
+              {!isOutOfStock && (
+                <button
+                  onClick={() => handleAddToCartWithCustomization()}
+                  className="flex-1 py-4 border-2 border-brand-navy text-brand-navy font-semibold text-base rounded-2xl hover:bg-blue-50 transition-colors flex items-center justify-center gap-2"
+                >
+                  <ShoppingBag className="w-5 h-5" />
+                  <span>Cart mein daalein</span>
+                </button>
+              )}
             </div>
+
+            {/* Trust strip */}
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              {[
+                { icon: Banknote, title: 'Cash on Delivery', sub: 'Ghar pe paise dein', tint: 'bg-emerald-50 border-emerald-200' },
+                { icon: Truck, title: 'Free Delivery', sub: '₹499+ par, warna ₹49', tint: 'bg-brand-cream border-brand-peach' },
+                { icon: Package, title: '2 din mein dispatch', sub: 'Panipat se, Mon–Sat', tint: 'bg-brand-cream border-brand-peach' },
+                { icon: RotateCcw, title: '7-din Return', sub: 'Kharab/galat/size issue', tint: 'bg-brand-cream border-brand-peach' }
+              ].map(({ icon: Icon, title, sub, tint }) => (
+                <div key={title} className={`flex items-start gap-2.5 p-3 rounded-xl border ${tint}`}>
+                  <Icon className="w-5 h-5 text-brand-navy shrink-0 mt-0.5" strokeWidth={1.75} />
+                  <div>
+                    <span className="block text-sm font-semibold text-brand-navy leading-tight">{title}</span>
+                    <span className="block text-xs text-slate-600 mt-0.5">{sub}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              {RETURN_POLICY_LINE} <Link to="/refunds" className="text-brand-navy font-semibold underline">Poori policy</Link>
+            </p>
+
+            <a
+              href={whatsappUrl(`Namaste, mujhe ye product chahiye: ${product.name} - ${window.location.origin}/product/${product.id}`)}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-navy underline underline-offset-4"
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span>Sawal hai? WhatsApp pe poochein</span>
+            </a>
 
             <a
               href={whatsappShareUrl(product, currentUser?.resellerProfile?.code)}
               target="_blank"
               rel="noreferrer"
-              className="w-full py-3 bg-[#25D366] hover:bg-[#1ebe5b] text-white font-extrabold text-xs uppercase tracking-wider rounded-2xl flex items-center justify-center space-x-2"
+              className="w-full py-3 bg-[#25D366] hover:bg-[#1ebe5b] text-brand-navy font-bold text-sm rounded-2xl flex items-center justify-center gap-2"
             >
               <MessageSquare className="w-4 h-4" />
-              <span>{currentUser?.resellerProfile?.code ? 'WhatsApp pe share karo aur kamao' : 'Share on WhatsApp'}</span>
+              <span>{currentUser?.resellerProfile?.code ? 'Share karein aur kamaayein' : 'WhatsApp pe share karein'}</span>
             </a>
-
-            {/* Trust Badges */}
-            <div className="grid grid-cols-3 gap-3 pt-4 text-center">
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-                <Truck className="w-5 h-5 text-brand-navy mx-auto" />
-                <span className="text-[10px] font-bold text-slate-700 block">Fast India Delivery</span>
-              </div>
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-                <RotateCcw className="w-5 h-5 text-brand-navy mx-auto" />
-                <span className="text-[10px] font-bold text-slate-700 block">7 Days Return</span>
-              </div>
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-                <ShieldCheck className="w-5 h-5 text-brand-navy mx-auto" />
-                <span className="text-[10px] font-bold text-slate-700 block">100% Genuine</span>
-              </div>
-            </div>
 
           </div>
 
@@ -639,7 +651,7 @@ export default function ProductDetailPage({
         {/* BOTTOM SECTION: Customer Reviews & Cloudinary Photo Upload */}
         <div className="pt-12 border-t border-slate-200 space-y-8">
           <div className="flex items-center justify-between">
-            <h3 className="text-2xl font-black text-slate-900 tracking-tight">Customer Reviews & Photos ({reviews.length})</h3>
+            <h3 className="text-2xl font-bold text-slate-900 tracking-tight">Customer Photos & Reviews{reviews.length > 0 ? ` (${reviews.length})` : ''}</h3>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -649,7 +661,7 @@ export default function ProductDetailPage({
               {reviewsLoading ? (
                 <div className="text-xs text-slate-400 text-center py-6">Loading reviews...</div>
               ) : reviews.length === 0 ? (
-                <div className="text-xs text-slate-400 text-center py-6">No reviews yet. Be the first to review!</div>
+                <div className="text-sm text-slate-600 text-center py-6">Pehle khareedne wale baniye — photo ke saath review dein.</div>
               ) : reviews.map((rev) => (
                 <div key={rev._id || rev.id} className="p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
                   <div className="flex items-center justify-between">
@@ -895,8 +907,8 @@ export default function ProductDetailPage({
         {relatedProducts.length > 0 && (
           <div className="pt-12 border-t border-slate-200 space-y-6">
             <div className="flex items-center justify-between">
-              <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">Recommended Related Products</h3>
-              <Link to="/shop" className="text-xs font-extrabold text-brand-navy hover:underline">View All Catalog →</Link>
+              <h3 className="text-xl font-bold text-slate-900 tracking-tight">Aapko ye bhi pasand aayega</h3>
+              <Link to="/shop" className="text-sm font-semibold text-brand-navy hover:underline">Sab dekhein →</Link>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">

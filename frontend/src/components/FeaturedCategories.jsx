@@ -1,65 +1,64 @@
 import React from 'react';
 
+// Fixed shop order (website plan §6.2) with Hinglish + English labels.
+// Categories not in this list (e.g. older ones) are shown after these.
+const CATEGORY_ORDER = [
+  { name: 'Kambal & Dohar', label: 'Kambal / Blanket' },
+  { name: 'Bedsheet', label: 'Chadar / Bedsheet' },
+  { name: 'Cushion & Sofa Cover', label: 'Cushion Cover' },
+  { name: 'Mats & Table Runner', label: 'Mats / Runner' },
+  { name: 'Suit Sets', label: 'Suit Sets' },
+  { name: 'Co-ord Sets', label: 'Co-ord Sets' },
+  { name: "Women's Wear", label: 'Suit & Kurti / Women' }
+];
+
 export default function FeaturedCategories({ products = [], onSelectCategory }) {
-  // Dynamically extract unique categories, group product counts, and use the first product's image
-  const categoriesMap = products.reduce((acc, p) => {
-    if (!p.category) return acc;
-    const catName = p.category.trim();
-    if (!acc[catName]) {
-      acc[catName] = {
-        name: catName,
-        image: p.image || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=300&q=80",
-        itemsCount: 0
-      };
-    }
-    acc[catName].itemsCount += 1;
-    return acc;
-  }, {});
+  // Only categories with at least one live product; image = first product's photo
+  const firstImage = {};
+  products.forEach(p => {
+    const cat = p.category?.trim();
+    if (cat && !firstImage[cat]) firstImage[cat] = p.image;
+  });
 
-  const dynamicCategories = Object.values(categoriesMap);
+  const known = CATEGORY_ORDER.filter(c => firstImage[c.name]);
+  const others = Object.keys(firstImage)
+    .filter(name => !CATEGORY_ORDER.some(c => c.name === name))
+    .map(name => ({ name, label: name }));
+  const categories = [...known, ...others].map(c => ({ ...c, image: firstImage[c.name] }));
 
-  if (dynamicCategories.length === 0) return null;
+  if (categories.length === 0) return null;
 
   return (
-    <section id="categories" className="py-16 bg-slate-50 border-t border-slate-100">
+    <section id="categories" className="py-6 sm:py-10 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Header */}
-        <div className="text-center mb-10 space-y-2">
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Featured Categories
-          </h2>
-          <p className="text-slate-500 text-sm">
-            Browse our wide selection of top premium fashion categories
-          </p>
-          <div className="w-12 h-1 bg-brand-navy rounded-full mx-auto mt-3" />
-        </div>
+        <h2 className="text-xl sm:text-2xl font-bold text-brand-navy mb-4">
+          Kya dhoondh rahe hain?
+        </h2>
 
-        {/* Category Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
-          {dynamicCategories.map((cat, idx) => (
-            <div
-              key={idx}
+        <div className="flex gap-4 sm:gap-6 overflow-x-auto snap-x snap-mandatory pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 lg:grid lg:grid-cols-6 lg:overflow-visible">
+          {categories.map((cat) => (
+            <button
+              key={cat.name}
+              type="button"
               onClick={() => onSelectCategory(cat.name)}
-              className="group bg-white rounded-xl p-4 text-center cursor-pointer border border-slate-200/80 custom-card-shadow transition-all duration-300 hover:-translate-y-1"
+              className="group snap-start shrink-0 w-20 sm:w-24 lg:w-auto flex flex-col items-center text-center cursor-pointer"
             >
-              <div className="w-20 h-20 mx-auto rounded-full overflow-hidden mb-3 bg-slate-100 ring-2 ring-blue-50 group-hover:ring-brand-navy transition-all">
+              <span className="w-[72px] h-[72px] sm:w-20 sm:h-20 rounded-full overflow-hidden bg-brand-peach ring-2 ring-brand-peach group-hover:ring-brand-orange transition-all">
                 <img
                   src={cat.image}
-                  alt={cat.name}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  alt={cat.label}
+                  width="80"
+                  height="80"
+                  loading="lazy"
+                  className="w-full h-full object-cover"
                 />
-              </div>
-              <h4 className="text-sm font-bold text-slate-800 group-hover:text-brand-navy transition-colors truncate">
-                {cat.name}
-              </h4>
-              <span className="text-[11px] text-slate-400 font-semibold mt-0.5 block">
-                {cat.itemsCount} {cat.itemsCount === 1 ? 'Product' : 'Products'}
               </span>
-            </div>
+              <span className="mt-2 text-xs sm:text-sm font-semibold text-[#1A2233] leading-tight group-hover:text-brand-navy">
+                {cat.label}
+              </span>
+            </button>
           ))}
         </div>
-
       </div>
     </section>
   );

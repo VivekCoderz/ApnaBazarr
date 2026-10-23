@@ -107,6 +107,16 @@ export default function ShopPage({ products, onAddToCart, onQuickView, onToggleW
     setLocalSearchQuery(initialQuery);
   }, [initialQuery]);
 
+  // Keep the category filter in sync when a link changes ?category= while already on /shop
+  const [categoryParam, setCategoryParam] = useState(initialCategory);
+  if (categoryParam !== initialCategory) {
+    setCategoryParam(initialCategory);
+    setSelectedCategory(initialCategory);
+  }
+
+  // ?tag=diwali etc. (seasonal collections, linked from the homepage hero)
+  const tagFilter = (searchParams.get('tag') || '').toLowerCase();
+
   const handleFollowToggle = () => {
     if (isFollowing) {
       setFollowersCount(prev => prev - 1);
@@ -125,7 +135,8 @@ export default function ShopPage({ products, onAddToCart, onQuickView, onToggleW
     const matchesCategory = selectedCategory === 'All' || p.category === selectedCategory;
     const matchesGender = selectedGender === 'All' || p.gender === selectedGender;
     const matchesPrice = p.price <= maxPrice;
-    return matchesQuery && matchesCategory && matchesGender && matchesPrice;
+    const matchesTag = !tagFilter || (p.tags || []).some(t => String(t).toLowerCase() === tagFilter);
+    return matchesQuery && matchesCategory && matchesGender && matchesPrice && matchesTag;
   });
 
   // Sort products

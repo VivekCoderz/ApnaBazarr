@@ -13,6 +13,7 @@ const Product = require('../models/Product');
 const Setting = require('../models/Setting');
 const { resolveResellerForOrder } = require('./reseller');
 const { orderShippingCharge: calcOrderShipping } = require('../utils/shipping');
+const { codLimitError } = require('../utils/cod');
 
 function calculateShipping(pickupPincode, deliveryPincode, weight, length, width, height) {
   return 0; // Free shipping
@@ -29,7 +30,8 @@ async function processOrderItems(items, deliveryPincode) {
   for (const item of items) {
     const prodId = item.productId || item.id;
     const dbProduct = await Product.findById(prodId).populate('seller');
-    if (dbProduct) {
+    // Hidden (isActive: false) products can no longer be ordered
+    if (dbProduct && dbProduct.isActive !== false) {
       dbProducts.push({ item, dbProduct });
       subtotal += dbProduct.price * item.quantity;
     }
@@ -83,6 +85,12 @@ module.exports.createOrder = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Minimum order amount of ₹100 is required.' });
     }
 
+    // This endpoint only creates Cash on Delivery orders. Online payments are saved
+    // by /orders/verify after the Razorpay signature check, never here.
+    if (paymentMethod && paymentMethod !== 'COD') {
+      return res.status(400).json({ success: false, message: 'Online payment ke liye Razorpay se pay karein.' });
+    }
+
     const randomNum = Math.floor(1000 + Math.random() * 9000);
     const orderId = `AB-2026-${randomNum}`;
 
@@ -96,10 +104,19 @@ module.exports.createOrder = async (req, res) => {
     });
 
     const formattedItems = await processOrderItems(items, shippingAddress.pincode);
+    if (formattedItems.length === 0) {
+      return res.status(400).json({ success: false, message: 'Cart ke products ab available nahi hain. Cart check karein.' });
+    }
 
     const totalItemCost = formattedItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
     const totalShipping = formattedItems.reduce((acc, item) => acc + item.shippingCharges, 0);
     const calculatedTotal = totalItemCost + totalShipping;
+
+    // COD is open to everyone, up to a per-order limit (checked on the server-calculated total)
+    const codError = codLimitError(calculatedTotal);
+    if (codError) {
+      return res.status(400).json({ success: false, message: codError });
+    }
 
     const buyerEmail = userEmail || 'guest@apnabazarr.com';
     const resellerFields = await resolveResellerForOrder(resellerCode, buyerEmail, formattedItems);
@@ -110,8 +127,8 @@ module.exports.createOrder = async (req, res) => {
       items: formattedItems,
       ...resellerFields,
       shippingAddress,
-      paymentMethod: paymentMethod || 'UPI',
-      paymentStatus: paymentMethod === 'COD' ? 'Pending COD' : 'Completed',
+      paymentMethod: 'COD',
+      paymentStatus: 'Pending COD',
       orderStatus: 'Order Placed',
       totalAmount: calculatedTotal,
       estimatedDelivery: estimatedDeliveryStr
@@ -147,10 +164,13 @@ module.exports.getOrders = async (req, res) => {
   }
 };
 
+// Requires auth (see routes/order.js). Only the admin or the buyer who placed the
+// order may read it; anyone else gets the same 404 as a missing order.
 module.exports.getOrderById = async (req, res) => {
   try {
     const order = await Order.findOne({ orderId: req.params.orderId });
-    if (!order) {
+    const isOwner = order && req.user?.email && order.userEmail === req.user.email;
+    if (!order || (req.user?.role !== 'admin' && !isOwner)) {
       return res.status(404).json({ success: false, message: 'Order not found.' });
     }
     res.json({ success: true, order });
@@ -161,10 +181,16 @@ module.exports.getOrderById = async (req, res) => {
 
 module.exports.createRazorpayOrder = async (req, res) => {
   try {
-    const { amount } = req.body;
-    if (!amount || amount <= 0) {
-      return res.status(400).json({ success: false, message: 'Invalid amount.' });
+    // Charge what the server calculates for the cart, never an amount sent by the browser
+    const { items } = req.body;
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ success: false, message: 'Cart khaali hai.' });
     }
+    const formattedItems = await processOrderItems(items);
+    if (formattedItems.length === 0) {
+      return res.status(400).json({ success: false, message: 'Cart ke products abhi available nahi hain.' });
+    }
+    const amount = formattedItems.reduce((acc, item) => acc + item.price * item.quantity + item.shippingCharges, 0);
     if (amount < 100) {
       return res.status(400).json({ success: false, message: 'Minimum order amount of ₹100 is required.' });
     }
@@ -232,6 +258,16 @@ module.exports.verifyRazorpayPayment = async (req, res) => {
     const totalItemCost = formattedItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
     const totalShipping = formattedItems.reduce((acc, item) => acc + item.shippingCharges, 0);
     const calculatedTotal = totalItemCost + totalShipping;
+
+    // The signature only proves the payment happened; make sure it paid for THIS cart
+    // and that the same payment isn't turned into a second order.
+    const paidOrder = await rzp.orders.fetch(razorpay_order_id);
+    if (paidOrder.amount !== Math.round(calculatedTotal * 100)) {
+      return res.status(400).json({ success: false, message: 'Payment amount order total se match nahi karta. Hum se WhatsApp pe sampark karein.' });
+    }
+    if (await Order.exists({ razorpayOrderId: razorpay_order_id })) {
+      return res.status(409).json({ success: false, message: 'Ye payment pehle hi ek order mein use ho chuka hai.' });
+    }
 
     const buyerEmail = email || 'guest@apnabazarr.com';
     const resellerFields = await resolveResellerForOrder(resellerCode, buyerEmail, formattedItems);

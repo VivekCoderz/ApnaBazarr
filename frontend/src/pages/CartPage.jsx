@@ -1,7 +1,11 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Minus, Trash2, ShoppingBag, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Plus, Minus, Trash2, ShoppingBag, ArrowRight, ArrowLeft, Truck } from 'lucide-react';
 import { useShippingQuote } from '../utils/shipping';
+import { formatPrice } from '../utils/format';
+import { FREE_DELIVERY_ABOVE } from '../config/store';
+
+const MIN_ORDER = 100;
 
 export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem }) {
   const navigate = useNavigate();
@@ -10,59 +14,55 @@ export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem }) 
   // Shipping is quoted by the server (same rule it charges at checkout)
   const { shipping, loading: shippingLoading } = useShippingQuote(cartItems);
   const total = subtotal + (shipping || 0);
-  const belowMinimum = !shippingLoading && total < 100;
+  const belowMinimum = !shippingLoading && total < MIN_ORDER;
+  const neededForFree = Math.max(0, FREE_DELIVERY_ABOVE - subtotal);
 
   return (
-    <div className="py-10 bg-slate-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-        
+    <div className="py-6 sm:py-10 bg-slate-50 min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4 sm:space-y-6">
+
         {/* Header */}
-        <div className="flex items-center justify-between bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Shopping Cart</h1>
-            <p className="text-xs text-slate-500 mt-1">Review your items before proceeding to payment</p>
-          </div>
-          <Link to="/shop" className="text-xs font-bold text-brand-navy flex items-center space-x-1 hover:underline">
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Continue Shopping</span>
+        <div className="flex items-center justify-between gap-3 bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-xs">
+          <h1 className="text-2xl sm:text-3xl font-bold text-brand-navy tracking-tight">Aapka Cart</h1>
+          <Link to="/shop" className="text-sm font-semibold text-brand-navy flex items-center gap-1 hover:underline shrink-0">
+            <ArrowLeft className="w-4 h-4" />
+            <span>Aur dekhein</span>
           </Link>
         </div>
 
         {cartItems.length === 0 ? (
-          <div className="bg-white p-12 rounded-2xl border border-slate-200 text-center space-y-4">
+          <div className="bg-white p-10 rounded-2xl border border-slate-200 text-center space-y-4">
             <div className="p-4 bg-slate-100 text-slate-400 rounded-full w-16 h-16 flex items-center justify-center mx-auto">
               <ShoppingBag className="w-8 h-8 stroke-[1.5]" />
             </div>
-            <h3 className="text-lg font-bold text-slate-800">Your shopping cart is currently empty</h3>
-            <p className="text-xs text-slate-500 max-w-sm mx-auto">Explore our wide collection of Men, Women, Kids, and Rakhi Special products!</p>
-            <Link to="/shop" className="inline-block px-6 py-3 bg-brand-navy text-white text-xs font-extrabold rounded-xl shadow-md">
-              START SHOPPING NOW
+            <h3 className="text-lg font-semibold text-slate-800">Cart khaali hai.</h3>
+            <Link to="/shop" className="inline-block px-6 py-3 bg-brand-cta hover:bg-brand-cta-hover text-white text-sm font-semibold rounded-xl shadow-md">
+              Shopping shuru karein
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+
             {/* Cart Items List */}
-            <div className="lg:col-span-2 space-y-4">
+            <div className="lg:col-span-2 space-y-3 sm:space-y-4">
               {cartItems.map((item) => (
                 <div key={`${item.id}-${item.customText || ''}-${item.customImage || ''}-${item.selectedSize || ''}-${item.selectedColor || ''}`} className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col space-y-3">
-                  
+
                   {/* Top Row: Image, Info & Delete Button */}
                   <div className="flex items-start space-x-3 w-full">
                     <img src={item.image} alt={item.name} className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-xl bg-slate-50 border border-slate-100 shrink-0" />
-                    
+
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-xs sm:text-sm font-bold text-slate-900 line-clamp-2 leading-snug">{item.name}</h4>
-                      <p className="text-[10px] sm:text-xs text-slate-400 mt-0.5">{item.category} • {item.gender}</p>
+                      <h4 className="text-sm font-semibold text-slate-900 line-clamp-2 leading-snug">{item.name}</h4>
                       <div className="flex flex-wrap gap-1.5 mt-1">
                         {item.selectedSize && (
-                          <span className="inline-block text-[10px] sm:text-xs font-black text-slate-800 bg-slate-100 px-2.5 py-0.5 rounded border border-slate-200 uppercase">
+                          <span className="inline-block text-xs font-semibold text-slate-800 bg-slate-100 px-2.5 py-0.5 rounded border border-slate-200">
                             Size: {item.selectedSize}
                           </span>
                         )}
-                        {item.selectedColor && (
-                          <span className="inline-block text-[10px] sm:text-xs font-black text-slate-800 bg-slate-100 px-2.5 py-0.5 rounded border border-slate-200 uppercase">
-                            Color: {item.selectedColor}
+                        {item.selectedColor && item.selectedColor !== 'Default' && (
+                          <span className="inline-block text-xs font-semibold text-slate-800 bg-slate-100 px-2.5 py-0.5 rounded border border-slate-200">
+                            Rang: {item.selectedColor}
                           </span>
                         )}
                       </div>
@@ -70,8 +70,9 @@ export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem }) 
 
                     <button
                       onClick={() => onRemoveItem(item.id, item.customText, item.customImage, item.selectedSize, item.selectedColor)}
-                      className="p-1.5 text-slate-400 hover:text-red-655 transition-colors cursor-pointer shrink-0"
-                      title="Remove item"
+                      className="p-1.5 text-slate-400 hover:text-red-600 transition-colors cursor-pointer shrink-0"
+                      title="Hatayein"
+                      aria-label="Cart se hatayein"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -79,8 +80,7 @@ export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem }) 
 
                   {/* Customization Details */}
                   {(item.customText || item.customImage) && (
-                    <div className="p-2.5 bg-amber-50/70 border border-amber-200/60 rounded-xl space-y-1 text-[10px] text-amber-900 font-semibold w-full">
-                      <span className="font-extrabold uppercase text-[9px] text-amber-700 block tracking-wider">Customization Details</span>
+                    <div className="p-2.5 bg-amber-50/70 border border-amber-200/60 rounded-xl space-y-1 text-[11px] text-amber-900 font-semibold w-full">
                       {item.customText && (
                         <div>
                           <span className="text-slate-500 font-bold">Text: </span>
@@ -91,7 +91,6 @@ export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem }) 
                         <div className="flex items-center space-x-1.5 pt-0.5">
                           <span className="text-slate-500 font-bold">Photo: </span>
                           <img src={item.customImage} alt="Custom Preview" className="w-6 h-6 object-cover rounded border" />
-                          <a href={item.customImage} target="_blank" rel="noreferrer" className="text-brand-navy underline text-[9px]">View Original</a>
                         </div>
                       )}
                     </div>
@@ -102,20 +101,22 @@ export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem }) 
                     <div className="flex items-center border border-slate-200 rounded-lg bg-slate-50">
                       <button
                         onClick={() => onUpdateQuantity(item.id, item.quantity - 1, item.customText, item.customImage, item.selectedSize, item.selectedColor)}
-                        className="p-1.5 text-slate-600 hover:bg-slate-200 rounded-l-lg cursor-pointer"
+                        className="p-2 text-slate-600 hover:bg-slate-200 rounded-l-lg cursor-pointer"
+                        aria-label="Kam karein"
                       >
-                        <Minus className="w-3 h-3" />
+                        <Minus className="w-3.5 h-3.5" />
                       </button>
-                      <span className="px-3 text-xs font-extrabold text-slate-900">{item.quantity}</span>
+                      <span className="px-3 text-sm font-bold text-slate-900">{item.quantity}</span>
                       <button
                         onClick={() => onUpdateQuantity(item.id, item.quantity + 1, item.customText, item.customImage, item.selectedSize, item.selectedColor)}
-                        className="p-1.5 text-slate-600 hover:bg-slate-200 rounded-r-lg cursor-pointer"
+                        className="p-2 text-slate-600 hover:bg-slate-200 rounded-r-lg cursor-pointer"
+                        aria-label="Badhayein"
                       >
-                        <Plus className="w-3 h-3" />
+                        <Plus className="w-3.5 h-3.5" />
                       </button>
                     </div>
 
-                    <span className="text-sm sm:text-base font-extrabold text-slate-900">₹{(item.price * item.quantity).toFixed(2)}</span>
+                    <span className="font-heading text-base sm:text-lg font-bold text-slate-900">{formatPrice(item.price * item.quantity)}</span>
                   </div>
 
                 </div>
@@ -123,49 +124,55 @@ export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem }) 
             </div>
 
             {/* Summary Sidebar */}
-            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs h-fit space-y-4">
-              <h3 className="font-extrabold text-sm text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-3">Order Summary</h3>
+            <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-xs h-fit space-y-4">
+              <h3 className="font-bold text-base text-slate-900 border-b border-slate-100 pb-3">Order Summary</h3>
 
-              <div className="space-y-2 text-xs text-slate-600">
+              {/* Free-delivery progress */}
+              <div className={`flex items-start gap-2 p-3 rounded-xl text-sm font-semibold ${neededForFree > 0 ? 'bg-brand-peach text-brand-navy' : 'bg-emerald-50 text-emerald-700'}`}>
+                <Truck className="w-4 h-4 mt-0.5 shrink-0" />
+                <span>
+                  {neededForFree > 0
+                    ? `${formatPrice(neededForFree)} aur ka saman lein — delivery FREE`
+                    : 'Badhai! Delivery FREE hai'}
+                </span>
+              </div>
+
+              <div className="space-y-2 text-sm text-slate-600">
                 <div className="flex justify-between">
-                  <span>Subtotal</span>
-                  <span className="font-bold text-slate-800">₹{subtotal.toFixed(2)}</span>
+                  <span>Saman</span>
+                  <span className="font-semibold text-slate-800">{formatPrice(subtotal)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Shipping Fee (India)</span>
-                  <span className="font-bold text-slate-800">
-                    {shippingLoading ? 'Calculating...' : shipping === null ? 'Calculated at checkout' : shipping === 0 ? <span className="text-emerald-600 font-extrabold">FREE</span> : `₹${shipping.toFixed(2)}`}
+                  <span>Delivery</span>
+                  <span className="font-semibold text-slate-800">
+                    {shippingLoading ? '...' : shipping === null ? 'Checkout par' : shipping === 0 ? <span className="text-emerald-600 font-bold">FREE</span> : formatPrice(shipping)}
                   </span>
                 </div>
-                <div className="flex justify-between text-base font-extrabold text-slate-900 pt-3 border-t border-slate-200">
-                  <span>Total Amount</span>
-                  <span className="text-brand-navy">₹{total.toFixed(2)}</span>
+                <div className="flex justify-between text-base font-bold text-slate-900 pt-3 border-t border-slate-200">
+                  <span>Kul</span>
+                  <span className="font-heading text-lg text-brand-cta">{formatPrice(total)}</span>
                 </div>
               </div>
 
               {belowMinimum && (
-                <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl space-y-1.5 text-[11px] text-rose-800 font-semibold leading-relaxed">
-                  <p>
-                    ⚠️ <span className="font-extrabold text-rose-950">English Note:</span> Minimum order value is <span className="font-extrabold text-rose-950">₹100.00</span>. Please add more items to checkout.
-                  </p>
-                  <p className="border-t border-rose-200/50 pt-1.5">
-                    ⚠️ <span className="font-extrabold text-rose-950">Hindi Note:</span> न्यूनतम ऑर्डर मूल्य <span className="font-extrabold text-rose-950">₹100.00</span> है। आगे बढ़ने के लिए और उत्पाद जोड़ें।
-                  </p>
-                </div>
+                <p className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-sm text-rose-800 font-semibold">
+                  Kam se kam ₹{MIN_ORDER} ka order hona chahiye.
+                </p>
               )}
 
               <button
                 onClick={() => navigate('/checkout')}
                 disabled={belowMinimum || shippingLoading}
-                className={`w-full py-3.5 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md transition-colors flex items-center justify-center space-x-2 ${
+                className={`w-full py-3.5 text-white font-semibold text-base rounded-xl shadow-md transition-colors flex items-center justify-center space-x-2 ${
                   belowMinimum || shippingLoading
                     ? 'bg-slate-300 cursor-not-allowed opacity-60'
                     : 'bg-brand-cta hover:bg-brand-cta-hover'
                 }`}
               >
-                <span>PROCEED TO CHECKOUT</span>
+                <span>Checkout karein</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
+              <p className="text-xs text-slate-500 text-center">Cash on Delivery available · Login ki zaroorat nahi</p>
             </div>
 
           </div>

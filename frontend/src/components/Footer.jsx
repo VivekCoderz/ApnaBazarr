@@ -1,71 +1,92 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, Phone, MapPin, Send, CheckCircle, CreditCard, ShieldCheck } from 'lucide-react';
+import { Mail, Phone, MapPin, MessageCircle } from 'lucide-react';
+import { whatsappUrl } from '../config/store';
 
-export default function Footer() {
-  const [email, setEmail] = useState('');
-  const [subscribed, setSubscribed] = useState(false);
+const SHOP_LINKS = [
+  'Kambal & Dohar',
+  'Bedsheet',
+  'Cushion & Sofa Cover',
+  'Suit Sets',
+  'Co-ord Sets'
+];
 
-  const handleSubscribe = (e) => {
-    e.preventDefault();
-    if (email) {
-      setSubscribed(true);
-      setTimeout(() => {
-        setEmail('');
-        setSubscribed(false);
-      }, 3000);
-    }
-  };
-
+export default function Footer({ products = [] }) {
+  // Only link categories that have live products (no empty pages)
+  const liveCategories = SHOP_LINKS.filter(c => products.some(p => p.category === c));
   return (
     <footer className="bg-slate-900 text-slate-300 pt-16 pb-8 border-t border-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* Main Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-slate-800">
-          
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 pb-12 border-b border-slate-800">
+
           {/* Column 1: Brand Info (2 Cols on lg) */}
           <div className="lg:col-span-2 space-y-4">
             <Link to="/" className="flex items-center space-x-2">
-              <img 
-                src="/logo.png" 
-                alt="Apna Bazarr Logo" 
-                className="h-10 w-auto object-contain" 
+              <img
+                src="/brand-lockup-reverse.png"
+                alt="Apna Bazarr"
+                className="h-10 w-auto object-contain"
               />
             </Link>
+            <p className="text-sm text-slate-200 font-semibold">Panipat se Seedha, Aapke Ghar Tak</p>
             <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
-              Apna Bazarr is your ultimate destination for luxury fashion, premium footwear, sleek watches, and handpicked accessories. We deliver unmatched quality straight to your doorstep.
+              Panipat ke blankets, bedsheets, cushion covers aur women's suit sets — factory daam pe, Cash on Delivery ke saath.
             </p>
             <div className="space-y-2 text-xs text-slate-400 pt-2">
               <div className="flex items-center space-x-2">
-                <MapPin className="w-4 h-4 text-brand-navy" />
-                <span>123 Commerce Way, Tech City, IN 400001</span>
+                <MapPin className="w-4 h-4 text-brand-orange" />
+                <span>Panipat, Haryana</span>
               </div>
               <a href="tel:+919306810726" className="flex items-center space-x-2 hover:text-white transition-colors">
-                <Phone className="w-4 h-4 text-brand-navy" />
-                <span>+91 9306810726</span>
+                <Phone className="w-4 h-4 text-brand-orange" />
+                <span>+91 93068 10726</span>
+              </a>
+              <a href={whatsappUrl()} target="_blank" rel="noreferrer" className="flex items-center space-x-2 hover:text-white transition-colors">
+                <MessageCircle className="w-4 h-4 text-brand-orange" />
+                <span>WhatsApp: +91 93068 10726</span>
               </a>
               <a href="mailto:appnabaazar@gmail.com" className="flex items-center space-x-2 hover:text-white transition-colors">
-                <Mail className="w-4 h-4 text-brand-navy" />
+                <Mail className="w-4 h-4 text-brand-orange" />
                 <span>appnabaazar@gmail.com</span>
               </a>
             </div>
           </div>
 
-          {/* Column 2: Quick Links */}
+          {/* Column 2: Shop */}
           <div className="space-y-3">
-            <h4 className="text-sm font-bold text-white uppercase tracking-wider">
-              Quick Links
+            <h4 className="text-sm font-bold text-white tracking-wider">
+              Shop
+            </h4>
+            <ul className="space-y-2 text-xs text-slate-400 font-semibold">
+              {liveCategories.map((category) => (
+                <li key={category}>
+                  <Link to={`/shop?category=${encodeURIComponent(category)}`} className="hover:text-white hover:underline transition-colors">
+                    {category}
+                  </Link>
+                </li>
+              ))}
+              <li>
+                <Link to="/shop" className="hover:text-white hover:underline transition-colors">Sab Products</Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Column 3: Help + Kamaayein */}
+          <div className="space-y-3">
+            <h4 className="text-sm font-bold text-white tracking-wider">
+              Help
             </h4>
             <ul className="space-y-2 text-xs text-slate-400 font-semibold">
               <li>
-                <Link to="/" className="hover:text-white hover:underline transition-colors">About Apna Bazarr</Link>
+                <Link to="/shipping" className="hover:text-white hover:underline transition-colors">Shipping Policy</Link>
               </li>
               <li>
-                <Link to="/shop" className="hover:text-white hover:underline transition-colors">Shop All Products</Link>
+                <Link to="/refunds" className="hover:text-white hover:underline transition-colors">Return & Refund</Link>
               </li>
               <li>
-                <Link to="/reseller" className="hover:text-white hover:underline transition-colors">Reseller Bano · Paise Kamao</Link>
+                <Link to="/contact" className="hover:text-white hover:underline transition-colors">Contact</Link>
               </li>
               <li>
                 <Link to="/terms" className="hover:text-white hover:underline transition-colors">Terms & Conditions</Link>
@@ -74,82 +95,23 @@ export default function Footer() {
                 <Link to="/privacy" className="hover:text-white hover:underline transition-colors">Privacy Policy</Link>
               </li>
               <li>
-                <Link to="/shipping" className="hover:text-white hover:underline transition-colors">Shipping Policy</Link>
-              </li>
-              <li>
-                <Link to="/refunds" className="hover:text-white hover:underline transition-colors">Cancellation & Refund</Link>
-              </li>
-              <li>
-                <Link to="/contact" className="hover:text-white hover:underline transition-colors">Contact Us</Link>
+                <Link to="/reseller" className="hover:text-white hover:underline transition-colors">Reseller Baniye · Kamaayein</Link>
               </li>
             </ul>
-          </div>
-
-          {/* Column 3: Categories */}
-          <div className="space-y-3">
-            <h4 className="text-sm font-bold text-white uppercase tracking-wider">
-              Top Categories
-            </h4>
-            <ul className="space-y-2 text-xs">
-              {['Backpacks & Luggage', 'Men\'s Jackets', 'Casual Boots', 'Women\'s Tops', 'Leather Handbags', 'Smartwatches'].map((item, idx) => (
-                <li key={idx}>
-                  <a href="#featured" className="hover:text-white hover:underline transition-colors">
-                    {item}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Column 4: Newsletter */}
-          <div className="space-y-3">
-            <h4 className="text-sm font-bold text-white uppercase tracking-wider">
-              Newsletter
-            </h4>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Subscribe to get special offers, free giveaways, and once-in-a-lifetime deals!
-            </p>
-
-            <form onSubmit={handleSubscribe} className="space-y-2 pt-1">
-              <div className="relative">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Your email address..."
-                  className="w-full bg-slate-800 border border-slate-700 text-white text-xs px-3 py-2.5 rounded-lg focus:outline-none focus:border-brand-navy placeholder-slate-500"
-                  required
-                />
-                <button
-                  type="submit"
-                  className="absolute right-1 top-1 bottom-1 px-3 bg-brand-navy hover:bg-blue-600 text-white rounded-md transition-colors flex items-center justify-center"
-                >
-                  <Send className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
-              {subscribed && (
-                <div className="flex items-center space-x-1 text-emerald-400 text-xs font-semibold pt-1">
-                  <CheckCircle className="w-3.5 h-3.5" />
-                  <span>Subscribed! Check your inbox for 10% OFF coupon.</span>
-                </div>
-              )}
-            </form>
           </div>
 
         </div>
 
         {/* Bottom Bar */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-          <p>© 2026 <span className="text-slate-300 font-bold">Apna Bazarr</span>. All rights reserved.</p>
-          
+          <p>© 2026 <span className="text-slate-300 font-bold">Apna Bazarr</span>, Panipat.</p>
+
           <div className="flex items-center space-x-3 text-slate-400">
-            <span className="font-semibold text-[11px] text-slate-500">Secured Payments:</span>
+            <span className="font-semibold text-[11px] text-slate-500">Payment:</span>
             <div className="flex space-x-2">
-              <span className="bg-slate-800 px-2 py-1 rounded text-[10px] font-bold text-slate-300">VISA</span>
-              <span className="bg-slate-800 px-2 py-1 rounded text-[10px] font-bold text-slate-300">MASTERCARD</span>
-              <span className="bg-slate-800 px-2 py-1 rounded text-[10px] font-bold text-slate-300">PAYPAL</span>
-              <span className="bg-slate-800 px-2 py-1 rounded text-[10px] font-bold text-slate-300">APPLE PAY</span>
+              <span className="bg-slate-800 px-2 py-1 rounded text-[10px] font-bold text-slate-300">COD</span>
+              <span className="bg-slate-800 px-2 py-1 rounded text-[10px] font-bold text-slate-300">UPI</span>
+              <span className="bg-slate-800 px-2 py-1 rounded text-[10px] font-bold text-slate-300">Cards (Razorpay)</span>
             </div>
           </div>
         </div>

@@ -60,15 +60,19 @@ export default function PolicyPage({ type }) {
               <Truck className="w-8 h-8 text-brand-navy" />
               <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Shipping Policy</h1>
             </div>
-            <p className="text-xs text-slate-400">Last updated: August 13, 2026</p>
+            <p className="text-xs text-slate-400">Last updated: October 24, 2026</p>
             <div className="space-y-4 text-xs sm:text-sm text-slate-600 leading-relaxed font-semibold">
-              <p>Thank you for visiting and shopping at Apna Bazarr. Following are the terms and conditions that constitute our Shipping Policy.</p>
-              <h3 className="text-base font-black text-slate-900 pt-2">Shipment Processing Time</h3>
-              <p>All orders are processed within 1-2 business days. Orders are not shipped or delivered on weekends or holidays.</p>
-              <h3 className="text-base font-black text-slate-900 pt-2">Shipping Rates & Delivery Estimates</h3>
-              <p>Shipping charges for your orders will be calculated and displayed at checkout. Standard shipping to metro cities in India takes 3-5 business days. Express shipping takes 1-2 business days.</p>
-              <h3 className="text-base font-black text-slate-900 pt-2">Shipment Confirmation & Order Tracking</h3>
-              <p>You will receive a Shipment Confirmation email once your order contains your tracking number(s). The tracking number will be active within 24 hours.</p>
+              <p>Hum Panipat, Haryana se poore India mein deliver karte hain.</p>
+              <h3 className="text-base font-black text-slate-900 pt-2">Dispatch</h3>
+              <p>Order ke 2 din mein Panipat se dispatch (Monday se Saturday). Sunday aur tyohaar ki chhutti ke din dispatch nahi hota.</p>
+              <h3 className="text-base font-black text-slate-900 pt-2">Delivery kitne din mein</h3>
+              <p>Dispatch ke baad Haryana/Delhi mein aam taur par 2–4 din, baaki India mein 4–8 din. Door ke ilaakon (North-East, J&K, islands) mein thoda zyada time lag sakta hai. Hum koi express ya same-day delivery nahi dete.</p>
+              <h3 className="text-base font-black text-slate-900 pt-2">Delivery charge</h3>
+              <p>₹499 ya usse zyada ke order par delivery FREE. Usse kam par ₹49 flat.</p>
+              <h3 className="text-base font-black text-slate-900 pt-2">Cash on Delivery</h3>
+              <p>₹3,000 tak ke order par Cash on Delivery available hai. COD order ke baad hum WhatsApp pe confirm karte hain; confirm hone ke baad hi saman bheja jata hai.</p>
+              <h3 className="text-base font-black text-slate-900 pt-2">Tracking</h3>
+              <p>Dispatch hone par tracking number WhatsApp pe bheja jata hai. Koi sawal ho to WhatsApp karein: +91 93068 10726.</p>
             </div>
           </div>
         );
@@ -77,17 +81,18 @@ export default function PolicyPage({ type }) {
           <div className="space-y-6">
             <div className="flex items-center space-x-3 border-b pb-4">
               <RefreshCw className="w-8 h-8 text-brand-navy" />
-              <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Cancellation & Refund Policy</h1>
+              <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Return & Refund Policy</h1>
             </div>
-            <p className="text-xs text-slate-400">Last updated: August 13, 2026</p>
+            <p className="text-xs text-slate-400">Last updated: October 24, 2026</p>
             <div className="space-y-4 text-xs sm:text-sm text-slate-600 leading-relaxed font-semibold">
-              <p>We want you to be completely satisfied with your purchase. If you are not entirely happy, we're here to help.</p>
-              <h3 className="text-base font-black text-slate-900 pt-2">Returns & Exchanges</h3>
-              <p>You have 7 calendar days to return or exchange an item from the date you received it. To be eligible for a return, your item must be unused, in the same condition that you received it, and in the original packaging.</p>
-              <h3 className="text-base font-black text-slate-900 pt-2">Refund Processing</h3>
-              <p>Once we receive your item, we will inspect it and notify you that we have received your returned item. If your return is approved, we will initiate a refund to your original method of payment (or store wallet). You will receive the credit within 5-7 business days.</p>
-              <h3 className="text-base font-black text-slate-900 pt-2">Cancellations</h3>
-              <p>You can cancel your order anytime before it has been shipped. Once shipped, the standard return policy will apply.</p>
+              <h3 className="text-base font-black text-slate-900 pt-2">7-din Return / Exchange</h3>
+              <p>Saman kharab nikla, galat saman aaya, ya size sahi nahi hai? Delivery ke 7 din ke andar WhatsApp karein (+91 93068 10726) aur saman ki photo bhejein. Hum free pickup karwayenge — pickup ka kharcha hum dete hain.</p>
+              <h3 className="text-base font-black text-slate-900 pt-2">Mann badal gaya?</h3>
+              <p>Agar saman theek hai aur bas pasand nahi aaya, to sirf exchange hoga (refund nahi). Saman bina use kiye, tag ke saath, original packing mein hona chahiye.</p>
+              <h3 className="text-base font-black text-slate-900 pt-2">Refund kab milega</h3>
+              <p>Return saman hamare paas pahunchne aur check hone ke baad refund hota hai. Cash on Delivery orders ka refund aapke UPI ID par 5–7 din mein. Online payment ka refund usi account/card mein 5–7 din mein.</p>
+              <h3 className="text-base font-black text-slate-900 pt-2">Order cancel karna</h3>
+              <p>Dispatch se pehle order kabhi bhi cancel kar sakte hain — WhatsApp karein. Dispatch ke baad upar wali return policy lagu hogi.</p>
             </div>
           </div>
         );
@@ -101,12 +106,12 @@ export default function PolicyPage({ type }) {
                 <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Contact Us</h1>
               </div>
               <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
-                Have questions about your order, custom sizing, or shipping estimates? Reach out to our customer care team directly. We are active 24/7!
+                Have questions about your order, custom sizing, or shipping estimates? Order, size ya delivery ke baare mein sawal hai? WhatsApp ya call karein: +91 93068 10726.
               </p>
               <div className="space-y-4 pt-2">
                 <div className="flex items-center space-x-3 text-xs sm:text-sm font-semibold text-slate-700">
                   <Phone className="w-5 h-5 text-brand-navy" />
-                  <a href="tel:+919306810726" className="hover:underline">+91 9306810726</a>
+                  <a href="tel:+919306810726" className="hover:underline">+91 93068 10726</a>
                 </div>
                 <div className="flex items-center space-x-3 text-xs sm:text-sm font-semibold text-slate-700">
                   <Mail className="w-5 h-5 text-brand-navy" />
@@ -114,7 +119,7 @@ export default function PolicyPage({ type }) {
                 </div>
                 <div className="flex items-center space-x-3 text-xs sm:text-sm font-semibold text-slate-700">
                   <MapPin className="w-5 h-5 text-brand-navy" />
-                  <span>123 Commerce Way, Tech City, IN 400001</span>
+                  <span>Panipat, Haryana</span>
                 </div>
               </div>
             </div>

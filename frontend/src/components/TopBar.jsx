@@ -1,40 +1,20 @@
 import React from 'react';
-import { Mail, Phone, ChevronDown } from 'lucide-react';
+import { getAnnouncementItems } from '../config/campaign';
 
+// Static announcement bar (no marquee). Text comes from src/config/campaign.js
 export default function TopBar() {
+  const items = getAnnouncementItems();
+
   return (
-    <div className="bg-brand-navy text-white text-xs py-2 px-4 border-b border-blue-600/30">
-      <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-0">
-        
-        {/* Left Side: Contact Info */}
-        <div className="flex items-center space-x-4 sm:space-x-6 text-blue-100 font-medium">
-          <a href="mailto:appnabaazar@gmail.com" className="flex items-center space-x-1.5 hover:text-white transition-colors">
-            <Mail className="w-3.5 h-3.5" />
-            <span>appnabaazar@gmail.com</span>
-          </a>
-          <a href="tel:+919306810726" className="flex items-center space-x-1.5 hover:text-white transition-colors">
-            <Phone className="w-3.5 h-3.5" />
-            <span>+91 9306810726</span>
-          </a>
-        </div>
-
-        {/* Right Side: Store Notice & Indian Preferences */}
-        <div className="flex items-center space-x-4 sm:space-x-6 text-blue-100 font-medium">
-          <span className="hidden md:inline text-blue-100">Welcome to Apna Bazarr India Store!</span>
-          <div className="flex items-center space-x-4">
-            <div className="relative group cursor-pointer flex items-center space-x-1 hover:text-white">
-              <span>English</span>
-              <ChevronDown className="w-3 h-3" />
-            </div>
-            <span className="text-blue-400">|</span>
-            <div className="relative group cursor-pointer flex items-center space-x-1 hover:text-white font-bold text-white">
-              <span>₹ INR (India)</span>
-              <ChevronDown className="w-3 h-3" />
-            </div>
-          </div>
-        </div>
-
-      </div>
+    <div className="bg-brand-navy text-white min-h-9 px-3 py-1.5 flex items-center justify-center">
+      <p className="text-xs sm:text-sm font-semibold leading-snug text-center">
+        {items.map((item, idx) => (
+          <span key={item} className={idx === 2 ? 'hidden min-[360px]:inline' : undefined}>
+            {idx > 0 && <span className="mx-1.5 text-brand-orange" aria-hidden="true">·</span>}
+            {item}
+          </span>
+        ))}
+      </p>
     </div>
   );
 }

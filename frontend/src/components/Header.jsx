@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Search, Heart, ShoppingBag, User, Menu, Package, Settings, LogOut, ChevronDown, X, LogIn, ShieldCheck } from 'lucide-react';
+import { formatPrice } from '../utils/format';
 
 export default function Header({
   cartCount,
@@ -66,12 +67,10 @@ export default function Header({
 
   // Typewriter placeholder animation loop
   const placeholderTexts = [
-    "Premium Co-ord Sets",
-    "Designer Kurtis",
-    "Gold Clutches",
-    "Gift Hampers",
-    "Casual Shoes",
-    "Premium Sarees"
+    "suit set",
+    "co-ord set",
+    "bedsheet",
+    "kambal"
   ];
   const [placeholder, setPlaceholder] = useState('');
   const [textIndex, setTextIndex] = useState(0);
@@ -119,12 +118,9 @@ export default function Header({
     }
   };
 
+  // Cart works without login (guest cart); only the wishlist needs an account
   const handleCartClick = () => {
-    if (!currentUser) {
-      onOpenAuth();
-    } else {
-      navigate('/cart');
-    }
+    onOpenCart ? onOpenCart() : navigate('/cart');
   };
 
   const handleWishlistClick = () => {
@@ -152,9 +148,9 @@ export default function Header({
 
             <Link to="/" className="flex items-center space-x-2 group">
               <img 
-                src="/logo.png" 
-                alt="Apna Bazarr Logo" 
-                className="h-10 sm:h-12 w-auto object-contain transition-transform group-hover:scale-105" 
+                src="/brand-lockup.png" 
+                alt="Apna Bazarr" 
+                className="h-9 sm:h-11 w-auto object-contain transition-transform group-hover:scale-105" 
               />
             </Link>
           </div>
@@ -181,7 +177,7 @@ export default function Header({
               />
               {!searchQuery && !isSearchFocused && (
                 <div className="absolute left-11 top-[11.5px] pointer-events-none select-none text-xs font-bold text-slate-400 flex items-center space-x-1">
-                  <span>Search for</span>
+                  <span>Khojein:</span>
                   <span className="text-brand-navy font-black">{placeholder}</span>
                   <span className="text-brand-navy font-light animate-pulse">|</span>
                 </div>
@@ -217,7 +213,7 @@ export default function Header({
                         <h5 className="text-xs font-bold text-slate-800 truncate">{item.name}</h5>
                         <span className="text-[11px] text-slate-400">{item.category} • {item.gender}</span>
                       </div>
-                      <span className="text-xs font-extrabold text-brand-navy">₹{item.price.toFixed(2)}</span>
+                      <span className="text-xs font-extrabold text-brand-navy">{formatPrice(item.price)}</span>
                     </div>
                   ))}
                 </div>
@@ -237,7 +233,7 @@ export default function Header({
             {/* Wishlist Icon */}
             <button
               onClick={handleWishlistClick}
-              className="p-2.5 text-slate-700 hover:text-brand-navy hover:bg-slate-50 rounded-full transition-colors relative"
+              className="hidden sm:block p-2.5 text-slate-700 hover:text-brand-navy hover:bg-slate-50 rounded-full transition-colors relative"
               title={currentUser ? "Wishlist" : "Log in to view Wishlist"}
             >
               <Heart className="w-5 h-5" />
@@ -252,10 +248,11 @@ export default function Header({
             <button
               onClick={handleCartClick}
               className="p-2.5 text-slate-700 hover:text-brand-navy hover:bg-slate-50 rounded-full transition-colors relative"
-              title={currentUser ? "Shopping Cart" : "Log in to view Cart"}
+              title="Cart"
+              aria-label="Cart"
             >
               <ShoppingBag className="w-5 h-5" />
-              {currentUser && cartCount > 0 && (
+              {cartCount > 0 && (
                 <span className="absolute top-1 right-1 bg-brand-navy text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-white">
                   {cartCount}
                 </span>
@@ -282,7 +279,7 @@ export default function Header({
                 className="p-2 sm:px-4 sm:py-2 bg-slate-900 hover:bg-brand-navy text-white font-extrabold text-xs rounded-full sm:rounded-xl shadow-md transition-colors flex items-center space-x-1.5 shrink-0"
               >
                 <LogIn className="w-4 h-4 text-white" />
-                <span className="hidden sm:inline">Login / Register</span>
+                <span className="hidden sm:inline">Login</span>
               </button>
             ) : (
               /* LOGGED-IN USER: FULL PROFILE DROPDOWN MENU */
@@ -337,15 +334,6 @@ export default function Header({
                           <ShieldCheck className="w-4 h-4 text-emerald-600" />
                           <span>Seller Dashboard</span>
                         </Link>
-                      ) : (currentUser?.role === 'user' || !currentUser?.role) && currentUser?.email !== 'admin@apnabazarr.com' ? (
-                        <Link
-                          to="/register-seller"
-                          onClick={() => setShowProfileMenu(false)}
-                          className="flex items-center space-x-2.5 px-4 py-2.5 text-xs font-black text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border-b border-slate-100 transition-colors"
-                        >
-                          <Package className="w-4 h-4 text-indigo-600" />
-                          <span>Become a Seller</span>
-                        </Link>
                       ) : null}
 
                       {currentUser.email !== 'admin@apnabazarr.com' && (
@@ -355,7 +343,7 @@ export default function Header({
                           className="flex items-center space-x-2.5 px-4 py-2.5 text-xs font-black text-emerald-700 hover:bg-emerald-50 border-b border-slate-100 transition-colors"
                         >
                           <Package className="w-4 h-4 text-emerald-600" />
-                          <span>{currentUser.resellerProfile?.code ? 'Reseller Dashboard' : 'Reseller Bano · Paise Kamao'}</span>
+                          <span>{currentUser.resellerProfile?.code ? 'Reseller Dashboard' : 'Reseller Baniye · Kamaayein'}</span>
                         </Link>
                       )}
 
@@ -433,7 +421,7 @@ export default function Header({
             />
             {!searchQuery && !isMobileSearchFocused && (
               <div className="absolute left-11 top-[11.5px] pointer-events-none select-none text-xs font-bold text-slate-400 flex items-center space-x-1">
-                <span>Search for</span>
+                <span>Khojein:</span>
                 <span className="text-brand-navy font-black">{placeholder}</span>
                 <span className="text-brand-navy font-light animate-pulse">|</span>
               </div>
@@ -469,7 +457,7 @@ export default function Header({
                       <h5 className="text-xs font-bold text-slate-800 truncate">{item.name}</h5>
                       <span className="text-[11px] text-slate-400">{item.category} • {item.gender}</span>
                     </div>
-                    <span className="text-xs font-extrabold text-brand-navy">₹{item.price.toFixed(2)}</span>
+                    <span className="text-xs font-extrabold text-brand-navy">{formatPrice(item.price)}</span>
                   </div>
                 ))}
               </div>

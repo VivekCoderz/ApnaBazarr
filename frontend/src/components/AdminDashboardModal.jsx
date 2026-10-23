@@ -29,7 +29,7 @@ async function uploadToCloudinary(file, endpoint) {
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-export default function AdminDashboardModal({ isOpen, onClose, products, orders, onAddProduct, onDeleteProduct, onUpdateOrderStatus, onToggleStock, onAddOfflineOrder }) {
+export default function AdminDashboardModal({ isOpen, onClose, products, orders, onAddProduct, onDeleteProduct, onUpdateOrderStatus, onToggleStock, onToggleActive, onAddOfflineOrder }) {
   if (!isOpen) return null;
 
   const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'addProduct', 'inventory', 'orders', 'feedbacks', 'reviews', 'settings'
@@ -237,9 +237,13 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
     setSettingsError('');
     setSettingsSuccess('');
     try {
+      const token = getToken();
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
       const res = await fetch(`${BASE_URL}/settings`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
+        credentials: 'include',
         body: JSON.stringify({ 
           secret_cod_code: newCodCode,
           commission_percentage: newCommission
@@ -698,6 +702,12 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                         onChange={(e) => setNewProd({ ...newProd, category: e.target.value })}
                         className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-brand-navy bg-white text-slate-850"
                       >
+                        <option value="Kambal & Dohar">Kambal & Dohar</option>
+                        <option value="Bedsheet">Bedsheet</option>
+                        <option value="Cushion & Sofa Cover">Cushion & Sofa Cover</option>
+                        <option value="Mats & Table Runner">Mats & Table Runner</option>
+                        <option value="Suit Sets">Suit Sets</option>
+                        <option value="Co-ord Sets">Co-ord Sets</option>
                         <option value="Men's Fashion">Men's Fashion</option>
                         <option value="Women's Wear">Women's Wear</option>
                         <option value="Kids' Collection">Kids' Collection</option>
@@ -1164,7 +1174,12 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
           {activeTab === 'inventory' && (
             <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4 max-w-6xl mx-auto">
               <div className="flex items-center justify-between border-b pb-3">
-                <h4 className="text-sm font-extrabold text-slate-900">All Live Store Products ({products.length})</h4>
+                <div>
+                  <h4 className="text-sm font-extrabold text-slate-900">All Store Products ({products.length})</h4>
+                  <p className="text-[10px] text-slate-500 font-semibold mt-0.5">
+                    Live: {products.filter(p => p.isActive !== false).length} · Hidden: {products.filter(p => p.isActive === false).length} (hidden products are not shown in the store)
+                  </p>
+                </div>
                 <button
                   onClick={() => setActiveTab('addProduct')}
                   className="px-4 py-2 bg-brand-navy text-white text-xs font-bold rounded-xl flex items-center space-x-1"
@@ -1216,6 +1231,20 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                               >
                                 {p.inStock !== false ? '● In Stock' : '○ Out of Stock'}
                               </button>
+                              {onToggleActive && (
+                                <button
+                                  type="button"
+                                  onClick={() => onToggleActive(p.id)}
+                                  title={p.isActive !== false ? 'Click to hide this product from the store' : 'Click to show this product in the store again'}
+                                  className={`px-2 py-0.5 rounded text-[10px] font-bold w-max transition-colors ${
+                                    p.isActive !== false
+                                      ? 'bg-blue-100 text-brand-navy hover:bg-blue-200'
+                                      : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
+                                  }`}
+                                >
+                                  {p.isActive !== false ? '● Live in store' : '○ Hidden'}
+                                </button>
+                              )}
                             </div>
                           </td>
                           <td className="p-3 text-right">
@@ -1275,6 +1304,19 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
                         <div className="flex items-center space-x-2">
                           <span className="text-[10px] font-bold text-slate-650">{p.stock || 50} in stock</span>
                         </div>
+                        {onToggleActive && (
+                          <button
+                            type="button"
+                            onClick={() => onToggleActive(p.id)}
+                            className={`px-3 py-1 rounded-lg text-[10px] font-extrabold transition-colors ${
+                              p.isActive !== false
+                                ? 'bg-blue-100 text-brand-navy hover:bg-blue-200'
+                                : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
+                            }`}
+                          >
+                            {p.isActive !== false ? '● Live in store' : '○ Hidden'}
+                          </button>
+                        )}
                         <button
                           type="button"
                           onClick={() => onToggleStock(p.id)}

@@ -51,7 +51,9 @@ const userSchema = new mongoose.Schema({
       name: { type: String, required: true },
       price: { type: Number, required: true },
       quantity: { type: Number, required: true, default: 1 },
-      image: { type: String }
+      image: { type: String },
+      selectedSize: { type: String, default: '' },
+      selectedColor: { type: String, default: '' }
     }
   ],
   wishlist: [

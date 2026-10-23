@@ -1,245 +1,147 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { ArrowRight, Gift, Sparkles, ChevronLeft, ChevronRight, ShieldCheck, Truck, RefreshCw } from 'lucide-react';
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { ArrowRight, Banknote, Truck, RotateCcw } from 'lucide-react';
+import { getHero } from '../config/campaign';
 
-export default function HeroBanner() {
-  const [currentSlide, setCurrentSlide] = useState(0);
+// Panipat Weave Stripe tile (same as business plan/brand/assets/weave-stripe.svg), repeated horizontally
+const WEAVE_TILE = `url("data:image/svg+xml,${encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="16" viewBox="0 0 32 16"><rect width="32" height="16" fill="#FFF8F1"/><rect width="32" height="5" fill="#0B2A55"/><rect y="7" width="32" height="4" fill="#F47A1F"/><path d="M8 7 L12 9 L8 11 L4 9 Z M24 7 L28 9 L24 11 L20 9 Z" fill="#0B2A55"/><rect y="13" width="32" height="3" fill="#0B2A55"/></svg>'
+)}")`;
 
-  const timerRef = useRef(null);
+function WeaveStripe({ className = '' }) {
+  return (
+    <div
+      aria-hidden="true"
+      className={`h-4 w-full ${className}`}
+      style={{ backgroundImage: WEAVE_TILE, backgroundRepeat: 'repeat-x', backgroundSize: '32px 16px' }}
+    />
+  );
+}
 
-  const slides = [
-    {
-      id: 1,
-      subtitleScript: "Rakhi Special Offers 🪔",
-      title: "SURPRISE YOUR SISTER THIS RAKHI",
-      discount: "Min. 35–70% Off + Free Roli-Chawal & Sweets Kit",
-      description: "Surprise your sister with luxury golden clutches, ethnic suits, designer hampers & Kundan Rakhis! Apna Bazarr par Har Fashion Ka Saamaan Milega.",
-      image: "/images/rakhi-surprise.jpg",
-      fallbackImage: "https://images.unsplash.com/photo-1628155930542-3c7a64e2c833?auto=format&fit=crop&w=900&q=80",
-      ctaPrimary: "SHOP RAKHI GIFTS",
-      ctaSecondary: "EXPLORE ALL FASHION",
-      showOverlays: true
-    },
-    {
-      id: 2,
-      subtitleScript: "Sister's Gold Clutch & Accessories 👛",
-      title: "LUXURY CLUTCHES & HANDBAG BAZARR",
-      discount: "Flat 40% Off on Sister's Festive Gifts",
-      description: "Bhaiya-Behen Rakhi special gifts! Exclusive metallic gold clutches, designer shoulder totes & traditional jewellery for your sister.",
-      image: "/images/rakhi-clutch.jpg",
-      fallbackImage: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=900&q=80",
-      ctaPrimary: "EXPLORE CLUTCHES",
-      ctaSecondary: "VIEW GIFT HAMPERS",
-      showOverlays: false
-    },
-    {
-      id: 3,
-      subtitleScript: "Silver Kundan Rakhi Combos 🎁",
-      title: "RAKHI SWEETS & GIFT BOX HAMPER",
-      discount: "Flat 60% Off + Free Diya & Thali Kit",
-      description: "Handcrafted Silver Kundan Rakhis paired with Kaju Katli sweets & luxury gift boxes delivered express across India.",
-      image: "/images/rakhi-hamper.jpg",
-      fallbackImage: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=900&q=80",
-      ctaPrimary: "SHOP RAKHI COMBOS",
-      ctaSecondary: "VIEW CATALOG",
-      showOverlays: false
-    }
+// Small diya (oil lamp) for Diwali mode
+function DiyaMotif() {
+  return (
+    <svg viewBox="0 0 120 120" className="w-full h-full" aria-hidden="true">
+      <circle cx="60" cy="60" r="56" fill="#FFE9D6" />
+      {/* flame */}
+      <path d="M60 22 C68 36 70 46 60 56 C50 46 52 36 60 22 Z" fill="#F47A1F" />
+      <path d="M60 34 C64 42 64 48 60 53 C56 48 56 42 60 34 Z" fill="#FFF8F1" />
+      {/* lamp */}
+      <path d="M24 62 H96 C94 80 80 92 60 92 C40 92 26 80 24 62 Z" fill="#C2410C" />
+      <path d="M24 62 H96" stroke="#0B2A55" strokeWidth="4" strokeLinecap="round" />
+      <path d="M38 74 H82" stroke="#FFE9D6" strokeWidth="3" strokeLinecap="round" strokeDasharray="2 6" />
+      <rect x="48" y="92" width="24" height="6" rx="3" fill="#0B2A55" />
+    </svg>
+  );
+}
+
+// Folded blanket stack + snowflake for Sardi mode
+function BlanketMotif() {
+  return (
+    <svg viewBox="0 0 120 120" className="w-full h-full" aria-hidden="true">
+      <circle cx="60" cy="60" r="56" fill="#FFE9D6" />
+      <rect x="22" y="70" width="76" height="16" rx="6" fill="#0B2A55" />
+      <rect x="26" y="54" width="68" height="16" rx="6" fill="#F47A1F" />
+      <rect x="30" y="38" width="60" height="16" rx="6" fill="#0B2A55" />
+      <path d="M30 46 H90 M26 62 H94 M22 78 H98" stroke="#FFF8F1" strokeWidth="2" strokeDasharray="3 5" />
+      <g stroke="#0B2A55" strokeWidth="3" strokeLinecap="round" transform="translate(92 24)">
+        <path d="M0 -10 V10 M-9 -5 L9 5 M-9 5 L9 -5" />
+      </g>
+    </svg>
+  );
+}
+
+function Motif({ type }) {
+  if (type === 'diya') return <DiyaMotif />;
+  if (type === 'blanket') return <BlanketMotif />;
+  return null;
+}
+
+// One date-driven banner (no carousel). Copy, dates and optional photo live in src/config/campaign.js
+export default function HeroBanner({ products = [] }) {
+  const hero = getHero(products);
+  const hasImage = Boolean(hero.image);
+
+  const trustItems = [
+    { icon: Banknote, text: 'COD' },
+    { icon: Truck, text: '₹499+ Free Delivery' },
+    { icon: RotateCcw, text: '7-din Return' }
   ];
-
-  const features = [
-    { icon: ShieldCheck, text: "Best Prices Guaranteed" },
-    { icon: ShieldCheck, text: "Secure Shopping 100% Safe" },
-    { icon: Truck, text: "Fast Delivery At Your Doorstep" },
-    { icon: RefreshCw, text: "Easy Returns Hassle Free" }
-  ];
-
-  useEffect(() => {
-      timerRef.current = setInterval(() => {
-        setCurrentSlide(prev => (prev + 1) % slides.length);
-      }, 4000);
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [slides.length]);
-
-  const handlePrev = () => {
-    setCurrentSlide(prev => (prev - 1 + slides.length) % slides.length);
-  };
-
-  const handleNext = () => {
-    setCurrentSlide(prev => (prev + 1) % slides.length);
-  };
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-[#fff6e6] via-white to-[#fff0f5] py-6 sm:py-12 md:py-16 lg:py-20 group/banner">
-      {/* Background Decorative Shapes */}
-      <div className="hidden lg:block absolute top-0 right-0 lg:w-96 lg:h-96 bg-brand-navy rounded-bl-[160px] sm:rounded-bl-[240px] lg:rounded-bl-[320px] pointer-events-none -z-0 transition-all duration-500" />
-      <div className="hidden lg:block absolute bottom-0 right-0 lg:w-32 lg:h-[450px] bg-brand-orange rounded-tl-[80px] sm:rounded-tl-[120px] lg:rounded-tl-[160px] pointer-events-none -z-0 transition-all duration-500" />
-      
-      {/* Slides wrapper */}
-      <div className="overflow-hidden relative w-full">
-        <div 
-          className="flex transition-transform duration-700 ease-in-out"
-          style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-        >
-          {slides.map((slide) => (
-            <div key={slide.id} className="w-full flex-shrink-0">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="grid grid-cols-1 lg:grid-cols-12 items-center gap-8 lg:gap-12">
-                  
-                  {/* Left Text Column */}
-                  <div className="lg:col-span-7 space-y-4 sm:space-y-6 text-center lg:text-left">
-                    
-                    {/* Brand Logo inside slide */}
-                    <div className="flex justify-center lg:justify-start items-center space-x-2 mb-2 sm:mb-4">
-                      <img 
-                        src="/logo.png" 
-                        alt="Apna Bazarr Logo" 
-                        className="h-8 sm:h-12 w-auto object-contain"
-                      />
-                    </div>
+    <section className="bg-brand-cream">
+      <WeaveStripe />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 lg:py-14">
+        <div className={`grid grid-cols-1 items-center gap-6 lg:gap-12 ${hasImage ? 'lg:grid-cols-[55fr_45fr]' : ''}`}>
 
-                    {/* Script Subtitle */}
-                    <div className="inline-flex items-center space-x-2 bg-rose-950/5 border border-rose-950/10 px-3 py-1 sm:px-4 sm:py-1.5 rounded-full">
-                      <Sparkles className="w-3.5 h-3.5 text-rose-700" />
-                      <span className="font-script text-xl sm:text-4xl md:text-5xl text-rose-800 font-bold tracking-wide">
-                        {slide.subtitleScript}
-                      </span>
-                    </div>
-
-                    {/* Headline */}
-                    <h1 className="text-2xl sm:text-5xl lg:text-[54px] font-black text-[#0a2540] tracking-tight leading-none uppercase">
-                      {slide.title}
-                    </h1>
-
-                    {/* Discount Tagline */}
-                    <div className="inline-flex items-center space-x-2 bg-[#0a2540] text-white font-extrabold text-xs sm:text-lg px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl shadow-md border border-[#1e3a5f]">
-                      <Gift className="w-3.5 h-3.5 text-orange-400 animate-bounce" />
-                      <span>{slide.discount}</span>
-                    </div>
-
-                    {/* Tagline Paragraph */}
-                    <p className="text-slate-700 max-w-xl mx-auto lg:mx-0 text-xs sm:text-base font-semibold leading-relaxed">
-                      {slide.description}
-                    </p>
-
-                    {/* CTA Buttons */}
-                    <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5 sm:gap-4 pt-2">
-                      <a
-                        href="#shop"
-                        className="px-5 py-2.5 sm:px-8 sm:py-3.5 bg-orange-600 hover:bg-orange-700 text-white font-black text-[10px] sm:text-xs uppercase tracking-wider rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center space-x-2 group cursor-pointer"
-                      >
-                        <Gift className="w-4 h-4 mr-1 text-white" />
-                        <span>{slide.ctaPrimary}</span>
-                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                      </a>
-
-                      <a
-                        href="#featured"
-                        className="px-5 py-2.5 sm:px-8 sm:py-3.5 bg-white border-2 border-slate-300 hover:border-slate-800 text-slate-800 hover:text-slate-900 font-extrabold text-[10px] sm:text-xs uppercase tracking-wider rounded-xl shadow-xs hover:shadow-md transition-all flex items-center space-x-2 cursor-pointer"
-                      >
-                        <span>{slide.ctaSecondary}</span>
-                        <ArrowRight className="w-4 h-4" />
-                      </a>
-                    </div>
-
-                    {/* Integrated Service Badges */}
-                    <div className="flex flex-wrap items-center justify-center lg:justify-start gap-x-4 sm:gap-x-6 gap-y-2 pt-4 sm:pt-6 border-t border-amber-300/40 mt-6 sm:mt-8">
-                      {features.map((feat, fidx) => {
-                        const Icon = feat.icon;
-                        return (
-                          <div key={fidx} className="flex items-center space-x-1.5 text-slate-800">
-                            <Icon className="w-3.5 h-3.5 text-[#0a2540] shrink-0" />
-                            <span className="text-[10px] sm:text-[13px] font-bold tracking-tight">{feat.text}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                  </div>
-
-                  {/* Right Image Frame Column */}
-                  <div className="lg:col-span-5 flex justify-center relative py-4 sm:py-6">
-                    <div className="relative w-full max-w-[280px] sm:max-w-md lg:max-w-none">
-                      
-                      {/* Double border contour wrapper */}
-                      <div className="absolute -inset-2.5 sm:-inset-4 rounded-tl-[64px] sm:rounded-tl-[80px] rounded-br-[64px] sm:rounded-br-[80px] rounded-tr-[20px] sm:rounded-tr-[28px] rounded-bl-[20px] sm:rounded-bl-[28px] border-2 border-amber-400/80 -z-10 pointer-events-none" />
-
-                      {/* Image frame */}
-                      <div className="overflow-hidden rounded-tl-[60px] sm:rounded-tl-[76px] rounded-br-[60px] sm:rounded-br-[76px] rounded-tr-[16px] sm:rounded-tr-[24px] rounded-bl-[16px] sm:rounded-bl-[24px] border-4 border-white bg-white shadow-2xl relative z-10">
-                        <img
-                          src={slide.image}
-                          onError={(e) => {
-                            e.target.src = slide.fallbackImage;
-                          }}
-                          alt={slide.title}
-                          className="w-full h-[220px] sm:h-[420px] lg:h-[460px] object-cover object-center transform hover:scale-105 transition-transform duration-700"
-                        />
-                      </div>
-
-                      {/* Blue Circular Gift Badge */}
-                      <div className="absolute -top-3 -right-3 sm:-top-4 sm:-right-4 bg-brand-navy text-white rounded-full p-1.5 sm:p-3 w-16 h-16 sm:w-28 sm:h-28 flex flex-col items-center justify-center text-center shadow-2xl border-2 border-dashed border-white/70 z-20">
-                        <Gift className="w-3.5 h-3.5 sm:w-5 sm:h-5 mb-0.5 text-orange-400" />
-                        <span className="text-[7px] sm:text-[9px] font-black uppercase tracking-wider text-orange-300">Free</span>
-                        <span className="text-[8px] sm:text-[11px] font-extrabold leading-tight">Roli-Chawal & Sweets Kit</span>
-                      </div>
- 
-                      {/* Sweets Thali Overlay */}
-                      {slide.showOverlays && (
-                        <img
-                          src="/images/sweets-thali.jpg"
-                          alt="Sweets Thali"
-                          className="absolute -bottom-6 -left-6 sm:-bottom-10 sm:-left-12 w-20 h-20 sm:w-56 sm:h-56 object-contain z-20 select-none pointer-events-none mix-blend-multiply"
-                        />
-                      )}
- 
-                      {/* Blue Gift Box Overlay */}
-                      {slide.showOverlays && (
-                        <img
-                          src="/images/blue-gift-box.jpg"
-                          alt="Gift Box"
-                          className="absolute -bottom-4 -right-4 sm:-bottom-8 sm:-right-10 w-14 h-14 sm:w-36 sm:h-36 object-contain z-20 select-none pointer-events-none mix-blend-multiply"
-                        />
-                      )}
-
-                    </div>
-                  </div>
-
-                </div>
-              </div>
+          {/* Text */}
+          <div className="space-y-3 sm:space-y-5 text-left">
+            <div className="flex items-center gap-3">
+              {!hasImage && hero.motif !== 'weave' && (
+                <span className="w-14 h-14 sm:w-20 sm:h-20 shrink-0">
+                  <Motif type={hero.motif} />
+                </span>
+              )}
+              <span className="inline-block bg-brand-peach text-brand-navy text-xs sm:text-sm font-semibold px-3 py-1 rounded-full">
+                {hero.kicker}
+              </span>
             </div>
-          ))}
+
+            <h1 className="text-[30px] leading-[1.15] sm:text-5xl lg:text-[56px] font-bold text-brand-navy tracking-tight max-w-3xl">
+              {hero.headline}
+            </h1>
+
+            <p className="text-base sm:text-lg text-[#1A2233] leading-relaxed max-w-xl">
+              {hero.subline}
+            </p>
+
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 pt-1">
+              {hero.cta && (
+                <Link
+                  to={hero.cta.href}
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-brand-cta hover:bg-brand-cta-hover text-white text-base font-semibold rounded-xl shadow-md transition-colors"
+                >
+                  <span>{hero.cta.label}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              )}
+              {hero.secondary && (
+                <Link
+                  to={hero.secondary.href}
+                  className="text-brand-navy text-sm sm:text-base font-semibold underline underline-offset-4 decoration-brand-orange decoration-2 hover:text-brand-cta"
+                >
+                  {hero.secondary.label}
+                </Link>
+              )}
+            </div>
+
+            <ul className="flex flex-wrap items-center gap-x-5 gap-y-2 pt-3 sm:pt-4 border-t border-brand-peach">
+              {trustItems.map(({ icon: Icon, text }) => (
+                <li key={text} className="flex items-center gap-1.5 text-sm font-semibold text-brand-navy">
+                  <Icon className="w-4 h-4" strokeWidth={1.75} />
+                  <span>{text}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Optional campaign photo: below the text on mobile, right column on desktop */}
+          {hasImage && (
+            <div className="mx-auto w-full max-w-sm sm:max-w-md lg:max-w-none">
+              <img
+                src={hero.image}
+                alt={hero.headline}
+                width="1080"
+                height="1350"
+                fetchpriority="high"
+                className="block w-full aspect-[4/5] object-cover rounded-3xl bg-brand-peach"
+              />
+            </div>
+          )}
+
         </div>
       </div>
-
-      {/* Manual Chevron Buttons */}
-      <button 
-        onClick={handlePrev}
-        className="absolute left-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-white/85 hover:bg-white text-slate-800 shadow-md hover:shadow-lg hover:scale-105 transition-all opacity-0 group-hover/banner:opacity-100 duration-300 cursor-pointer"
-        aria-label="Previous Slide"
-      >
-        <ChevronLeft className="w-5 h-5 md:w-6 md:h-6 text-[#0a2540]" />
-      </button>
-      <button 
-        onClick={handleNext}
-        className="absolute right-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-white/85 hover:bg-white text-slate-800 shadow-md hover:shadow-lg hover:scale-105 transition-all opacity-0 group-hover/banner:opacity-100 duration-300 cursor-pointer"
-        aria-label="Next Slide"
-      >
-        <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-[#0a2540]" />
-      </button>
-
-      {/* Carousel Dots Indicators */}
-      <div className="relative z-20 mt-6 flex items-center justify-center space-x-2.5">
-        {slides.map((_, idx) => (
-          <button
-            key={idx}
-            onClick={() => setCurrentSlide(idx)}
-            className={`w-3 h-3 rounded-full transition-all duration-300 cursor-pointer ${
-              currentSlide === idx ? 'bg-orange-600 ring-4 ring-orange-200 scale-110' : 'bg-slate-300 hover:bg-slate-400'
-            }`}
-            aria-label={`Slide ${idx + 1}`}
-          />
-        ))}
-      </div>
+      <WeaveStripe />
     </section>
   );
 }

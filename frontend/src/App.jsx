@@ -9,6 +9,7 @@ import AuthModal from './components/AuthModal';
 import ProtectedAdminRoute from './components/ProtectedAdminRoute';
 import FeedbackForm from './components/FeedbackForm';
 import Footer from './components/Footer';
+import WhatsAppFab from './components/WhatsAppFab';
 
 // Pages
 import HomePage from './pages/HomePage';
@@ -39,6 +40,44 @@ const getCookie = (name) => {
   return '';
 };
 const getToken = () => getCookie('apna_admin_token');
+
+// Guest cart lives in localStorage so it survives a refresh; merged into the account cart on login
+const GUEST_CART_KEY = 'apna_guest_cart';
+const readGuestCart = () => {
+  try {
+    const saved = JSON.parse(localStorage.getItem(GUEST_CART_KEY) || '[]');
+    return Array.isArray(saved) ? saved : [];
+  } catch {
+    return [];
+  }
+};
+const writeGuestCart = (items) => {
+  try {
+    if (items.length > 0) localStorage.setItem(GUEST_CART_KEY, JSON.stringify(items));
+    else localStorage.removeItem(GUEST_CART_KEY);
+  } catch { /* storage blocked: cart still works for this visit */ }
+};
+const cartLineKey = (item) =>
+  [item.id, item.customText || '', item.customImage || '', item.selectedSize || '', item.selectedColor || ''].join('|');
+// Account cart + guest cart; the same line keeps the larger quantity (no doubling)
+const mergeCarts = (accountItems, guestItems) => {
+  const merged = new Map(accountItems.map(item => [cartLineKey(item), item]));
+  guestItems.forEach(item => {
+    const key = cartLineKey(item);
+    const existing = merged.get(key);
+    merged.set(key, existing ? { ...existing, quantity: Math.max(existing.quantity, item.quantity) } : item);
+  });
+  return [...merged.values()];
+};
+const accountCartToItems = (cart = []) => cart.map(c => ({
+  id: c.productId,
+  name: c.name,
+  price: c.price,
+  quantity: c.quantity,
+  image: c.image,
+  selectedSize: c.selectedSize || '',
+  selectedColor: c.selectedColor || ''
+}));
 const clearToken = () => {
   document.cookie = "apna_admin_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
 };
@@ -51,7 +90,7 @@ function AppContent() {
 
   const [products, setProducts] = useState([]);
   const [productsLoading, setProductsLoading] = useState(true);
-  const [cartItems, setCartItems] = useState([]);
+  const [cartItems, setCartItems] = useState(readGuestCart);
   const [wishlistItems, setWishlistItems] = useState([]);
   const [orders, setOrders] = useState([]);
 
@@ -105,16 +144,9 @@ function AppContent() {
         const result = await res.json();
         if (result.success && result.user) {
           setCurrentUser(result.user);
-          // Set database cart & wishlist
-          if (result.user.cart && result.user.cart.length > 0) {
-            setCartItems(result.user.cart.map(c => ({
-              id: c.productId,
-              name: c.name,
-              price: c.price,
-              quantity: c.quantity,
-              image: c.image
-            })));
-          }
+          // Account cart + anything added as a guest before logging in
+          setCartItems(mergeCarts(accountCartToItems(result.user.cart), readGuestCart()));
+          writeGuestCart([]);
           if (result.user.wishlist && result.user.wishlist.length > 0) {
             setWishlistItems(result.user.wishlist.map(w => ({
               id: w.productId,
@@ -156,6 +188,21 @@ function AppContent() {
 
   // Admin-only purchase prices, keyed by product id (public /products never includes costPrice)
   const [adminCostPrices, setAdminCostPrices] = useState({});
+  // Admin sees every product, including hidden (isActive: false) ones
+  const [adminAllProducts, setAdminAllProducts] = useState(null);
+
+  const loadAdminProducts = async () => {
+    try {
+      const token = getToken();
+      const headers = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const res = await fetch(`${BASE_URL}/products?includeHidden=1`, { headers, credentials: 'include' });
+      const result = await res.json();
+      if (result.success && result.data) setAdminAllProducts(result.data);
+    } catch (err) {
+      console.warn("Failed to load admin products:", err);
+    }
+  };
 
   const loadAdminCostPrices = async () => {
     try {
@@ -178,15 +225,17 @@ function AppContent() {
       loadUserOrders(); // loads all orders
       loadFeedbacks(); // loads all feedbacks
       loadAdminCostPrices(); // loads costPrice for profit reports
+      loadAdminProducts(); // includes hidden products
     } else {
       setAdminCostPrices({});
+      setAdminAllProducts(null);
     }
   }, [isAdminAuthenticated]);
 
   // Public products + admin-only costPrice, used by the admin dashboard profit calculations
   const adminProducts = useMemo(
-    () => products.map(p => ({ ...p, costPrice: p.costPrice ?? adminCostPrices[String(p.id)] })),
-    [products, adminCostPrices]
+    () => (adminAllProducts || products).map(p => ({ ...p, costPrice: p.costPrice ?? adminCostPrices[String(p.id)] })),
+    [products, adminAllProducts, adminCostPrices]
   );
 
   // Load orders for a given user email from the backend
@@ -204,6 +253,11 @@ function AppContent() {
     }
   };
 
+  // Guests: keep the cart in localStorage
+  useEffect(() => {
+    if (!currentUser) writeGuestCart(cartItems);
+  }, [cartItems, currentUser]);
+
   // Sync Cart to database when it changes
   useEffect(() => {
     if (!currentUser) return;
@@ -219,7 +273,9 @@ function AppContent() {
               name: item.name,
               price: item.price,
               quantity: item.quantity,
-              image: item.image
+              image: item.image,
+              selectedSize: item.selectedSize || '',
+              selectedColor: item.selectedColor || ''
             }))
           })
         });
@@ -329,14 +385,8 @@ function AppContent() {
     showToast("Feedback submitted to store admin!");
   };
 
-  // Cart Handler (STRICT GUEST LOGIN CHECK)
+  // Cart Handler: works for guests too (no login needed to buy)
   const handleAddToCart = (product, quantityToAdd = 1, customizationOptions = {}) => {
-    if (!currentUser) {
-      showToast("🔒 Please log in to your account to add items to Cart!");
-      setIsAuthOpen(true);
-      return;
-    }
-
     const defaultSize = product.sizes && product.sizes.length > 0 ? product.sizes[0] : '';
     const defaultColor = product.colors && product.colors.length > 0 ? product.colors[0] : '';
     const { 
@@ -375,7 +425,7 @@ function AppContent() {
         }];
       }
     });
-    showToast(`Added "${product.name}" to cart!`);
+    showToast('Cart mein daal diya');
   };
 
   const handleUpdateQuantity = (id, newQty, customText = '', customImage = '', selectedSize = '', selectedColor = '') => {
@@ -411,7 +461,7 @@ function AppContent() {
   // Wishlist Handler (STRICT GUEST LOGIN CHECK)
   const handleToggleWishlist = (product) => {
     if (!currentUser) {
-      showToast("🔒 Please log in to your account to save items to Wishlist!");
+      showToast("Wishlist ke liye login karein");
       setIsAuthOpen(true);
       return;
     }
@@ -436,7 +486,7 @@ function AppContent() {
   const handleOrderComplete = (newOrder) => {
     setOrders(prev => [newOrder, ...prev]);
     setCartItems([]);
-    showToast(`🎉 Order ${newOrder.orderId} placed successfully!`);
+    showToast(`Order ${newOrder.orderId} mil gaya`);
   };
 
   // Admin Product & Order Handlers
@@ -455,6 +505,7 @@ function AppContent() {
       const data = await res.json();
       if (data.success) {
         setProducts(prev => [data.data, ...prev]);
+        if (isAdminAuthenticated) loadAdminProducts();
         showToast(`Product "${data.data.name}" published to store!`);
       }
     } catch {
@@ -477,6 +528,7 @@ function AppContent() {
         const result = await res.json();
         if (result.success) {
           setProducts(prev => prev.filter(p => String(p.id) !== String(productId)));
+          setAdminAllProducts(prev => prev && prev.filter(p => String(p.id) !== String(productId)));
           showToast("Product deleted successfully");
         }
       } catch {
@@ -486,7 +538,7 @@ function AppContent() {
   };
 
   const handleToggleStock = async (productId) => {
-    const targetProduct = products.find(p => String(p.id) === String(productId));
+    const targetProduct = (adminAllProducts || products).find(p => String(p.id) === String(productId));
     if (!targetProduct) return;
     const currentStockStatus = targetProduct.inStock !== false;
     const nextStatus = !currentStockStatus;
@@ -503,11 +555,41 @@ function AppContent() {
       });
       const data = await res.json();
       if (data.success) {
-        setProducts(prev => prev.map(p => String(p.id) === String(productId) ? data.data : p));
+        loadProducts();
+        loadAdminProducts();
         showToast(`Stock updated to: ${nextStatus ? 'In Stock' : 'Out of Stock'}`);
       }
     } catch {
       showToast("Failed to update stock status in database.");
+    }
+  };
+
+  // Hide a product from the store (or show it again). Hidden products stay in the admin list.
+  const handleToggleActive = async (productId) => {
+    const targetProduct = (adminAllProducts || products).find(p => String(p.id) === String(productId));
+    if (!targetProduct) return;
+    const nextActive = targetProduct.isActive === false;
+    try {
+      const token = getToken();
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch(`${BASE_URL}/products/${productId}`, {
+        method: 'PUT',
+        headers,
+        credentials: 'include',
+        body: JSON.stringify({ isActive: nextActive })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAdminAllProducts(prev => prev && prev.map(p => String(p.id) === String(productId) ? { ...p, isActive: nextActive } : p));
+        loadProducts();
+        showToast(nextActive ? 'Product is live in the store again' : 'Product hidden from the store');
+      } else {
+        showToast(data.message || 'Failed to update product.');
+      }
+    } catch {
+      showToast("Failed to update product in database.");
     }
   };
 
@@ -549,15 +631,9 @@ function AppContent() {
   const handleAuthSuccess = (userObj) => {
     setCurrentUser(userObj);
     showToast(`Welcome back, ${userObj.name}!`);
-    if (userObj.cart && userObj.cart.length > 0) {
-      setCartItems(userObj.cart.map(c => ({
-        id: c.productId,
-        name: c.name,
-        price: c.price,
-        quantity: c.quantity,
-        image: c.image
-      })));
-    }
+    // Keep what the guest already put in the cart
+    setCartItems(prev => mergeCarts(accountCartToItems(userObj.cart), prev));
+    writeGuestCart([]);
     if (userObj.wishlist && userObj.wishlist.length > 0) {
       setWishlistItems(userObj.wishlist.map(w => ({
         id: w.productId,
@@ -616,7 +692,7 @@ function AppContent() {
       
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white text-xs font-bold px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-2 animate-fade-in border border-slate-700">
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[60] max-w-[90vw] bg-slate-900 text-white text-sm font-semibold px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-2 animate-fade-in border border-slate-700">
           <Check className="w-4 h-4 text-emerald-400" />
           <span>{toastMessage}</span>
         </div>
@@ -632,10 +708,7 @@ function AppContent() {
           products={products}
           currentUser={currentUser}
           isAdminAuthenticated={isAdminAuthenticated}
-          onOpenCart={() => {
-            if (!currentUser) setIsAuthOpen(true);
-            else navigate('/cart');
-          }}
+          onOpenCart={() => navigate('/cart')}
           onOpenWishlist={() => {
             if (!currentUser) setIsAuthOpen(true);
             else navigate('/wishlist');
@@ -804,6 +877,7 @@ function AppContent() {
                   onUpdateOrderStatus={handleUpdateOrderStatus}
                   onAdminLogout={handleAdminLogout}
                   onToggleStock={handleToggleStock}
+                  onToggleActive={handleToggleActive}
                   onAddOfflineOrder={loadUserOrders}
                 />
               </ProtectedAdminRoute>
@@ -813,7 +887,10 @@ function AppContent() {
       </main>
 
       {/* Footer */}
-      {!isNoNavRoute && <Footer />}
+      {!isNoNavRoute && <Footer products={products} />}
+
+      {/* Floating WhatsApp help (hidden on checkout/admin inside the component) */}
+      {!isNoNavRoute && <WhatsAppFab products={products} />}
 
       {/* Global Modals & Drawers */}
       <MobileDrawer
@@ -822,10 +899,7 @@ function AppContent() {
         currentUser={currentUser}
         cartCount={totalCartCount}
         wishlistCount={wishlistItems.length}
-        onOpenCart={() => {
-          if (!currentUser) setIsAuthOpen(true);
-          else navigate('/cart');
-        }}
+        onOpenCart={() => navigate('/cart')}
         onOpenWishlist={() => {
           if (!currentUser) setIsAuthOpen(true);
           else navigate('/wishlist');

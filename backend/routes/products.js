@@ -3,13 +3,41 @@ const router = express.Router();
 const Product = require('../models/Product');
 const Review = require('../models/Review');
 const Order = require('../models/Order');
+const jwt = require('jsonwebtoken');
+const User = require('../models/User');
 const auth = require('../middlewares/auth');
 const { shippingPreview } = require('../utils/shipping');
+
+// Products hidden by the admin have isActive: false. Products saved before the
+// field existed have no value and count as active.
+const ACTIVE_FILTER = { isActive: { $ne: false } };
+
+// Average of real reviews, or null when there are none (never show a fake 5 stars)
+const averageRating = (reviews) => reviews.length > 0
+  ? Number((reviews.reduce((sum, r) => sum + (r.rating || 5), 0) / reviews.length).toFixed(1))
+  : null;
+
+// True when the request carries a valid admin token. Used so the admin panel can
+// still see (and un-hide) hidden products; never blocks the public request.
+async function isAdminRequest(req) {
+  try {
+    const token = req.headers.authorization?.split(' ')[1] || req.cookies?.token;
+    if (!token) return false;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (decoded.admin) return true;
+    const user = await User.findById(decoded.id).select('role');
+    return user?.role === 'admin';
+  } catch {
+    return false;
+  }
+}
 
 // GET /products - fetch all products from MongoDB
 router.get('/', async (req, res) => {
   try {
-    let products = await Product.find().populate('seller', 'name email sellerProfile').sort({ createdAt: -1 });
+    // ?includeHidden=1 is honoured for admins only (admin panel needs hidden products to un-hide them)
+    const showHidden = req.query.includeHidden === '1' && await isAdminRequest(req);
+    let products = await Product.find(showHidden ? {} : ACTIVE_FILTER).populate('seller', 'name email sellerProfile').sort({ createdAt: -1 });
     
     // Filter out products from rejected/suspended sellers
     const approvedProducts = products.filter(p => {
@@ -35,9 +63,7 @@ router.get('/', async (req, res) => {
     const formatted = approvedProducts.map(p => {
       const prodReviews = allReviews.filter(r => String(r.productId) === String(p._id));
       const reviewsCount = prodReviews.length;
-      const rating = reviewsCount > 0 
-        ? Number((prodReviews.reduce((sum, r) => sum + (r.rating || 5), 0) / reviewsCount).toFixed(1))
-        : 5; // default to 5 stars when no reviews
+      const rating = averageRating(prodReviews);
 
       return {
         id: p._id,
@@ -59,6 +85,7 @@ router.get('/', async (req, res) => {
         colors: p.colors,
         images: p.images && p.images.length > 0 ? p.images : [p.image],
         inStock: p.inStock,
+        isActive: p.isActive !== false,
         isCustomizable: p.isCustomizable,
         customizationType: p.customizationType,
         customizationPrompt: p.customizationPrompt,
@@ -114,6 +141,7 @@ router.get('/seller/my-products', auth, async (req, res) => {
       colors: p.colors,
       images: p.images && p.images.length > 0 ? p.images : [p.image],
       inStock: p.inStock,
+      isActive: p.isActive !== false,
       isCustomizable: p.isCustomizable,
       customizationType: p.customizationType,
       customizationPrompt: p.customizationPrompt
@@ -132,11 +160,12 @@ router.get('/:id', async (req, res) => {
     if (!product) {
       return res.status(404).json({ success: false, message: 'Product not found' });
     }
+    if (product.isActive === false && !(await isAdminRequest(req))) {
+      return res.status(404).json({ success: false, message: 'Ye product abhi available nahi hai.' });
+    }
     const prodReviews = await Review.find({ productId: String(product._id) });
     const reviewsCount = prodReviews.length;
-    const rating = reviewsCount > 0 
-      ? Number((prodReviews.reduce((sum, r) => sum + (r.rating || 5), 0) / reviewsCount).toFixed(1))
-      : 5;
+    const rating = averageRating(prodReviews);
 
     const allItemOrders = await Order.find({ "items.productId": String(product._id) });
     let salesCount = 0;
@@ -171,6 +200,7 @@ router.get('/:id', async (req, res) => {
       colors: product.colors,
       images: product.images && product.images.length > 0 ? product.images : [product.image],
       inStock: product.inStock,
+      isActive: product.isActive !== false,
       isCustomizable: product.isCustomizable,
       customizationType: product.customizationType,
       customizationPrompt: product.customizationPrompt,
@@ -196,9 +226,10 @@ router.post('/', auth, async (req, res) => {
     if (req.user.role !== 'seller' && req.user.role !== 'admin') {
       return res.status(403).json({ success: false, message: 'Forbidden. Only sellers and admins can add products.' });
     }
-    const { name, category, gender, price, originalPrice, costPrice, discount, badge, stock, image, description, tags, isCustomizable, customizationType, customizationPrompt, sizes, colors, images } = req.body;
+    const { name, category, gender, price, originalPrice, costPrice, discount, badge, stock, image, description, tags, isCustomizable, customizationType, customizationPrompt, sizes, colors, images, isActive } = req.body;
     const newProduct = await Product.create({
       name, category, gender, price, originalPrice, costPrice, discount, badge, stock, image, description, tags, inStock: true,
+      isActive: isActive !== false,
       isCustomizable, customizationType, customizationPrompt, sizes, colors, images,
       seller: req.user.role === 'seller' ? req.user._id : undefined
     });
@@ -222,6 +253,7 @@ router.post('/', auth, async (req, res) => {
       colors: newProduct.colors,
       images: newProduct.images && newProduct.images.length > 0 ? newProduct.images : [newProduct.image],
       inStock: newProduct.inStock,
+      isActive: newProduct.isActive !== false,
       isCustomizable: newProduct.isCustomizable,
       customizationType: newProduct.customizationType,
       customizationPrompt: newProduct.customizationPrompt,
@@ -266,6 +298,7 @@ router.put('/:id', auth, async (req, res) => {
       colors: updated.colors,
       images: updated.images && updated.images.length > 0 ? updated.images : [updated.image],
       inStock: updated.inStock,
+      isActive: updated.isActive !== false,
       isCustomizable: updated.isCustomizable,
       customizationType: updated.customizationType,
       customizationPrompt: updated.customizationPrompt,

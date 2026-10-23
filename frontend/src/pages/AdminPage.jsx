@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import AdminDashboardModal from '../components/AdminDashboardModal';
 import { LogOut, ArrowLeft } from 'lucide-react';
 
-export default function AdminPage({ products, orders, feedbacks = [], onAddProduct, onDeleteProduct, onUpdateOrderStatus, onAdminLogout, onToggleStock, onAddOfflineOrder }) {
+export default function AdminPage({ products, orders, feedbacks = [], onAddProduct, onDeleteProduct, onUpdateOrderStatus, onAdminLogout, onToggleStock, onToggleActive, onAddOfflineOrder }) {
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -56,6 +56,7 @@ export default function AdminPage({ products, orders, feedbacks = [], onAddProdu
           onDeleteProduct={onDeleteProduct}
           onUpdateOrderStatus={onUpdateOrderStatus}
           onToggleStock={onToggleStock}
+          onToggleActive={onToggleActive}
           onAddOfflineOrder={onAddOfflineOrder}
         />
       </div>

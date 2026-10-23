@@ -19,6 +19,8 @@ const productSchema = new mongoose.Schema({
   colors: { type: [String], default: [] },
   images: { type: [String], default: [] },
   inStock: { type: Boolean, default: true },
+  // false = hidden from the storefront (off-season / off-brand). Missing counts as active.
+  isActive: { type: Boolean, default: true },
   isCustomizable: { type: Boolean, default: false },
   customizationType: { type: String, enum: ['text', 'image', 'both', 'none'], default: 'none' },
   customizationPrompt: { type: String, default: '' },

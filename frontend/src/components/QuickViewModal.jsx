@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, Star, ShoppingBag, Heart, Shield, Truck, Check } from 'lucide-react';
+import { formatPrice } from '../utils/format';
 
 export default function QuickViewModal({ product, onClose, onAddToCart, onToggleWishlist, isWishlisted }) {
   if (!product) return null;
@@ -60,31 +61,24 @@ export default function QuickViewModal({ product, onClose, onAddToCart, onToggle
                 {product.name}
               </h2>
 
-              {/* Rating */}
-              <div className="flex items-center space-x-1 py-1">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className={`w-4 h-4 ${
-                      i < product.rating
-                        ? 'text-amber-400 fill-amber-400'
-                        : 'text-slate-200'
-                    }`}
-                  />
-                ))}
-                <span className="text-xs font-semibold text-slate-500 ml-1">
-                  {product.rating}.0 ({product.reviewsCount} customer reviews)
-                </span>
-              </div>
+              {/* Rating: only real reviews */}
+              {product.reviewsCount > 0 && product.rating != null && (
+                <div className="flex items-center space-x-1 py-1">
+                  <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+                  <span className="text-xs font-semibold text-slate-500 ml-1">
+                    {product.rating.toFixed(1)} ({product.reviewsCount})
+                  </span>
+                </div>
+              )}
 
               {/* Price in ₹ */}
               <div className="flex items-center space-x-3 pt-1">
                 <span className="text-2xl font-extrabold text-slate-900">
-                  ₹{product.price.toFixed(2)}
+                  {formatPrice(product.price)}
                 </span>
                 {product.originalPrice && (
                   <span className="text-base font-semibold text-slate-400 line-through">
-                    ₹{product.originalPrice.toFixed(2)}
+                    {formatPrice(product.originalPrice)}
                   </span>
                 )}
               </div>
@@ -194,7 +188,7 @@ export default function QuickViewModal({ product, onClose, onAddToCart, onToggle
               <div className="flex items-center justify-between text-[11px] text-slate-500 pt-2 border-t border-slate-100">
                 <div className="flex items-center space-x-1">
                   <Truck className="w-3.5 h-3.5 text-brand-navy" />
-                  <span>Free Express Delivery Across India</span>
+                  <span>₹499+ par Free Delivery</span>
                 </div>
                 <div className="flex items-center space-x-1">
                   <Shield className="w-3.5 h-3.5 text-brand-navy" />

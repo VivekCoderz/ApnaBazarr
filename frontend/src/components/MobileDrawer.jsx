@@ -7,21 +7,25 @@ export default function MobileDrawer({ isOpen, onClose, cartCount, wishlistCount
 
   const navLinks = [
     { label: 'Home', to: '/' },
-    { label: 'Shop All Products', to: '/shop' },
-    { label: 'My Placed Orders', to: '/orders' },
-    { label: 'Shopping Cart', to: '/cart' },
-    { label: 'My Wishlist', to: '/wishlist' },
+    { label: 'Sab Products', to: '/shop' },
+    { label: 'Cart', to: '/cart' },
+    { label: 'Mere Orders', to: '/orders' },
+    { label: 'Wishlist', to: '/wishlist' },
   ];
 
   if (currentUser?.role === 'seller') {
     navLinks.push({ label: 'Seller Dashboard', to: '/seller' });
-  } else if (currentUser && currentUser.email !== 'admin@apnabazarr.com') {
-    navLinks.push({ label: 'Become a Seller', to: '/register-seller' });
   }
 
   if (currentUser?.email !== 'admin@apnabazarr.com') {
-    navLinks.push({ label: currentUser?.resellerProfile?.code ? 'Reseller Dashboard' : 'Reseller Bano · Paise Kamao', to: '/reseller' });
+    navLinks.push({ label: currentUser?.resellerProfile?.code ? 'Reseller Dashboard' : 'Reseller Baniye · Kamaayein', to: '/reseller' });
   }
+
+  navLinks.push(
+    { label: 'Shipping Policy', to: '/shipping' },
+    { label: 'Return & Refund', to: '/refunds' },
+    { label: 'Contact', to: '/contact' }
+  );
 
   return (
     <div className="fixed inset-0 z-50 lg:hidden">
@@ -38,8 +42,8 @@ export default function MobileDrawer({ isOpen, onClose, cartCount, wishlistCount
         <div className="p-4 border-b flex items-center justify-between bg-slate-900 text-white">
           <div className="flex items-center">
             <img 
-              src="/logo.png" 
-              alt="Apna Bazarr Logo" 
+              src="/brand-lockup-reverse.png" 
+              alt="Apna Bazarr" 
               className="h-8 w-auto object-contain" 
             />
           </div>
@@ -109,7 +113,7 @@ export default function MobileDrawer({ isOpen, onClose, cartCount, wishlistCount
           </a>
           <a href="tel:+919306810726" className="flex items-center space-x-2 hover:text-slate-900 transition-colors">
             <Phone className="w-4 h-4 text-brand-navy" />
-            <span>+91 9306810726</span>
+            <span>+91 93068 10726</span>
           </a>
         </div>
 
