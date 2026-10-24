@@ -10,6 +10,8 @@ import { whatsappUrl } from '../config/store';
 import { getActiveCampaign, sortForHomeGrid } from '../config/campaign';
 
 const PAGE_SIZE = 12;
+// Below this many live products the homepage also shows the "new stock" WhatsApp waitlist
+const MIN_FULL_CATALOGUE = 8;
 
 // Website plan §3.8, in English (return answer per the founder's return policy)
 const FAQS = [
@@ -68,7 +70,7 @@ export default function HomePage({
               {gridTitle}
             </h2>
             {gridProducts.length > 0 && (
-              <span className="text-sm text-slate-500 shrink-0">{gridProducts.length} products</span>
+              <span className="text-sm text-slate-500 shrink-0">{gridProducts.length} {gridProducts.length === 1 ? 'product' : 'products'}</span>
             )}
           </div>
 
@@ -106,6 +108,30 @@ export default function HomePage({
                 </div>
               )}
             </>
+          )}
+
+          {/* While the catalogue is small, turn visitors into a WhatsApp waitlist */}
+          {!loading && products.length < MIN_FULL_CATALOGUE && (
+            <div className="mt-6 bg-white border border-slate-200 rounded-2xl p-5 sm:p-8 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8">
+              <div className="space-y-1.5 flex-1">
+                <p className="text-xs font-semibold uppercase tracking-wider text-brand-cta">New stock arriving</p>
+                <h3 className="text-lg sm:text-2xl font-bold text-brand-navy leading-snug">
+                  Panipat blankets, dohars and bedsheets are coming soon
+                </h3>
+                <p className="text-sm sm:text-base text-slate-600">
+                  Get the first look and launch prices on WhatsApp. No spam, only new arrivals.
+                </p>
+              </div>
+              <a
+                href={whatsappUrl('Hi Apna Bazarr, please notify me when blankets and bedsheets are available.')}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-[#25D366] hover:bg-[#1ebe5b] text-brand-navy font-semibold rounded-xl shrink-0"
+              >
+                <MessageCircle className="w-5 h-5" />
+                Notify me on WhatsApp
+              </a>
+            </div>
           )}
         </div>
       </section>

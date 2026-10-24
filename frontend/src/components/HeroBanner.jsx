@@ -102,7 +102,8 @@ function HeroProduct({ product, large = false }) {
 export default function HeroBanner({ products = [], loading = false }) {
   const hero = getHero(products);
   const hasImage = Boolean(hero.image);
-  const tiles = hasImage ? [] : hero.products;
+  // One or two tiles look like an empty banner; show product tiles only when there are 3
+  const tiles = hasImage || hero.products.length < 3 ? [] : hero.products;
   // While the server wakes up, keep the tile area filled with placeholders
   const showSkeleton = !hasImage && loading && tiles.length === 0;
 
