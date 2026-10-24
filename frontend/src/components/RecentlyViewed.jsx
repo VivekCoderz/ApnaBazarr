@@ -22,7 +22,7 @@ export default function RecentlyViewed({ items, onAddToCart, onQuickView, onTogg
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Clock className="w-5 h-5 text-brand-navy" />
-            <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">Aapne haal hi mein dekhe</h3>
+            <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">Recently viewed</h3>
             <span className="bg-blue-100 text-brand-navy font-extrabold text-xs px-2.5 py-0.5 rounded-full">
               {items.length}
             </span>

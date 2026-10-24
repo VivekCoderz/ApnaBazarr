@@ -39,8 +39,8 @@ export default async function handler(req, res) {
   const title = `${product.name} – ₹${product.price} | Apna Bazarr`;
   const description =
     product.originalPrice && product.originalPrice > product.price
-      ? `Sirf ₹${product.price} (MRP ₹${product.originalPrice}). Panipat se seedha aapke ghar. Cash on Delivery available.`
-      : `Sirf ₹${product.price}. Panipat se seedha aapke ghar. Cash on Delivery available.`;
+      ? `Only ₹${product.price} (MRP ₹${product.originalPrice}). Straight from Panipat to your home. Cash on delivery available.`
+      : `Only ₹${product.price}. Straight from Panipat to your home. Cash on delivery available.`;
   const url = `${origin}/product/${product.id}`;
   const image = previewImage(product.image);
 

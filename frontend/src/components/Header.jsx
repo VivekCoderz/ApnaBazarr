@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Search, Heart, ShoppingBag, User, Menu, Package, Settings, LogOut, ChevronDown, X, LogIn, ShieldCheck } from 'lucide-react';
 import { formatPrice } from '../utils/format';
+import { categoryLabel } from '../config/store';
 
 export default function Header({
   cartCount,
@@ -67,10 +68,10 @@ export default function Header({
 
   // Typewriter placeholder animation loop
   const placeholderTexts = [
-    "suit set",
-    "co-ord set",
-    "bedsheet",
-    "kambal"
+    "suits",
+    "co-ord sets",
+    "bedsheets",
+    "blankets"
   ];
   const [placeholder, setPlaceholder] = useState('');
   const [textIndex, setTextIndex] = useState(0);
@@ -172,12 +173,12 @@ export default function Header({
                   setSearchQuery(e.target.value);
                   setShowSearchDropdown(true);
                 }}
-                placeholder=""
-                className="w-full bg-slate-50 border border-slate-200 rounded-full pl-11 pr-10 py-2.5 text-xs text-slate-800 font-semibold focus:outline-none focus:border-brand-navy focus:bg-white transition-all shadow-xs"
+                placeholder="Search for suits, co-ord sets, bedsheets…" aria-label="Search products"
+                className="w-full bg-slate-50 border border-slate-200 rounded-full pl-11 pr-10 py-2.5 text-xs text-slate-800 font-semibold placeholder:text-transparent focus:placeholder:text-slate-400 focus:outline-none focus:border-brand-navy focus:bg-white transition-all shadow-xs"
               />
               {!searchQuery && !isSearchFocused && (
                 <div className="absolute left-11 top-[11.5px] pointer-events-none select-none text-xs font-bold text-slate-400 flex items-center space-x-1">
-                  <span>Khojein:</span>
+                  <span>Search for</span>
                   <span className="text-brand-navy font-black">{placeholder}</span>
                   <span className="text-brand-navy font-light animate-pulse">|</span>
                 </div>
@@ -211,7 +212,7 @@ export default function Header({
                       <img src={item.image} alt={item.name} className="w-10 h-10 object-cover rounded-lg bg-slate-100" />
                       <div className="flex-1 min-w-0">
                         <h5 className="text-xs font-bold text-slate-800 truncate">{item.name}</h5>
-                        <span className="text-[11px] text-slate-400">{item.category} • {item.gender}</span>
+                        <span className="text-[11px] text-slate-400">{categoryLabel(item.category)}</span>
                       </div>
                       <span className="text-xs font-extrabold text-brand-navy">{formatPrice(item.price)}</span>
                     </div>
@@ -343,7 +344,7 @@ export default function Header({
                           className="flex items-center space-x-2.5 px-4 py-2.5 text-xs font-black text-emerald-700 hover:bg-emerald-50 border-b border-slate-100 transition-colors"
                         >
                           <Package className="w-4 h-4 text-emerald-600" />
-                          <span>{currentUser.resellerProfile?.code ? 'Reseller Dashboard' : 'Reseller Baniye · Kamaayein'}</span>
+                          <span>{currentUser.resellerProfile?.code ? 'Reseller Dashboard' : 'Become a Reseller'}</span>
                         </Link>
                       )}
 
@@ -416,12 +417,12 @@ export default function Header({
                 setSearchQuery(e.target.value);
                 setShowMobileSearchDropdown(true);
               }}
-              placeholder=""
-              className="w-full bg-slate-50 border border-slate-205 rounded-full pl-11 pr-10 py-2.5 text-xs text-slate-800 font-semibold focus:outline-none focus:border-brand-navy focus:bg-white transition-all shadow-xs"
+              placeholder="Search for suits, co-ord sets, bedsheets…" aria-label="Search products"
+              className="w-full bg-slate-50 border border-slate-205 rounded-full pl-11 pr-10 py-2.5 text-xs text-slate-800 font-semibold placeholder:text-transparent focus:placeholder:text-slate-400 focus:outline-none focus:border-brand-navy focus:bg-white transition-all shadow-xs"
             />
             {!searchQuery && !isMobileSearchFocused && (
               <div className="absolute left-11 top-[11.5px] pointer-events-none select-none text-xs font-bold text-slate-400 flex items-center space-x-1">
-                <span>Khojein:</span>
+                <span>Search for</span>
                 <span className="text-brand-navy font-black">{placeholder}</span>
                 <span className="text-brand-navy font-light animate-pulse">|</span>
               </div>
@@ -455,7 +456,7 @@ export default function Header({
                     <img src={item.image} alt={item.name} className="w-10 h-10 object-cover rounded-lg bg-slate-100" />
                     <div className="flex-1 min-w-0">
                       <h5 className="text-xs font-bold text-slate-800 truncate">{item.name}</h5>
-                      <span className="text-[11px] text-slate-400">{item.category} • {item.gender}</span>
+                      <span className="text-[11px] text-slate-400">{categoryLabel(item.category)}</span>
                     </div>
                     <span className="text-xs font-extrabold text-brand-navy">{formatPrice(item.price)}</span>
                   </div>

@@ -40,7 +40,7 @@ export default function WishlistPage({ wishlistItems, onAddToCart, onToggleWishl
             </p>
             <button
               onClick={() => navigate('/shop')}
-              className="px-6 py-3 bg-brand-navy hover:bg-blue-700 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md transition-colors flex items-center justify-center space-x-2 mx-auto"
+              className="px-6 py-3 bg-brand-navy hover:bg-blue-700 text-white font-extrabold text-xs tracking-wider rounded-xl shadow-md transition-colors flex items-center justify-center space-x-2 mx-auto"
             >
               <span>Explore Collections</span>
               <ArrowRight className="w-4 h-4" />

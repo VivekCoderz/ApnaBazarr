@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Star, Heart, Eye } from 'lucide-react';
-import { formatPrice } from '../utils/format';
+import { formatPrice, displayName } from '../utils/format';
 import { FREE_DELIVERY_ABOVE, DELIVERY_CHARGE } from '../config/store';
 
 export default function ProductCard({ product, onToggleWishlist, isWishlisted, compact = false }) {
@@ -29,11 +29,11 @@ export default function ProductCard({ product, onToggleWishlist, isWishlisted, c
         <div className="absolute top-2.5 left-2.5 z-10 flex flex-col items-start gap-1">
           {isOutOfStock ? (
             <span className="bg-red-600 text-white font-bold text-[10px] px-2 py-0.5 rounded-xs shadow-xs">
-              Stock khatam
+              Out of stock
             </span>
           ) : isClosed ? (
             <span className="bg-amber-600 text-white font-bold text-[10px] px-2 py-0.5 rounded-xs shadow-xs">
-              Shop band hai
+              Shop closed
             </span>
           ) : (
             <>
@@ -61,8 +61,8 @@ export default function ProductCard({ product, onToggleWishlist, isWishlisted, c
                 ? 'bg-red-500 text-white'
                 : 'bg-white/90 text-slate-600 hover:text-red-500 hover:bg-white'
             }`}
-            title="Wishlist mein rakhein"
-            aria-label="Wishlist mein rakhein"
+            title="Save to wishlist"
+            aria-label="Save to wishlist"
           >
             <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-current' : ''}`} />
           </button>
@@ -82,7 +82,7 @@ export default function ProductCard({ product, onToggleWishlist, isWishlisted, c
         <div className="hidden sm:flex absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-slate-900/70 via-slate-900/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 items-center justify-center">
           <span className="px-3 py-2 bg-white text-slate-800 rounded-lg shadow-md text-xs font-semibold flex items-center gap-1">
             <Eye className="w-4 h-4" />
-            <span>Dekhein</span>
+            <span>View</span>
           </span>
         </div>
 
@@ -92,7 +92,7 @@ export default function ProductCard({ product, onToggleWishlist, isWishlisted, c
       <div className="p-2 sm:p-3 flex flex-col justify-between flex-1 space-y-1 sm:space-y-1.5">
 
         <h4 className="text-xs sm:text-sm font-semibold text-slate-800 group-hover:text-brand-navy transition-colors line-clamp-2 leading-snug">
-          {product.name}
+          {displayName(product.name)}
         </h4>
 
         <div>
@@ -122,7 +122,7 @@ export default function ProductCard({ product, onToggleWishlist, isWishlisted, c
             <p className={`text-[11px] font-semibold mt-0.5 ${product.price >= FREE_DELIVERY_ABOVE ? 'text-emerald-700' : 'text-slate-500'}`}>
               {product.price >= FREE_DELIVERY_ABOVE
                 ? 'Free Delivery'
-                : `₹${DELIVERY_CHARGE} delivery · ₹${FREE_DELIVERY_ABOVE}+ par free`}
+                : `₹${DELIVERY_CHARGE} delivery · free above ₹${FREE_DELIVERY_ABOVE}`}
             </p>
           )}
         </div>
@@ -137,7 +137,7 @@ export default function ProductCard({ product, onToggleWishlist, isWishlisted, c
             }}
             className="w-full mt-1.5 py-2 rounded-lg text-sm font-semibold sm:hidden bg-brand-cta text-white hover:bg-brand-cta-hover transition-colors"
           >
-            {isOutOfStock ? 'Stock khatam' : 'Dekhein'}
+            {isOutOfStock ? 'Out of stock' : 'View'}
           </button>
         )}
 

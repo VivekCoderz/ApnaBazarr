@@ -55,7 +55,7 @@ export default function SettingsPage() {
               </label>
               <label className="flex items-center space-x-2 cursor-pointer">
                 <input type="checkbox" defaultChecked className="accent-brand-navy" />
-                <span>Email alerts for new Diwali & Sardi collections</span>
+                <span>Email alerts for new Diwali & winter collections</span>
               </label>
             </div>
           </div>

@@ -249,7 +249,7 @@ export default function FeedbackForm({ onSubmitFeedback, currentUser }) {
             className="w-full py-3.5 bg-brand-navy hover:bg-blue-700 disabled:opacity-60 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md transition-colors flex items-center justify-center space-x-2"
           >
             {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-            <span>{submitting ? 'SUBMITTING...' : 'SUBMIT CUSTOMER FEEDBACK'}</span>
+            <span>{submitting ? 'Submitting...' : 'Send feedback'}</span>
           </button>
         </form>
       )}

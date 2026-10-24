@@ -3,3 +3,14 @@ export function formatPrice(amount) {
   const value = Math.round(Number(amount) || 0);
   return `₹${value.toLocaleString('en-IN')}`;
 }
+
+// Clean product title for display: drop emojis/symbols and turn SHOUTED titles into Title Case
+// ("🦚 PREMIUM PEACOCK ART 3-PIECE SUIT SET 🦚" -> "Premium Peacock Art 3-Piece Suit Set")
+export function displayName(name) {
+  const clean = String(name || '').replace(/[^\p{L}\p{N}\s&+.,'()/-]/gu, '').replace(/\s+/g, ' ').trim();
+  const letters = clean.replace(/[^\p{L}]/gu, '');
+  if (letters && letters === letters.toUpperCase()) {
+    return clean.toLowerCase().replace(/(^|[\s(/-])(\p{L})/gu, (m, sep, ch) => sep + ch.toUpperCase());
+  }
+  return clean;
+}

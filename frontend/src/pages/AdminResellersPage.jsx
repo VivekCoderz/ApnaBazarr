@@ -30,7 +30,7 @@ export default function AdminResellersPage() {
       setResellers(result.resellers);
       setCommissionPercent(String(result.commissionPercent));
     } catch (err) {
-      setMessage(err.message || 'Resellers load nahi ho paaye.');
+      setMessage(err.message || 'Could not load resellers.');
     } finally {
       setLoading(false);
     }
@@ -47,7 +47,7 @@ export default function AdminResellersPage() {
       body: JSON.stringify({ percent: Number(commissionPercent) })
     });
     const result = await res.json();
-    setMessage(result.success ? `Commission ${result.commissionPercent}% set ho gaya.` : result.message);
+    setMessage(result.success ? `Commission set to ${result.commissionPercent}%.` : result.message);
   };
 
   const markPaid = async (orderId) => {
@@ -115,7 +115,7 @@ export default function AdminResellersPage() {
           <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
         ) : resellers.length === 0 ? (
           <p className="text-sm text-slate-400 flex items-center gap-2">
-            <Users className="w-4 h-4" /> Abhi koi reseller nahi hai. Unhe /reseller page ka link bhejo.
+            <Users className="w-4 h-4" /> No resellers yet. Send people the /reseller page link.
           </p>
         ) : (
           resellers.map(r => (
@@ -129,7 +129,7 @@ export default function AdminResellersPage() {
                   </button>
                 </div>
                 <div className="text-right text-xs">
-                  <p>{r.stats.orders} orders · Kamai ₹{r.stats.earned}</p>
+                  <p>{r.stats.orders} orders · Earned ₹{r.stats.earned}</p>
                   <p className="text-amber-400 font-black">Baaki ₹{r.stats.pending}</p>
                 </div>
               </div>
@@ -141,7 +141,7 @@ export default function AdminResellersPage() {
                       <span className="flex items-center gap-2">
                         <span className="font-black text-emerald-300">₹{o.commission}</span>
                         {o.payoutStatus === 'paid' ? (
-                          <span className="text-slate-400">Paid ✅</span>
+                          <span className="text-slate-400">Paid</span>
                         ) : (
                           <button onClick={() => markPaid(o.orderId)} className="px-2 py-1 bg-emerald-600 rounded-md font-black">
                             Mark paid

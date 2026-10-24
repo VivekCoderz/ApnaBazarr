@@ -1,19 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin, MessageCircle } from 'lucide-react';
-import { whatsappUrl } from '../config/store';
-
-const SHOP_LINKS = [
-  'Kambal & Dohar',
-  'Bedsheet',
-  'Cushion & Sofa Cover',
-  'Suit Sets',
-  'Co-ord Sets'
-];
+import { whatsappUrl, CATEGORIES } from '../config/store';
 
 export default function Footer({ products = [] }) {
   // Only link categories that have live products (no empty pages)
-  const liveCategories = SHOP_LINKS.filter(c => products.some(p => p.category === c));
+  const liveCategories = CATEGORIES.filter(c => products.some(p => p.category === c.name));
   return (
     <footer className="bg-slate-900 text-slate-300 pt-16 pb-8 border-t border-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -32,7 +24,7 @@ export default function Footer({ products = [] }) {
             </Link>
             <p className="text-sm text-slate-200 font-semibold">Panipat se Seedha, Aapke Ghar Tak</p>
             <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
-              Panipat ke blankets, bedsheets, cushion covers aur women's suit sets — factory daam pe, Cash on Delivery ke saath.
+              Blankets, bedsheets, cushion covers and women's suit sets from Panipat at factory prices, with cash on delivery.
             </p>
             <div className="space-y-2 text-xs text-slate-400 pt-2">
               <div className="flex items-center space-x-2">
@@ -61,14 +53,14 @@ export default function Footer({ products = [] }) {
             </h4>
             <ul className="space-y-2 text-xs text-slate-400 font-semibold">
               {liveCategories.map((category) => (
-                <li key={category}>
-                  <Link to={`/shop?category=${encodeURIComponent(category)}`} className="hover:text-white hover:underline transition-colors">
-                    {category}
+                <li key={category.name}>
+                  <Link to={`/shop?category=${encodeURIComponent(category.name)}`} className="hover:text-white hover:underline transition-colors">
+                    {category.label}
                   </Link>
                 </li>
               ))}
               <li>
-                <Link to="/shop" className="hover:text-white hover:underline transition-colors">Sab Products</Link>
+                <Link to="/shop" className="hover:text-white hover:underline transition-colors">All Products</Link>
               </li>
             </ul>
           </div>
@@ -83,7 +75,7 @@ export default function Footer({ products = [] }) {
                 <Link to="/shipping" className="hover:text-white hover:underline transition-colors">Shipping Policy</Link>
               </li>
               <li>
-                <Link to="/refunds" className="hover:text-white hover:underline transition-colors">Return & Refund</Link>
+                <Link to="/refunds" className="hover:text-white hover:underline transition-colors">Returns & Refunds</Link>
               </li>
               <li>
                 <Link to="/contact" className="hover:text-white hover:underline transition-colors">Contact</Link>
@@ -95,7 +87,7 @@ export default function Footer({ products = [] }) {
                 <Link to="/privacy" className="hover:text-white hover:underline transition-colors">Privacy Policy</Link>
               </li>
               <li>
-                <Link to="/reseller" className="hover:text-white hover:underline transition-colors">Reseller Baniye · Kamaayein</Link>
+                <Link to="/reseller" className="hover:text-white hover:underline transition-colors">Become a Reseller</Link>
               </li>
             </ul>
           </div>

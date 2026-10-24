@@ -16,4 +16,20 @@ export function whatsappUrl(message = '') {
 }
 
 export const RETURN_POLICY_LINE =
-  'Kharab, galat ya size galat nikla? 7 din mein return ya exchange, pickup hum karwayenge. Mann badal gaya to sirf exchange.';
+  'Damaged, wrong item or wrong size? Return or exchange within 7 days and we arrange a free pickup. If you change your mind, we offer an exchange.';
+
+// Shop categories in display order (website plan §6.2). `name` is the value stored on
+// the product (admin dropdown); `label` is the English text shown to customers.
+export const CATEGORIES = [
+  { name: 'Kambal & Dohar', label: 'Blankets & Dohars' },
+  { name: 'Bedsheet', label: 'Bedsheets' },
+  { name: 'Cushion & Sofa Cover', label: 'Cushion & Sofa Covers' },
+  { name: 'Mats & Table Runner', label: 'Mats & Table Runners' },
+  { name: 'Suit Sets', label: 'Suit Sets' },
+  { name: 'Co-ord Sets', label: 'Co-ord Sets' },
+  { name: "Women's Wear", label: "Women's Wear" }
+];
+
+export function categoryLabel(name) {
+  return CATEGORIES.find(c => c.name === name)?.label || name;
+}

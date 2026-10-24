@@ -32,11 +32,11 @@ export const whatsappShareUrl = (product, resellerCode) => {
   const lines = [
     `*${product.name}*`,
     product.originalPrice && product.originalPrice > product.price
-      ? `Sirf ₹${product.price} (₹${product.originalPrice} ki jagah)`
-      : `Sirf ₹${product.price}`,
-    'Panipat se seedha aapke ghar. Cash on Delivery available.',
+      ? `Only Rs ${product.price} (MRP Rs ${product.originalPrice})`
+      : `Only Rs ${product.price}`,
+    'Straight from Panipat to your home. Cash on delivery available.',
     '',
-    `Order karein: ${productShareLink(product.id, resellerCode)}`
+    `Order here: ${productShareLink(product.id, resellerCode)}`
   ];
   // No emojis outside the basic range: wa.me turns them into "�" on WhatsApp Web/Desktop
   return `https://api.whatsapp.com/send?text=${encodeURIComponent(lines.join('\n'))}`;

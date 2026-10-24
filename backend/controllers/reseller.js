@@ -36,7 +36,7 @@ module.exports.join = async (req, res) => {
     }
     const { upiId, phone } = req.body;
     if (!upiId || !phone) {
-      return res.status(400).json({ success: false, message: 'UPI ID aur phone number dono chahiye.' });
+      return res.status(400).json({ success: false, message: 'Please enter both your UPI ID and phone number.' });
     }
 
     const user = await User.findById(req.user._id);
@@ -159,7 +159,7 @@ module.exports.adminSetCommission = async (req, res) => {
     }
     const percent = Number(req.body.percent);
     if (!(percent >= 0 && percent <= 50)) {
-      return res.status(400).json({ success: false, message: 'Commission 0 se 50% ke beech hona chahiye.' });
+      return res.status(400).json({ success: false, message: 'Commission must be between 0 and 50%.' });
     }
     await Setting.findOneAndUpdate(
       { key: 'reseller_commission_percent' },

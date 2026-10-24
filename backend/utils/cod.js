@@ -4,7 +4,7 @@
 const COD_MAX_AMOUNT = 3000;
 
 const COD_LIMIT_MESSAGE =
-  'Cash on Delivery sirf ₹3,000 tak ke order par hai. Is order ke liye online payment (UPI/Card) karein, ya WhatsApp karein: +91 93068 10726.';
+  'Cash on delivery is available on orders up to ₹3,000. Please pay online (UPI/card) for this order, or WhatsApp us at +91 93068 10726.';
 
 // Returns an error message when this COD order is not allowed, otherwise null
 function codLimitError(orderTotal) {

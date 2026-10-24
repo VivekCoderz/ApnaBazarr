@@ -4,8 +4,8 @@ import { Star, ShoppingBag, Heart, Truck, RotateCcw, Upload, CheckCircle, Sparkl
 import ProductCard from '../components/ProductCard';
 import { whatsappShareUrl } from '../utils/referral';
 import { useShippingQuote } from '../utils/shipping';
-import { formatPrice } from '../utils/format';
-import { FREE_DELIVERY_ABOVE, RETURN_POLICY_LINE, whatsappUrl } from '../config/store';
+import { formatPrice, displayName } from '../utils/format';
+import { FREE_DELIVERY_ABOVE, RETURN_POLICY_LINE, whatsappUrl, categoryLabel } from '../config/store';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -26,6 +26,7 @@ async function uploadToCloudinary(file, endpoint) {
 
 export default function ProductDetailPage({
   products = [],
+  loading = false,
   onAddToCart,
   onToggleWishlist,
   wishlistItems = [],
@@ -262,13 +263,33 @@ export default function ProductDetailPage({
     }
   };
 
+  // Products still loading (server waking up): placeholder instead of "not available"
+  if (!product && loading) {
+    return (
+      <div className="bg-white min-h-screen py-8" role="status" aria-label="Loading product">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-8 animate-pulse">
+          <div className="lg:col-span-6 aspect-square rounded-3xl bg-slate-200" />
+          <div className="lg:col-span-6 space-y-4">
+            <div className="h-4 w-24 bg-slate-200 rounded" />
+            <div className="h-8 w-11/12 bg-slate-200 rounded" />
+            <div className="h-8 w-2/3 bg-slate-200 rounded" />
+            <div className="h-16 bg-slate-200 rounded-2xl" />
+            <div className="h-14 bg-slate-200 rounded-2xl" />
+            <div className="h-14 bg-slate-200 rounded-2xl" />
+          </div>
+        </div>
+        <span className="sr-only">Loading product…</span>
+      </div>
+    );
+  }
+
   if (!product) {
     return (
       <div className="py-20 px-4 text-center text-slate-600 space-y-4">
-        <p className="text-lg font-semibold text-slate-800">Ye product abhi available nahi hai.</p>
-        <p className="text-sm">Ho sakta hai stock khatam ho gaya ho ya season badal gaya ho.</p>
+        <p className="text-lg font-semibold text-slate-800">This product is not available right now.</p>
+        <p className="text-sm">It may be out of stock or out of season.</p>
         <button onClick={() => navigate('/shop')} className="px-5 py-3 bg-brand-cta hover:bg-brand-cta-hover text-white text-sm font-semibold rounded-xl">
-          Baaki products dekhein
+          See other products
         </button>
       </div>
     );
@@ -292,7 +313,7 @@ export default function ProductDetailPage({
   const lineTotal = product.price * quantity;
   const neededForFree = Math.max(0, FREE_DELIVERY_ABOVE - lineTotal);
 
-  // "Abhi Khareedein": add to cart and go straight to checkout
+  // "Buy Now": add to cart and go straight to checkout
   const handleBuyNow = () => {
     if (handleAddToCartWithCustomization()) navigate('/checkout');
   };
@@ -323,8 +344,8 @@ export default function ProductDetailPage({
                 className={`absolute top-3 right-3 p-2.5 rounded-full shadow-md transition-colors ${
                   isWishlisted ? 'bg-red-500 text-white' : 'bg-white/95 text-slate-700 hover:text-red-500'
                 }`}
-                title="Wishlist mein rakhein"
-                aria-label="Wishlist mein rakhein"
+                title="Save to wishlist"
+                aria-label="Save to wishlist"
               >
                 <Heart className={`w-5 h-5 ${isWishlisted ? 'fill-current' : ''}`} />
               </button>
@@ -351,10 +372,10 @@ export default function ProductDetailPage({
             
             <div className="space-y-2">
               <Link to={`/shop?category=${encodeURIComponent(product.category)}`} className="inline-block text-sm font-semibold text-brand-navy hover:underline">
-                {product.category}
+                {categoryLabel(product.category)}
               </Link>
               <h1 className="text-2xl sm:text-4xl font-bold text-slate-900 tracking-tight leading-tight">
-                {product.name}
+                {displayName(product.name)}
               </h1>
 
               {/* Rating: only when there are real reviews */}
@@ -388,12 +409,12 @@ export default function ProductDetailPage({
                   <>
                     <span className="text-sm font-semibold text-slate-400 line-through">{formatPrice(product.originalPrice)}</span>
                     <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                      {formatPrice(product.originalPrice - product.price)} bachao
+                      You save {formatPrice(product.originalPrice - product.price)}
                     </span>
                   </>
                 )}
               </div>
-              <p className="text-xs text-slate-500 mt-1">Sabhi taxes shamil</p>
+              <p className="text-xs text-slate-500 mt-1">Inclusive of all taxes</p>
             </div>
 
             {/* Description */}
@@ -405,7 +426,7 @@ export default function ProductDetailPage({
             {product.sizes && product.sizes.length > 0 && (
               <div className="space-y-2.5 pt-2 animate-fade-in">
                 <div className="flex justify-between items-center">
-                  <label className="block text-sm font-semibold text-slate-700">Size chunein</label>
+                  <label className="block text-sm font-semibold text-slate-700">Select size</label>
                   {product.category === 'Clothing' && (
                     <span className="text-[10px] text-slate-400 font-semibold">Standard Fit</span>
                   )}
@@ -432,7 +453,7 @@ export default function ProductDetailPage({
             {/* Colors Selector */}
             {product.colors && product.colors.length > 0 && (
               <div className="space-y-2.5 pt-2 animate-fade-in">
-                <label className="block text-sm font-semibold text-slate-700">Rang chunein</label>
+                <label className="block text-sm font-semibold text-slate-700">Select colour</label>
                 <div className="flex flex-wrap gap-3">
                   {product.colors.map((color) => {
                     const isHex = color.startsWith('#');
@@ -469,7 +490,7 @@ export default function ProductDetailPage({
 
             {/* Quantity Selector */}
             <div className="space-y-2 pt-2">
-              <label className="block text-sm font-semibold text-slate-700">Kitne chahiye</label>
+              <label className="block text-sm font-semibold text-slate-700">Quantity</label>
               <div className="flex items-center space-x-3">
                 <div className="flex items-center border border-slate-300 rounded-xl overflow-hidden bg-slate-50">
                   <button
@@ -487,7 +508,7 @@ export default function ProductDetailPage({
                   </button>
                 </div>
                 <span className={`text-xs font-semibold ${isOutOfStock ? 'text-red-600' : 'text-emerald-600'}`}>
-                  {isOutOfStock ? 'Stock khatam' : 'Stock mein hai'}
+                  {isOutOfStock ? 'Out of stock' : 'In stock'}
                 </span>
               </div>
             </div>
@@ -500,7 +521,7 @@ export default function ProductDetailPage({
                 <span className="text-emerald-700">Delivery: FREE</span>
               ) : (
                 <span className="text-slate-800">
-                  Delivery: ₹{deliveryCharge ?? 49} · {formatPrice(neededForFree)} aur ka saman lein, delivery free
+                  Delivery: ₹{deliveryCharge ?? 49} · Add {formatPrice(neededForFree)} more for free delivery
                 </span>
               )}
             </div>
@@ -508,7 +529,7 @@ export default function ProductDetailPage({
             {/* Product Customization Fields */}
             {product.isCustomizable && (
               <div className="bg-amber-50/50 p-5 rounded-2xl border border-amber-200 space-y-4">
-                <div className="flex items-center space-x-1.5 text-amber-900 font-extrabold text-xs uppercase tracking-wider">
+                <div className="flex items-center space-x-1.5 text-amber-900 font-extrabold text-xs tracking-wider">
                   <Sparkles className="w-4 h-4 text-amber-700" />
                   <span>Customization Details Required</span>
                 </div>
@@ -518,7 +539,7 @@ export default function ProductDetailPage({
 
                 {(product.customizationType === 'text' || product.customizationType === 'both') && (
                   <div className="space-y-1">
-                    <label className="block text-[11px] font-bold text-slate-700 uppercase">Custom Text Name / Note *</label>
+                    <label className="block text-[11px] font-bold text-slate-700">Custom Text Name / Note *</label>
                     <input
                       type="text"
                       value={customTextVal}
@@ -531,7 +552,7 @@ export default function ProductDetailPage({
 
                 {(product.customizationType === 'image' || product.customizationType === 'both') && (
                   <div className="space-y-2">
-                    <label className="block text-[11px] font-bold text-slate-700 uppercase">Upload Custom Photo / Design *</label>
+                    <label className="block text-[11px] font-bold text-slate-700">Upload Custom Photo / Design *</label>
                     <div className="flex items-center space-x-3">
                       <input
                         type="file"
@@ -590,7 +611,7 @@ export default function ProductDetailPage({
                   isOutOfStock ? 'bg-slate-400 cursor-not-allowed shadow-none' : 'bg-brand-cta hover:bg-brand-cta-hover'
                 }`}
               >
-                <span>{isOutOfStock ? 'Stock khatam' : 'Abhi Khareedein · COD'}</span>
+                <span>{isOutOfStock ? 'Out of stock' : 'Buy Now · Cash on Delivery'}</span>
               </button>
               {!isOutOfStock && (
                 <button
@@ -598,7 +619,7 @@ export default function ProductDetailPage({
                   className="flex-1 py-4 border-2 border-brand-navy text-brand-navy font-semibold text-base rounded-2xl hover:bg-blue-50 transition-colors flex items-center justify-center gap-2"
                 >
                   <ShoppingBag className="w-5 h-5" />
-                  <span>Cart mein daalein</span>
+                  <span>Add to Cart</span>
                 </button>
               )}
             </div>
@@ -606,10 +627,10 @@ export default function ProductDetailPage({
             {/* Trust strip */}
             <div className="grid grid-cols-2 gap-3 pt-2">
               {[
-                { icon: Banknote, title: 'Cash on Delivery', sub: 'Ghar pe paise dein', tint: 'bg-emerald-50 border-emerald-200' },
-                { icon: Truck, title: 'Free Delivery', sub: '₹499+ par, warna ₹49', tint: 'bg-brand-cream border-brand-peach' },
-                { icon: Package, title: '2 din mein dispatch', sub: 'Panipat se, Mon–Sat', tint: 'bg-brand-cream border-brand-peach' },
-                { icon: RotateCcw, title: '7-din Return', sub: 'Kharab/galat/size issue', tint: 'bg-brand-cream border-brand-peach' }
+                { icon: Banknote, title: 'Cash on Delivery', sub: 'Pay when it arrives', tint: 'bg-emerald-50 border-emerald-200' },
+                { icon: Truck, title: 'Free Delivery', sub: 'Above ₹499, otherwise ₹49', tint: 'bg-brand-cream border-brand-peach' },
+                { icon: Package, title: 'Ships in 2 days', sub: 'From Panipat, Mon–Sat', tint: 'bg-brand-cream border-brand-peach' },
+                { icon: RotateCcw, title: '7-day returns', sub: 'Damaged, wrong or wrong size', tint: 'bg-brand-cream border-brand-peach' }
               ].map(({ icon: Icon, title, sub, tint }) => (
                 <div key={title} className={`flex items-start gap-2.5 p-3 rounded-xl border ${tint}`}>
                   <Icon className="w-5 h-5 text-brand-navy shrink-0 mt-0.5" strokeWidth={1.75} />
@@ -621,17 +642,17 @@ export default function ProductDetailPage({
               ))}
             </div>
             <p className="text-xs text-slate-600 leading-relaxed">
-              {RETURN_POLICY_LINE} <Link to="/refunds" className="text-brand-navy font-semibold underline">Poori policy</Link>
+              {RETURN_POLICY_LINE} <Link to="/refunds" className="text-brand-navy font-semibold underline">Full policy</Link>
             </p>
 
             <a
-              href={whatsappUrl(`Namaste, mujhe ye product chahiye: ${product.name} - ${window.location.origin}/product/${product.id}`)}
+              href={whatsappUrl(`Hello, I have a question about this product: ${product.name} - ${window.location.origin}/product/${product.id}`)}
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-navy underline underline-offset-4"
             >
               <MessageCircle className="w-4 h-4" />
-              <span>Sawal hai? WhatsApp pe poochein</span>
+              <span>Have a question? Ask on WhatsApp</span>
             </a>
 
             <a
@@ -641,7 +662,7 @@ export default function ProductDetailPage({
               className="w-full py-3 bg-[#25D366] hover:bg-[#1ebe5b] text-brand-navy font-bold text-sm rounded-2xl flex items-center justify-center gap-2"
             >
               <MessageSquare className="w-4 h-4" />
-              <span>{currentUser?.resellerProfile?.code ? 'Share karein aur kamaayein' : 'WhatsApp pe share karein'}</span>
+              <span>{currentUser?.resellerProfile?.code ? 'Share and earn' : 'Share on WhatsApp'}</span>
             </a>
 
           </div>
@@ -661,7 +682,7 @@ export default function ProductDetailPage({
               {reviewsLoading ? (
                 <div className="text-xs text-slate-400 text-center py-6">Loading reviews...</div>
               ) : reviews.length === 0 ? (
-                <div className="text-sm text-slate-600 text-center py-6">Pehle khareedne wale baniye — photo ke saath review dein.</div>
+                <div className="text-sm text-slate-600 text-center py-6">No reviews yet. Bought this? Share a review with a photo.</div>
               ) : reviews.map((rev) => (
                 <div key={rev._id || rev.id} className="p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
                   <div className="flex items-center justify-between">
@@ -772,7 +793,7 @@ export default function ProductDetailPage({
                           />
                           <button 
                             onClick={() => handleCommentReview(rev._id)}
-                            className="px-3 py-1.5 bg-brand-navy hover:bg-blue-700 text-white font-extrabold text-xs uppercase rounded-lg transition-all flex items-center space-x-1 shrink-0 cursor-pointer"
+                            className="px-3 py-1.5 bg-brand-navy hover:bg-blue-700 text-white font-extrabold text-xs rounded-lg transition-all flex items-center space-x-1 shrink-0 cursor-pointer"
                           >
                             <CornerDownRight className="w-3.5 h-3.5" />
                             <span>Reply</span>
@@ -891,10 +912,10 @@ export default function ProductDetailPage({
                   <button
                     type="submit"
                     disabled={reviewSubmitting || uploadingPhoto || uploadingVideo}
-                    className="w-full py-3 bg-brand-navy hover:bg-blue-600 disabled:opacity-60 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md transition-colors flex items-center justify-center space-x-2"
+                    className="w-full py-3 bg-brand-navy hover:bg-blue-600 disabled:opacity-60 text-white font-extrabold text-xs tracking-wider rounded-xl shadow-md transition-colors flex items-center justify-center space-x-2"
                   >
                     {reviewSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                    <span>{reviewSubmitting ? 'SUBMITTING...' : 'POST CUSTOMER REVIEW'}</span>
+                    <span>{reviewSubmitting ? 'Submitting...' : 'Post review'}</span>
                   </button>
                 </form>
               )}
@@ -907,8 +928,8 @@ export default function ProductDetailPage({
         {relatedProducts.length > 0 && (
           <div className="pt-12 border-t border-slate-200 space-y-6">
             <div className="flex items-center justify-between">
-              <h3 className="text-xl font-bold text-slate-900 tracking-tight">Aapko ye bhi pasand aayega</h3>
-              <Link to="/shop" className="text-sm font-semibold text-brand-navy hover:underline">Sab dekhein →</Link>
+              <h3 className="text-xl font-bold text-slate-900 tracking-tight">You may also like</h3>
+              <Link to="/shop" className="text-sm font-semibold text-brand-navy hover:underline">View all →</Link>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">

@@ -1,16 +1,9 @@
 import React from 'react';
 
-// Fixed shop order (website plan §6.2) with Hinglish + English labels.
-// Categories not in this list (e.g. older ones) are shown after these.
-const CATEGORY_ORDER = [
-  { name: 'Kambal & Dohar', label: 'Kambal / Blanket' },
-  { name: 'Bedsheet', label: 'Chadar / Bedsheet' },
-  { name: 'Cushion & Sofa Cover', label: 'Cushion Cover' },
-  { name: 'Mats & Table Runner', label: 'Mats / Runner' },
-  { name: 'Suit Sets', label: 'Suit Sets' },
-  { name: 'Co-ord Sets', label: 'Co-ord Sets' },
-  { name: "Women's Wear", label: 'Suit & Kurti / Women' }
-];
+import { CATEGORIES } from '../config/store';
+
+// Fixed shop order (website plan §6.2); categories not in the list are shown after these.
+const CATEGORY_ORDER = CATEGORIES;
 
 export default function FeaturedCategories({ products = [], onSelectCategory }) {
   // Only categories with at least one live product; image = first product's photo
@@ -32,7 +25,7 @@ export default function FeaturedCategories({ products = [], onSelectCategory }) 
     <section id="categories" className="py-6 sm:py-10 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 className="text-xl sm:text-2xl font-bold text-brand-navy mb-4">
-          Kya dhoondh rahe hain?
+          Shop by Category
         </h2>
 
         <div className="flex gap-4 sm:gap-6 overflow-x-auto snap-x snap-mandatory pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 lg:grid lg:grid-cols-6 lg:overflow-visible">

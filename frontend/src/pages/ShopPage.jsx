@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
+import { ProductGridSkeleton } from '../components/ProductSkeleton';
+import { categoryLabel } from '../config/store';
 import { Filter, SlidersHorizontal, X } from 'lucide-react';
 
-export default function ShopPage({ products, onAddToCart, onQuickView, onToggleWishlist, wishlistItems, cartItems }) {
+export default function ShopPage({ products, loading = false, onAddToCart, onQuickView, onToggleWishlist, wishlistItems, cartItems }) {
   const [searchParams] = useSearchParams();
   const initialQuery = searchParams.get('search') || '';
   const initialCategory = searchParams.get('category') || 'All';
@@ -26,7 +28,7 @@ export default function ShopPage({ products, onAddToCart, onQuickView, onToggleW
   const renderFilters = () => (
     <div className="space-y-6">
       <div className="space-y-3">
-        <h4 className="font-bold text-xs text-slate-800 uppercase tracking-wider">Categories</h4>
+        <h4 className="font-bold text-xs text-slate-800 tracking-wider">Categories</h4>
         <div className="space-y-1 text-xs max-h-56 overflow-y-auto pr-1">
           {categories.map((cat) => (
             <button
@@ -38,7 +40,7 @@ export default function ShopPage({ products, onAddToCart, onQuickView, onToggleW
                   : 'text-slate-700 hover:bg-slate-100'
               }`}
             >
-              {cat}
+              {categoryLabel(cat)}
             </button>
           ))}
         </div>
@@ -46,7 +48,7 @@ export default function ShopPage({ products, onAddToCart, onQuickView, onToggleW
 
       {/* Gender Collection Filter */}
       <div className="border-t border-slate-100 pt-4 space-y-2">
-        <h4 className="font-bold text-xs text-slate-800 uppercase tracking-wider">Target Audience</h4>
+        <h4 className="font-bold text-xs text-slate-800 tracking-wider">Target Audience</h4>
         <div className="flex flex-wrap gap-1.5">
           {genders.map((g) => (
             <button
@@ -67,7 +69,7 @@ export default function ShopPage({ products, onAddToCart, onQuickView, onToggleW
       {/* Price Slider */}
       <div className="border-t border-slate-100 pt-4 space-y-2">
         <div className="flex justify-between items-center text-xs">
-          <span className="font-bold text-slate-800 uppercase tracking-wider">Max Price</span>
+          <span className="font-bold text-slate-800 tracking-wider">Max Price</span>
           <span className="font-extrabold text-brand-navy">₹{maxPrice}</span>
         </div>
         <input
@@ -189,11 +191,11 @@ export default function ShopPage({ products, onAddToCart, onQuickView, onToggleW
                 )}
                 <div className="space-y-2.5">
                   <div className="flex items-center space-x-2 flex-wrap gap-2">
-                    <span className="bg-[#ff5e14]/20 text-[#ff7d42] text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full border border-[#ff5e14]/30 flex items-center gap-1">
+                    <span className="bg-[#ff5e14]/20 text-[#ff7d42] text-[9px] font-black tracking-widest px-3 py-1 rounded-full border border-[#ff5e14]/30 flex items-center gap-1">
                       <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path></svg>
                       Verified Boutique
                     </span>
-                    <span className={`text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${
+                    <span className={`text-[9px] font-black tracking-widest px-3 py-1 rounded-full border ${
                       sellerInfo.isOpen 
                         ? 'bg-emerald-500/25 text-emerald-300 border-emerald-500/40' 
                         : 'bg-red-500/25 text-red-300 border-red-500/40'
@@ -202,7 +204,7 @@ export default function ShopPage({ products, onAddToCart, onQuickView, onToggleW
                     </span>
                     <button 
                       onClick={handleFollowToggle}
-                      className={`px-3.5 py-1 rounded-full text-[9.5px] font-black uppercase tracking-wider transition-all border cursor-pointer flex items-center gap-1.5 ${
+                      className={`px-3.5 py-1 rounded-full text-[9.5px] font-black tracking-wider transition-all border cursor-pointer flex items-center gap-1.5 ${
                         isFollowing 
                           ? 'bg-rose-500/30 text-rose-200 border-rose-500/40 hover:bg-rose-500/40 shadow-xs'
                           : 'bg-white/10 text-white border-white/20 hover:bg-white/20'
@@ -251,11 +253,11 @@ export default function ShopPage({ products, onAddToCart, onQuickView, onToggleW
 
               <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto shrink-0 border-t border-slate-800 pt-4 md:border-t-0 md:pt-0 text-[10px] text-slate-300">
                 <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-3 backdrop-blur-xs flex flex-col justify-center">
-                  <span className="text-[8px] text-slate-500 uppercase font-black tracking-widest">Boutique Location</span>
+                  <span className="text-[8px] text-slate-500 font-black tracking-widest">Boutique Location</span>
                   <span className="font-extrabold text-slate-200 mt-0.5">{sellerInfo.shopAddress || 'Online Boutique'}</span>
                 </div>
                 <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-3 backdrop-blur-xs flex flex-col justify-center">
-                  <span className="text-[8px] text-slate-500 uppercase font-black tracking-widest">Helpline</span>
+                  <span className="text-[8px] text-slate-500 font-black tracking-widest">Helpline</span>
                   <a href={`tel:${sellerInfo.phone}`} className="font-extrabold text-slate-200 hover:text-white mt-0.5">{sellerInfo.phone || 'Contact Support'}</a>
                 </div>
               </div>
@@ -310,7 +312,7 @@ export default function ShopPage({ products, onAddToCart, onQuickView, onToggleW
         {sellerInfo && (
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
             <div className="flex items-center space-x-2.5">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Boutique Catalogue</span>
+              <span className="text-xs font-bold text-slate-500 tracking-wider">Boutique Catalogue</span>
               <span className="bg-[#ff5e14]/10 text-[#ff5e14] text-[10px] font-black px-3 py-0.5 rounded-md">
                 {filtered.length} Items Available
               </span>
@@ -373,7 +375,7 @@ export default function ShopPage({ products, onAddToCart, onQuickView, onToggleW
                 onClick={() => {
                   window.location.href = '/shop';
                 }}
-                className="px-4 py-2 bg-slate-950 hover:bg-slate-850 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5"
+                className="px-4 py-2 bg-slate-950 hover:bg-slate-850 text-white rounded-xl text-xs font-black tracking-wider transition-all cursor-pointer flex items-center gap-1.5"
               >
                 Exit Store
               </button>
@@ -406,7 +408,7 @@ export default function ShopPage({ products, onAddToCart, onQuickView, onToggleW
                 <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                   <div className="flex items-center space-x-2">
                     <Filter className="w-4.5 h-4.5 text-brand-navy" />
-                    <h3 className="font-extrabold text-sm text-slate-900 uppercase tracking-tight">Filter Products</h3>
+                    <h3 className="font-extrabold text-sm text-slate-900 tracking-tight">Filter Products</h3>
                   </div>
                   <button 
                     onClick={() => setIsMobileFilterOpen(false)}
@@ -421,7 +423,7 @@ export default function ShopPage({ products, onAddToCart, onQuickView, onToggleW
                 <div className="pt-4 border-t border-slate-100">
                   <button
                     onClick={() => setIsMobileFilterOpen(false)}
-                    className="w-full py-3 bg-brand-navy text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md hover:bg-blue-700 transition-colors cursor-pointer"
+                    className="w-full py-3 bg-brand-navy text-white font-extrabold text-xs tracking-wider rounded-xl shadow-md hover:bg-blue-700 transition-colors cursor-pointer"
                   >
                     Apply Filters
                   </button>
@@ -432,7 +434,9 @@ export default function ShopPage({ products, onAddToCart, onQuickView, onToggleW
 
           {/* Right Product Cards Grid */}
           <div className="lg:col-span-3">
-            {filtered.length === 0 ? (
+            {loading && products.length === 0 ? (
+              <ProductGridSkeleton count={9} className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6" />
+            ) : filtered.length === 0 ? (
               <div className="bg-white p-12 rounded-2xl border border-slate-200 text-center space-y-3">
                 <p className="text-slate-500 text-sm font-semibold">No products found matching your current filter choices.</p>
                 <button

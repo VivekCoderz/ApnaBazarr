@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Star, ShoppingBag, Heart, Shield, Truck, Check } from 'lucide-react';
-import { formatPrice } from '../utils/format';
+import { formatPrice, displayName } from '../utils/format';
 
 export default function QuickViewModal({ product, onClose, onAddToCart, onToggleWishlist, isWishlisted }) {
   if (!product) return null;
@@ -39,7 +39,7 @@ export default function QuickViewModal({ product, onClose, onAddToCart, onToggle
           {/* Product Image */}
           <div className="relative aspect-square bg-slate-50 p-6 flex items-center justify-center">
             {product.discount && (
-              <span className="absolute top-4 left-4 bg-emerald-600 text-white font-extrabold text-xs px-2.5 py-1 rounded-xs uppercase tracking-wider">
+              <span className="absolute top-4 left-4 bg-emerald-600 text-white font-extrabold text-xs px-2.5 py-1 rounded-xs tracking-wider">
                 {product.discount}
               </span>
             )}
@@ -54,11 +54,11 @@ export default function QuickViewModal({ product, onClose, onAddToCart, onToggle
           <div className="p-6 sm:p-8 flex flex-col justify-between space-y-4">
             
             <div className="space-y-2">
-              <span className="text-xs font-semibold text-brand-navy uppercase tracking-wider">
+              <span className="text-xs font-semibold text-brand-navy tracking-wider">
                 {product.category}
               </span>
               <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 leading-tight">
-                {product.name}
+                {displayName(product.name)}
               </h2>
 
               {/* Rating: only real reviews */}
@@ -154,19 +154,19 @@ export default function QuickViewModal({ product, onClose, onAddToCart, onToggle
 
                 <button
                   onClick={handleAdd}
-                  className={`flex-1 py-3 px-4 rounded-xl font-extrabold text-xs uppercase tracking-wider text-white shadow-md flex items-center justify-center space-x-2 transition-colors ${
+                  className={`flex-1 py-3 px-4 rounded-xl font-extrabold text-xs tracking-wider text-white shadow-md flex items-center justify-center space-x-2 transition-colors ${
                     addedSuccess ? 'bg-emerald-600' : 'bg-brand-cta hover:bg-brand-cta-hover'
                   }`}
                 >
                   {addedSuccess ? (
                     <>
                       <Check className="w-4 h-4" />
-                      <span>ADDED TO CART!</span>
+                      <span>Added to cart</span>
                     </>
                   ) : (
                     <>
                       <ShoppingBag className="w-4 h-4" />
-                      <span>ADD TO CART</span>
+                      <span>Add to Cart</span>
                     </>
                   )}
                 </button>
@@ -188,7 +188,7 @@ export default function QuickViewModal({ product, onClose, onAddToCart, onToggle
               <div className="flex items-center justify-between text-[11px] text-slate-500 pt-2 border-t border-slate-100">
                 <div className="flex items-center space-x-1">
                   <Truck className="w-3.5 h-3.5 text-brand-navy" />
-                  <span>₹499+ par Free Delivery</span>
+                  <span>Free delivery on orders above ₹499</span>
                 </div>
                 <div className="flex items-center space-x-1">
                   <Shield className="w-3.5 h-3.5 text-brand-navy" />

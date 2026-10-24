@@ -46,7 +46,7 @@ export default function OrdersPage({ orders }) {
 
                 {/* Progress Bar Timeline */}
                 <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-2">
-                  <div className="flex items-center justify-between text-[10px] sm:text-xs text-slate-500 font-extrabold uppercase">
+                  <div className="flex items-center justify-between text-[10px] sm:text-xs text-slate-500 font-extrabold">
                     <span className={ord.orderStatus === 'Order Placed' ? 'text-brand-navy' : ''}>Ordered</span>
                     <span className={ord.orderStatus === 'Processing' || ord.orderStatus === 'Packed' ? 'text-brand-navy' : ''}>Processing</span>
                     <span className={ord.orderStatus === 'Shipped' ? 'text-brand-navy' : ''}>Shipped</span>
@@ -79,12 +79,12 @@ export default function OrdersPage({ orders }) {
                         <div className="flex flex-wrap gap-1.5 mt-0.5 text-[10px] font-bold">
                           {(item.size || item.selectedSize) && (
                             <span className="text-slate-650">
-                              Size: <span className="uppercase text-slate-900 bg-slate-200/60 px-1.5 py-0.5 rounded border border-slate-300 text-[9px]">{item.size || item.selectedSize}</span>
+                              Size: <span className="text-slate-900 bg-slate-200/60 px-1.5 py-0.5 rounded border border-slate-300 text-[9px]">{item.size || item.selectedSize}</span>
                             </span>
                           )}
                           {(item.color || item.selectedColor) && (
                             <span className="text-slate-650">
-                              Color: <span className="uppercase text-slate-900 bg-slate-200/60 px-1.5 py-0.5 rounded border border-slate-300 text-[9px]">{item.color || item.selectedColor}</span>
+                              Color: <span className="text-slate-900 bg-slate-200/60 px-1.5 py-0.5 rounded border border-slate-300 text-[9px]">{item.color || item.selectedColor}</span>
                             </span>
                           )}
                         </div>

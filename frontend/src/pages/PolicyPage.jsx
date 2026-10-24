@@ -62,17 +62,17 @@ export default function PolicyPage({ type }) {
             </div>
             <p className="text-xs text-slate-400">Last updated: October 24, 2026</p>
             <div className="space-y-4 text-xs sm:text-sm text-slate-600 leading-relaxed font-semibold">
-              <p>Hum Panipat, Haryana se poore India mein deliver karte hain.</p>
+              <p>We ship from Panipat, Haryana to all of India.</p>
               <h3 className="text-base font-black text-slate-900 pt-2">Dispatch</h3>
-              <p>Order ke 2 din mein Panipat se dispatch (Monday se Saturday). Sunday aur tyohaar ki chhutti ke din dispatch nahi hota.</p>
-              <h3 className="text-base font-black text-slate-900 pt-2">Delivery kitne din mein</h3>
-              <p>Dispatch ke baad Haryana/Delhi mein aam taur par 2–4 din, baaki India mein 4–8 din. Door ke ilaakon (North-East, J&K, islands) mein thoda zyada time lag sakta hai. Hum koi express ya same-day delivery nahi dete.</p>
+              <p>Orders are dispatched from Panipat within 2 days (Monday to Saturday). We do not dispatch on Sundays or festival holidays.</p>
+              <h3 className="text-base font-black text-slate-900 pt-2">Delivery time</h3>
+              <p>After dispatch, delivery usually takes 2–4 days in Haryana and Delhi, and 4–8 days to the rest of India. Remote areas (North-East, J&K, islands) can take a little longer. We do not offer express or same-day delivery.</p>
               <h3 className="text-base font-black text-slate-900 pt-2">Delivery charge</h3>
-              <p>₹499 ya usse zyada ke order par delivery FREE. Usse kam par ₹49 flat.</p>
+              <p>Delivery is free on orders of ₹499 or more. Below that, a flat ₹49 is charged.</p>
               <h3 className="text-base font-black text-slate-900 pt-2">Cash on Delivery</h3>
-              <p>₹3,000 tak ke order par Cash on Delivery available hai. COD order ke baad hum WhatsApp pe confirm karte hain; confirm hone ke baad hi saman bheja jata hai.</p>
+              <p>Cash on delivery is available on orders up to ₹3,000. We confirm every cash-on-delivery order with you on WhatsApp and ship it once you confirm.</p>
               <h3 className="text-base font-black text-slate-900 pt-2">Tracking</h3>
-              <p>Dispatch hone par tracking number WhatsApp pe bheja jata hai. Koi sawal ho to WhatsApp karein: +91 93068 10726.</p>
+              <p>Once your order is dispatched, we send the tracking number on WhatsApp. Questions? WhatsApp us at +91 93068 10726.</p>
             </div>
           </div>
         );
@@ -85,14 +85,14 @@ export default function PolicyPage({ type }) {
             </div>
             <p className="text-xs text-slate-400">Last updated: October 24, 2026</p>
             <div className="space-y-4 text-xs sm:text-sm text-slate-600 leading-relaxed font-semibold">
-              <h3 className="text-base font-black text-slate-900 pt-2">7-din Return / Exchange</h3>
-              <p>Saman kharab nikla, galat saman aaya, ya size sahi nahi hai? Delivery ke 7 din ke andar WhatsApp karein (+91 93068 10726) aur saman ki photo bhejein. Hum free pickup karwayenge — pickup ka kharcha hum dete hain.</p>
-              <h3 className="text-base font-black text-slate-900 pt-2">Mann badal gaya?</h3>
-              <p>Agar saman theek hai aur bas pasand nahi aaya, to sirf exchange hoga (refund nahi). Saman bina use kiye, tag ke saath, original packing mein hona chahiye.</p>
-              <h3 className="text-base font-black text-slate-900 pt-2">Refund kab milega</h3>
-              <p>Return saman hamare paas pahunchne aur check hone ke baad refund hota hai. Cash on Delivery orders ka refund aapke UPI ID par 5–7 din mein. Online payment ka refund usi account/card mein 5–7 din mein.</p>
-              <h3 className="text-base font-black text-slate-900 pt-2">Order cancel karna</h3>
-              <p>Dispatch se pehle order kabhi bhi cancel kar sakte hain — WhatsApp karein. Dispatch ke baad upar wali return policy lagu hogi.</p>
+              <h3 className="text-base font-black text-slate-900 pt-2">7-day return or exchange</h3>
+              <p>Received a damaged item, the wrong item, or the wrong size? WhatsApp us at +91 93068 10726 within 7 days of delivery with a photo of the item. We will arrange a free pickup — we pay for it.</p>
+              <h3 className="text-base font-black text-slate-900 pt-2">Changed your mind?</h3>
+              <p>If the item is fine but you don't like it, we offer an exchange (no refund). The item must be unused, with tags, in its original packing.</p>
+              <h3 className="text-base font-black text-slate-900 pt-2">When will I get my refund?</h3>
+              <p>We refund once the returned item reaches us and is checked. Cash-on-delivery orders are refunded to your UPI ID within 5–7 days. Online payments are refunded to the same account or card within 5–7 days.</p>
+              <h3 className="text-base font-black text-slate-900 pt-2">Cancelling an order</h3>
+              <p>You can cancel any time before dispatch — just WhatsApp us. After dispatch, the return policy above applies.</p>
             </div>
           </div>
         );
@@ -106,7 +106,7 @@ export default function PolicyPage({ type }) {
                 <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Contact Us</h1>
               </div>
               <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
-                Have questions about your order, custom sizing, or shipping estimates? Order, size ya delivery ke baare mein sawal hai? WhatsApp ya call karein: +91 93068 10726.
+                Have a question about your order, sizing or delivery? WhatsApp or call us at +91 93068 10726.
               </p>
               <div className="space-y-4 pt-2">
                 <div className="flex items-center space-x-3 text-xs sm:text-sm font-semibold text-slate-700">
@@ -184,7 +184,7 @@ export default function PolicyPage({ type }) {
                   </div>
                   <button
                     type="submit"
-                    className="w-full py-3 bg-brand-navy hover:bg-blue-700 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-md transition-colors flex items-center justify-center space-x-2"
+                    className="w-full py-3 bg-brand-navy hover:bg-blue-700 text-white font-extrabold text-xs tracking-wider rounded-xl shadow-md transition-colors flex items-center justify-center space-x-2"
                   >
                     <Send className="w-4 h-4" />
                     <span>Send Message</span>

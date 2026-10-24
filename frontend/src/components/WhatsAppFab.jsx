@@ -9,12 +9,12 @@ export default function WhatsAppFab({ products = [] }) {
   const { pathname } = useLocation();
   if (HIDDEN_PREFIXES.some(prefix => pathname.startsWith(prefix))) return null;
 
-  let message = 'Namaste Apna Bazarr, mujhe ek order ke baare mein poochna hai.';
+  let message = 'Hello Apna Bazarr, I have a question about an order.';
   const match = pathname.match(/^\/product\/([^/]+)/);
   if (match) {
     const product = products.find(p => String(p.id) === match[1]);
     if (product) {
-      message = `Namaste, mujhe ye product chahiye: ${product.name} - ${window.location.origin}/product/${product.id}`;
+      message = `Hello, I am interested in this product: ${product.name} - ${window.location.origin}/product/${product.id}`;
     }
   }
 
@@ -23,8 +23,8 @@ export default function WhatsAppFab({ products = [] }) {
       href={whatsappUrl(message)}
       target="_blank"
       rel="noreferrer"
-      aria-label="WhatsApp pe baat karein"
-      title="WhatsApp pe baat karein"
+      aria-label="Chat with us on WhatsApp"
+      title="Chat with us on WhatsApp"
       className="fixed bottom-5 right-4 sm:bottom-6 sm:right-6 z-40 w-14 h-14 rounded-full bg-[#25D366] shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
     >
       <svg viewBox="0 0 32 32" className="w-8 h-8" fill="#ffffff" aria-hidden="true">

@@ -351,7 +351,8 @@ function AppContent() {
 
   // Cleanup deleted products from cart, wishlist, and recently viewed lists
   useEffect(() => {
-    if (productsLoading) return;
+    // Skip while loading, and when the list is empty (server asleep/unreachable) so carts are not wiped
+    if (productsLoading || products.length === 0) return;
     const validProductIds = new Set(products.map(p => String(p.id)));
 
     setCartItems(prev => prev.filter(item => validProductIds.has(String(item.id))));
@@ -425,7 +426,7 @@ function AppContent() {
         }];
       }
     });
-    showToast('Cart mein daal diya');
+    showToast('Added to cart');
   };
 
   const handleUpdateQuantity = (id, newQty, customText = '', customImage = '', selectedSize = '', selectedColor = '') => {
@@ -461,7 +462,7 @@ function AppContent() {
   // Wishlist Handler (STRICT GUEST LOGIN CHECK)
   const handleToggleWishlist = (product) => {
     if (!currentUser) {
-      showToast("Wishlist ke liye login karein");
+      showToast("Please log in to use your wishlist");
       setIsAuthOpen(true);
       return;
     }
@@ -486,7 +487,7 @@ function AppContent() {
   const handleOrderComplete = (newOrder) => {
     setOrders(prev => [newOrder, ...prev]);
     setCartItems([]);
-    showToast(`Order ${newOrder.orderId} mil gaya`);
+    showToast(`Order ${newOrder.orderId} placed`);
   };
 
   // Admin Product & Order Handlers
@@ -672,20 +673,8 @@ function AppContent() {
 
   const totalCartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
-  if (productsLoading) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center space-y-4">
-        <div className="relative flex items-center justify-center">
-          <div className="w-16 h-16 border-4 border-slate-200 border-t-brand-navy rounded-full animate-spin"></div>
-          <span className="absolute font-black text-xs text-slate-800">APNA</span>
-        </div>
-        <div className="text-center space-y-1">
-          <h2 className="font-extrabold text-slate-900 text-sm tracking-wide uppercase">Apna Bazarr</h2>
-          <p className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Loading premium store assets...</p>
-        </div>
-      </div>
-    );
-  }
+  // No full-screen loader: the shell renders at once and pages show skeletons while
+  // products load (the free Render server can take ~50 s to wake up).
 
   return (
     <div className="min-h-screen flex flex-col bg-white text-slate-800 antialiased selection:bg-brand-navy selection:text-white">
@@ -727,6 +716,7 @@ function AppContent() {
             element={
               <HomePage
                 products={products}
+                loading={productsLoading}
                 recentlyViewed={recentlyViewed}
                 onAddToCart={handleAddToCart}
                 onQuickView={(p) => setQuickViewProduct(p)}
@@ -745,6 +735,7 @@ function AppContent() {
             element={
               <ShopPage
                 products={products}
+                loading={productsLoading}
                 onAddToCart={handleAddToCart}
                 onQuickView={(p) => setQuickViewProduct(p)}
                 onToggleWishlist={handleToggleWishlist}
@@ -759,6 +750,7 @@ function AppContent() {
             element={
               <ProductDetailPage
                 products={products}
+                loading={productsLoading}
                 onAddToCart={handleAddToCart}
                 onToggleWishlist={handleToggleWishlist}
                 wishlistItems={wishlistItems}

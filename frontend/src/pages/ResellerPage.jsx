@@ -22,7 +22,7 @@ export default function ResellerPage({ currentUser, products = [], onAuthSuccess
       const result = await res.json();
       if (result.success) setDashboard(result);
     } catch {
-      setErrorMsg('Dashboard load nahi ho paaya. Thodi der baad try karein.');
+      setErrorMsg('Could not load your dashboard. Please try again in a moment.');
     }
   };
 
@@ -45,7 +45,7 @@ export default function ResellerPage({ currentUser, products = [], onAuthSuccess
       if (!result.success) throw new Error(result.message);
       onAuthSuccess(result.user);
     } catch (err) {
-      setErrorMsg(err.message || 'Join nahi ho paaya. Dobara try karein.');
+      setErrorMsg(err.message || 'Could not join. Please try again.');
     } finally {
       setJoining(false);
     }
@@ -69,23 +69,23 @@ export default function ResellerPage({ currentUser, products = [], onAuthSuccess
       <div className="bg-slate-50 min-h-screen">
         <div className="bg-slate-900 text-white px-4 py-14">
           <div className="max-w-4xl mx-auto text-center space-y-4">
-            <span className="inline-block bg-emerald-500/20 text-emerald-300 px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider">
+            <span className="inline-block bg-emerald-500/20 text-emerald-300 px-3.5 py-1.5 rounded-full text-xs font-black tracking-wider">
               ApnaBazarr Reseller Program
             </span>
             <h1 className="text-3xl md:text-5xl font-black tracking-tight leading-tight">
-              Ghar baithe <span className="text-emerald-400">paise kamao</span>
+              Earn from <span className="text-emerald-400">home</span>
             </h1>
             <p className="text-slate-300 text-sm md:text-base max-w-xl mx-auto">
-              Panipat ke blankets, bedsheets aur home decor WhatsApp pe share karo. Har order pe commission seedha aapke UPI mein.
+              Share Panipat blankets, bedsheets and suit sets on WhatsApp. Earn a commission on every order, paid straight to your UPI.
             </p>
           </div>
         </div>
 
         <div className="max-w-4xl mx-auto px-4 -mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
-            { icon: IndianRupee, title: 'Zero investment', text: 'Na stock, na paisa. Bas link share karo.' },
-            { icon: Truck, title: 'Delivery hum karenge', text: 'Packing, shipping, COD sab humara kaam.' },
-            { icon: Wallet, title: 'UPI pe payment', text: 'Order deliver hote hi commission aapke UPI pe.' }
+            { icon: IndianRupee, title: 'Zero investment', text: 'No stock, no money needed. Just share a link.' },
+            { icon: Truck, title: 'We handle delivery', text: 'Packing, shipping and cash on delivery are all on us.' },
+            { icon: Wallet, title: 'Paid to your UPI', text: 'Your commission is sent to your UPI once the order is delivered.' }
           ].map(({ icon: Icon, title, text }) => (
             <div key={title} className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-2">
               <Icon className="w-6 h-6 text-emerald-600" />
@@ -97,11 +97,11 @@ export default function ResellerPage({ currentUser, products = [], onAuthSuccess
 
         <div className="max-w-md mx-auto px-4 py-10">
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 space-y-4">
-            <h2 className="text-xl font-black text-slate-900">Reseller bano (free)</h2>
+            <h2 className="text-xl font-black text-slate-900">Become a reseller (free)</h2>
 
             {!currentUser ? (
               <div className="space-y-3">
-                <p className="text-sm text-slate-600">Shuru karne ke liye pehle login ya sign up karein.</p>
+                <p className="text-sm text-slate-600">Please log in or sign up to get started.</p>
                 <button
                   onClick={onOpenAuth}
                   className="w-full py-3 bg-brand-navy hover:bg-blue-700 text-white font-black rounded-xl text-sm"
@@ -123,12 +123,12 @@ export default function ResellerPage({ currentUser, products = [], onAuthSuccess
                   />
                 </label>
                 <label className="block space-y-1">
-                  <span className="text-xs font-bold text-slate-700">UPI ID (commission isme aayega)</span>
+                  <span className="text-xs font-bold text-slate-700">UPI ID (your commission is paid here)</span>
                   <input
                     value={upiId}
                     onChange={e => setUpiId(e.target.value)}
                     required
-                    placeholder="naam@upi"
+                    placeholder="name@upi"
                     className="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-brand-navy"
                   />
                 </label>
@@ -143,7 +143,7 @@ export default function ResellerPage({ currentUser, products = [], onAuthSuccess
                   className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-400 text-white font-black rounded-xl text-sm flex items-center justify-center gap-2"
                 >
                   {joining && <Loader2 className="w-4 h-4 animate-spin" />}
-                  Join karo
+                  Join now
                 </button>
               </form>
             )}
@@ -162,17 +162,17 @@ export default function ResellerPage({ currentUser, products = [], onAuthSuccess
       <div className="max-w-5xl mx-auto space-y-6">
         <div className="bg-slate-900 text-white rounded-2xl p-6 space-y-4">
           <div>
-            <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Reseller Dashboard</p>
-            <h1 className="text-2xl font-black">Namaste {currentUser.name} 🙏</h1>
+            <p className="text-xs text-slate-400 font-bold tracking-wider">Reseller Dashboard</p>
+            <h1 className="text-2xl font-black">Hello, {currentUser.name}</h1>
             {dashboard && (
               <p className="text-sm text-slate-300">
-                Har order pe aapko <span className="text-emerald-400 font-black">{dashboard.commissionPercent}%</span> commission milega.
+                You earn <span className="text-emerald-400 font-black">{dashboard.commissionPercent}%</span> commission on every order.
               </p>
             )}
           </div>
           <div className="bg-white/10 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center gap-3">
             <div className="flex-1 min-w-0">
-              <p className="text-[10px] uppercase font-bold text-slate-400">Aapka store link · Code: {code}</p>
+              <p className="text-[10px] font-bold text-slate-400">Your store link · Code: {code}</p>
               <p className="text-sm font-bold truncate">{storeLink}</p>
             </div>
             <button
@@ -188,9 +188,9 @@ export default function ResellerPage({ currentUser, products = [], onAuthSuccess
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
             { icon: Package, label: 'Orders', value: stats.orders },
-            { icon: TrendingUp, label: 'Total kamai', value: `₹${stats.earned}` },
-            { icon: Clock, label: 'Milna baaki', value: `₹${stats.pending}` },
-            { icon: Wallet, label: 'Mil chuka', value: `₹${stats.paid}` }
+            { icon: TrendingUp, label: 'Total earned', value: `₹${stats.earned}` },
+            { icon: Clock, label: 'Pending', value: `₹${stats.pending}` },
+            { icon: Wallet, label: 'Paid', value: `₹${stats.paid}` }
           ].map(({ icon: Icon, label, value }) => (
             <div key={label} className="bg-white rounded-2xl p-4 border border-slate-200">
               <Icon className="w-5 h-5 text-brand-navy" />
@@ -202,10 +202,10 @@ export default function ResellerPage({ currentUser, products = [], onAuthSuccess
 
         <section className="space-y-3">
           <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-amber-500" /> Aaj ye products share karo
+            <Sparkles className="w-5 h-5 text-amber-500" /> Share these products today
           </h2>
           {shareableProducts.length === 0 ? (
-            <p className="text-sm text-slate-500">Abhi koi product available nahi hai.</p>
+            <p className="text-sm text-slate-500">No products are available right now.</p>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
               {shareableProducts.map(product => (
@@ -219,7 +219,7 @@ export default function ResellerPage({ currentUser, products = [], onAuthSuccess
                       ₹{product.price}
                       {dashboard && (
                         <span className="block text-[11px] font-bold text-emerald-600">
-                          Aapki kamai ₹{Math.round((product.price * dashboard.commissionPercent) / 100)}
+                          You earn ₹{Math.round((product.price * dashboard.commissionPercent) / 100)}
                         </span>
                       )}
                     </p>
@@ -228,13 +228,13 @@ export default function ResellerPage({ currentUser, products = [], onAuthSuccess
                         href={whatsappShareUrl(product, code)}
                         target="_blank"
                         rel="noreferrer"
-                        className="py-2 bg-[#25D366] hover:bg-[#1ebe5b] text-white rounded-lg text-[11px] font-black flex items-center justify-center gap-1"
+                        className="py-2 bg-[#25D366] hover:bg-[#1ebe5b] text-brand-navy rounded-lg text-[11px] font-black flex items-center justify-center gap-1"
                       >
                         <Share2 className="w-3.5 h-3.5" /> WhatsApp
                       </a>
                       <button
                         onClick={() => copyText(productShareLink(product.id, code), product.id)}
-                        title="Link copy karo"
+                        title="Copy link"
                         className="px-2.5 border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50"
                       >
                         {copied === product.id ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
@@ -249,11 +249,11 @@ export default function ResellerPage({ currentUser, products = [], onAuthSuccess
 
         <section className="space-y-3">
           <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
-            <Users className="w-5 h-5 text-brand-navy" /> Aapke orders
+            <Users className="w-5 h-5 text-brand-navy" /> Your orders
           </h2>
           {!dashboard?.orders?.length ? (
             <p className="text-sm text-slate-500 bg-white rounded-2xl border border-slate-200 p-5">
-              Abhi tak koi order nahi. Upar se products WhatsApp pe share karo. Pehla order jaldi aayega! 💪
+              No orders yet. Share the products above on WhatsApp to get your first order.
             </p>
           ) : (
             <div className="bg-white rounded-2xl border border-slate-200 divide-y divide-slate-100">
@@ -271,7 +271,7 @@ export default function ResellerPage({ currentUser, products = [], onAuthSuccess
                   <div className="text-right">
                     <p className="text-sm font-black text-emerald-600">+₹{order.commission}</p>
                     <p className="text-[11px] font-bold text-slate-500">
-                      {order.orderStatus} · {order.payoutStatus === 'paid' ? 'Paid ✅' : 'Pending'}
+                      {order.orderStatus} · {order.payoutStatus === 'paid' ? 'Paid' : 'Pending'}
                     </p>
                   </div>
                 </div>

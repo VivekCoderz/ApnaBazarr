@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Banknote, Truck, RotateCcw } from 'lucide-react';
 import { getHero } from '../config/campaign';
-import { formatPrice } from '../utils/format';
+import { formatPrice, displayName } from '../utils/format';
 
 // Panipat Weave Stripe tile (same as business plan/brand/assets/weave-stripe.svg), repeated horizontally
 const WEAVE_TILE = `url("data:image/svg+xml,${encodeURIComponent(
@@ -86,7 +86,7 @@ function HeroProduct({ product, large = false }) {
       )}
       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-brand-navy/90 to-transparent px-3 pt-8 pb-2.5">
         <p className={`text-white font-semibold leading-tight line-clamp-1 text-xs sm:text-sm ${large ? 'lg:text-base' : ''}`}>
-          {product.name.replace(/[^\p{L}\p{N}\s&+.,'-]/gu, '').trim()}
+          {displayName(product.name)}
         </p>
         <p className="flex items-baseline gap-1.5">
           <span className={`font-heading font-bold text-white text-sm sm:text-base ${large ? 'lg:text-xl' : ''}`}>{formatPrice(product.price)}</span>
@@ -99,22 +99,24 @@ function HeroProduct({ product, large = false }) {
 
 // One date-driven banner (no carousel): offer on the left, real products on the right.
 // Copy, dates, featured products and optional photo live in src/config/campaign.js
-export default function HeroBanner({ products = [] }) {
+export default function HeroBanner({ products = [], loading = false }) {
   const hero = getHero(products);
   const hasImage = Boolean(hero.image);
   const tiles = hasImage ? [] : hero.products;
+  // While the server wakes up, keep the tile area filled with placeholders
+  const showSkeleton = !hasImage && loading && tiles.length === 0;
 
   const trustItems = [
     { icon: Banknote, text: 'Cash on Delivery' },
-    { icon: Truck, text: '2 din mein dispatch' },
-    { icon: RotateCcw, text: '7-din Return' }
+    { icon: Truck, text: 'Dispatched within 2 days' },
+    { icon: RotateCcw, text: '7-day returns' }
   ];
 
   return (
     <section className="relative bg-brand-navy overflow-hidden">
       <WeaveStripe />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 lg:py-12">
-        <div className={`grid grid-cols-1 items-center gap-6 lg:gap-12 ${hasImage || tiles.length ? 'lg:grid-cols-[52fr_48fr]' : ''}`}>
+        <div className={`grid grid-cols-1 items-center gap-6 lg:gap-12 ${hasImage || tiles.length || showSkeleton ? 'lg:grid-cols-[52fr_48fr]' : ''}`}>
 
           {/* Text + offer */}
           <div className="space-y-3 sm:space-y-5 text-left">
@@ -181,6 +183,14 @@ export default function HeroBanner({ products = [] }) {
                 <div key={product.id} className={idx === 0 && tiles.length === 3 ? 'lg:row-span-2 [&>a]:h-full' : ''}>
                   <HeroProduct product={product} large={idx === 0 && tiles.length === 3} />
                 </div>
+              ))}
+            </div>
+          )}
+
+          {showSkeleton && (
+            <div className="grid gap-2.5 sm:gap-3 grid-cols-3 lg:grid-cols-2 lg:grid-rows-2" role="status" aria-label="Loading products">
+              {[0, 1, 2].map(i => (
+                <div key={i} className={`rounded-2xl bg-white/15 animate-pulse aspect-square ${i === 0 ? 'lg:row-span-2 lg:aspect-auto' : ''}`} />
               ))}
             </div>
           )}

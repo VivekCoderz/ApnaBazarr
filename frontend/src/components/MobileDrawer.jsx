@@ -7,9 +7,9 @@ export default function MobileDrawer({ isOpen, onClose, cartCount, wishlistCount
 
   const navLinks = [
     { label: 'Home', to: '/' },
-    { label: 'Sab Products', to: '/shop' },
+    { label: 'All Products', to: '/shop' },
     { label: 'Cart', to: '/cart' },
-    { label: 'Mere Orders', to: '/orders' },
+    { label: 'My Orders', to: '/orders' },
     { label: 'Wishlist', to: '/wishlist' },
   ];
 
@@ -18,12 +18,12 @@ export default function MobileDrawer({ isOpen, onClose, cartCount, wishlistCount
   }
 
   if (currentUser?.email !== 'admin@apnabazarr.com') {
-    navLinks.push({ label: currentUser?.resellerProfile?.code ? 'Reseller Dashboard' : 'Reseller Baniye · Kamaayein', to: '/reseller' });
+    navLinks.push({ label: currentUser?.resellerProfile?.code ? 'Reseller Dashboard' : 'Become a Reseller', to: '/reseller' });
   }
 
   navLinks.push(
     { label: 'Shipping Policy', to: '/shipping' },
-    { label: 'Return & Refund', to: '/refunds' },
+    { label: 'Returns & Refunds', to: '/refunds' },
     { label: 'Contact', to: '/contact' }
   );
 

@@ -23,10 +23,10 @@ export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem }) 
 
         {/* Header */}
         <div className="flex items-center justify-between gap-3 bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-xs">
-          <h1 className="text-2xl sm:text-3xl font-bold text-brand-navy tracking-tight">Aapka Cart</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-brand-navy tracking-tight">Your Cart</h1>
           <Link to="/shop" className="text-sm font-semibold text-brand-navy flex items-center gap-1 hover:underline shrink-0">
             <ArrowLeft className="w-4 h-4" />
-            <span>Aur dekhein</span>
+            <span>Continue shopping</span>
           </Link>
         </div>
 
@@ -35,9 +35,9 @@ export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem }) 
             <div className="p-4 bg-slate-100 text-slate-400 rounded-full w-16 h-16 flex items-center justify-center mx-auto">
               <ShoppingBag className="w-8 h-8 stroke-[1.5]" />
             </div>
-            <h3 className="text-lg font-semibold text-slate-800">Cart khaali hai.</h3>
+            <h3 className="text-lg font-semibold text-slate-800">Your cart is empty.</h3>
             <Link to="/shop" className="inline-block px-6 py-3 bg-brand-cta hover:bg-brand-cta-hover text-white text-sm font-semibold rounded-xl shadow-md">
-              Shopping shuru karein
+              Start shopping
             </Link>
           </div>
         ) : (
@@ -62,7 +62,7 @@ export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem }) 
                         )}
                         {item.selectedColor && item.selectedColor !== 'Default' && (
                           <span className="inline-block text-xs font-semibold text-slate-800 bg-slate-100 px-2.5 py-0.5 rounded border border-slate-200">
-                            Rang: {item.selectedColor}
+                            Colour: {item.selectedColor}
                           </span>
                         )}
                       </div>
@@ -71,8 +71,8 @@ export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem }) 
                     <button
                       onClick={() => onRemoveItem(item.id, item.customText, item.customImage, item.selectedSize, item.selectedColor)}
                       className="p-1.5 text-slate-400 hover:text-red-600 transition-colors cursor-pointer shrink-0"
-                      title="Hatayein"
-                      aria-label="Cart se hatayein"
+                      title="Remove"
+                      aria-label="Remove from cart"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -102,7 +102,7 @@ export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem }) 
                       <button
                         onClick={() => onUpdateQuantity(item.id, item.quantity - 1, item.customText, item.customImage, item.selectedSize, item.selectedColor)}
                         className="p-2 text-slate-600 hover:bg-slate-200 rounded-l-lg cursor-pointer"
-                        aria-label="Kam karein"
+                        aria-label="Decrease quantity"
                       >
                         <Minus className="w-3.5 h-3.5" />
                       </button>
@@ -110,7 +110,7 @@ export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem }) 
                       <button
                         onClick={() => onUpdateQuantity(item.id, item.quantity + 1, item.customText, item.customImage, item.selectedSize, item.selectedColor)}
                         className="p-2 text-slate-600 hover:bg-slate-200 rounded-r-lg cursor-pointer"
-                        aria-label="Badhayein"
+                        aria-label="Increase quantity"
                       >
                         <Plus className="w-3.5 h-3.5" />
                       </button>
@@ -132,31 +132,31 @@ export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem }) 
                 <Truck className="w-4 h-4 mt-0.5 shrink-0" />
                 <span>
                   {neededForFree > 0
-                    ? `${formatPrice(neededForFree)} aur ka saman lein — delivery FREE`
-                    : 'Badhai! Delivery FREE hai'}
+                    ? `Add ${formatPrice(neededForFree)} more for free delivery`
+                    : 'You get free delivery'}
                 </span>
               </div>
 
               <div className="space-y-2 text-sm text-slate-600">
                 <div className="flex justify-between">
-                  <span>Saman</span>
+                  <span>Items</span>
                   <span className="font-semibold text-slate-800">{formatPrice(subtotal)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Delivery</span>
                   <span className="font-semibold text-slate-800">
-                    {shippingLoading ? '...' : shipping === null ? 'Checkout par' : shipping === 0 ? <span className="text-emerald-600 font-bold">FREE</span> : formatPrice(shipping)}
+                    {shippingLoading ? '...' : shipping === null ? 'At checkout' : shipping === 0 ? <span className="text-emerald-600 font-bold">FREE</span> : formatPrice(shipping)}
                   </span>
                 </div>
                 <div className="flex justify-between text-base font-bold text-slate-900 pt-3 border-t border-slate-200">
-                  <span>Kul</span>
+                  <span>Total</span>
                   <span className="font-heading text-lg text-brand-cta">{formatPrice(total)}</span>
                 </div>
               </div>
 
               {belowMinimum && (
                 <p className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-sm text-rose-800 font-semibold">
-                  Kam se kam ₹{MIN_ORDER} ka order hona chahiye.
+                  Minimum order value is ₹{MIN_ORDER}.
                 </p>
               )}
 
@@ -169,10 +169,10 @@ export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem }) 
                     : 'bg-brand-cta hover:bg-brand-cta-hover'
                 }`}
               >
-                <span>Checkout karein</span>
+                <span>Checkout</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
-              <p className="text-xs text-slate-500 text-center">Cash on Delivery available · Login ki zaroorat nahi</p>
+              <p className="text-xs text-slate-500 text-center">Cash on delivery available · No login needed</p>
             </div>
 
           </div>

@@ -161,7 +161,7 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ success: false, message: 'Product not found' });
     }
     if (product.isActive === false && !(await isAdminRequest(req))) {
-      return res.status(404).json({ success: false, message: 'Ye product abhi available nahi hai.' });
+      return res.status(404).json({ success: false, message: 'This product is not available right now.' });
     }
     const prodReviews = await Review.find({ productId: String(product._id) });
     const reviewsCount = prodReviews.length;

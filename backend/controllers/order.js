@@ -88,7 +88,7 @@ module.exports.createOrder = async (req, res) => {
     // This endpoint only creates Cash on Delivery orders. Online payments are saved
     // by /orders/verify after the Razorpay signature check, never here.
     if (paymentMethod && paymentMethod !== 'COD') {
-      return res.status(400).json({ success: false, message: 'Online payment ke liye Razorpay se pay karein.' });
+      return res.status(400).json({ success: false, message: 'Please use online payment (Razorpay) for this order.' });
     }
 
     const randomNum = Math.floor(1000 + Math.random() * 9000);
@@ -105,7 +105,7 @@ module.exports.createOrder = async (req, res) => {
 
     const formattedItems = await processOrderItems(items, shippingAddress.pincode);
     if (formattedItems.length === 0) {
-      return res.status(400).json({ success: false, message: 'Cart ke products ab available nahi hain. Cart check karein.' });
+      return res.status(400).json({ success: false, message: 'The items in your cart are no longer available. Please check your cart.' });
     }
 
     const totalItemCost = formattedItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
@@ -184,11 +184,11 @@ module.exports.createRazorpayOrder = async (req, res) => {
     // Charge what the server calculates for the cart, never an amount sent by the browser
     const { items } = req.body;
     if (!Array.isArray(items) || items.length === 0) {
-      return res.status(400).json({ success: false, message: 'Cart khaali hai.' });
+      return res.status(400).json({ success: false, message: 'Your cart is empty.' });
     }
     const formattedItems = await processOrderItems(items);
     if (formattedItems.length === 0) {
-      return res.status(400).json({ success: false, message: 'Cart ke products abhi available nahi hain.' });
+      return res.status(400).json({ success: false, message: 'The items in your cart are not available right now.' });
     }
     const amount = formattedItems.reduce((acc, item) => acc + item.price * item.quantity + item.shippingCharges, 0);
     if (amount < 100) {
@@ -263,10 +263,10 @@ module.exports.verifyRazorpayPayment = async (req, res) => {
     // and that the same payment isn't turned into a second order.
     const paidOrder = await rzp.orders.fetch(razorpay_order_id);
     if (paidOrder.amount !== Math.round(calculatedTotal * 100)) {
-      return res.status(400).json({ success: false, message: 'Payment amount order total se match nahi karta. Hum se WhatsApp pe sampark karein.' });
+      return res.status(400).json({ success: false, message: 'The payment amount does not match the order total. Please contact us on WhatsApp at +91 93068 10726.' });
     }
     if (await Order.exists({ razorpayOrderId: razorpay_order_id })) {
-      return res.status(409).json({ success: false, message: 'Ye payment pehle hi ek order mein use ho chuka hai.' });
+      return res.status(409).json({ success: false, message: 'This payment has already been used for an order.' });
     }
 
     const buyerEmail = email || 'guest@apnabazarr.com';

@@ -27,9 +27,9 @@ const labelClass = 'block text-sm font-semibold text-slate-700 mb-1';
 
 // Plain-text WhatsApp message (no emojis: they break on WhatsApp Web)
 const confirmMessage = (order) =>
-  `Namaste Apna Bazarr, mera order #${order.orderId} confirm hai. ` +
-  `Naam: ${order.shippingAddress?.fullName || ''}. ` +
-  `Kul: Rs ${Math.round(order.totalAmount)} (${order.paymentMethod === 'COD' ? 'Cash on Delivery' : 'Online paid'}). Haan, bhej dijiye.`;
+  `Hello Apna Bazarr, I confirm my order #${order.orderId}. ` +
+  `Name: ${order.shippingAddress?.fullName || ''}. ` +
+  `Total: Rs ${Math.round(order.totalAmount)} (${order.paymentMethod === 'COD' ? 'Cash on Delivery' : 'Paid online'}). Yes, please ship it.`;
 
 export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }) {
   const navigate = useNavigate();
@@ -99,13 +99,13 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
   const handleAddressSubmit = async (e) => {
     e.preventDefault();
     const errors = {};
-    if (!address.fullName.trim()) errors.fullName = 'Naam daalein.';
-    if (!/^[6-9]\d{9}$/.test(address.phone.trim())) errors.phone = 'Mobile number 10 digit ka daalein.';
-    if (!/^\d{6}$/.test(address.pincode.trim())) errors.pincode = 'Pincode 6 number ka hona chahiye.';
-    if (!address.flatNo.trim()) errors.flatNo = 'Ghar / flat number daalein.';
-    if (!address.area.trim()) errors.area = 'Area / gali daalein.';
-    if (!address.city.trim()) errors.city = 'Shahar daalein.';
-    if (!address.state) errors.state = 'State chunein.';
+    if (!address.fullName.trim()) errors.fullName = 'Please enter your name.';
+    if (!/^[6-9]\d{9}$/.test(address.phone.trim())) errors.phone = 'Please enter a valid 10-digit mobile number.';
+    if (!/^\d{6}$/.test(address.pincode.trim())) errors.pincode = 'Pincode must be 6 digits.';
+    if (!address.flatNo.trim()) errors.flatNo = 'Please enter your house or flat number.';
+    if (!address.area.trim()) errors.area = 'Please enter your area or street.';
+    if (!address.city.trim()) errors.city = 'Please enter your city.';
+    if (!address.state) errors.state = 'Please select your state.';
     setFormErrors(errors);
     if (Object.keys(errors).length > 0) return;
 
@@ -126,7 +126,7 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
   const safeParseJSON = async (response) => {
     const contentType = response.headers.get("content-type");
     if (!contentType || !contentType.includes("application/json")) {
-      throw new Error("Server abhi start ho raha hai. 10-15 second baad dobara try karein.");
+      throw new Error("Our server is starting up. Please try again in 10–15 seconds.");
     }
     return await response.json();
   };
@@ -171,7 +171,7 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
         // Online Payment Flow (Razorpay)
         const scriptLoaded = await loadRazorpayScript();
         if (!scriptLoaded) {
-          throw new Error("Payment page load nahi hua. Internet check karke dobara try karein.");
+          throw new Error("Could not open the payment page. Please check your internet and try again.");
         }
 
         const orderRes = await fetch(`${BASE_URL}/orders/razorpay`, {
@@ -181,7 +181,7 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
         });
         const orderData = await safeParseJSON(orderRes);
         if (!orderData.success) {
-          throw new Error(orderData.message || "Payment shuru nahi ho paya.");
+          throw new Error(orderData.message || "Could not start the payment.");
         }
 
         const options = {
@@ -211,11 +211,11 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
               });
               const verifyResult = await safeParseJSON(verifyRes);
               if (!verifyResult.success) {
-                throw new Error(verifyResult.message || "Payment verify nahi hua.");
+                throw new Error(verifyResult.message || "Payment could not be verified.");
               }
               finishOrder(verifyResult.order);
             } catch (err) {
-              setOrderError(err.message || 'Payment verify nahi hua. WhatsApp karein: +91 93068 10726');
+              setOrderError(err.message || 'Payment could not be verified. Please WhatsApp us at +91 93068 10726.');
             } finally {
               setOrderLoading(false);
             }
@@ -253,11 +253,11 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
           }),
         });
         const result = await safeParseJSON(res);
-        if (!res.ok || !result.success) throw new Error(result.message || `Order nahi ho paya (${res.status}).`);
+        if (!res.ok || !result.success) throw new Error(result.message || `Could not place the order (${res.status}).`);
         finishOrder(result.order);
       }
     } catch (err) {
-      setOrderError(err.message || 'Order nahi ho paya. Dobara try karein.');
+      setOrderError(err.message || 'Could not place the order. Please try again.');
     } finally {
       if (effectiveMethod !== 'UPI') {
         setOrderLoading(false);
@@ -288,14 +288,14 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className={labelClass} htmlFor="co-name">Naam *</label>
-                  <input id="co-name" type="text" autoComplete="name" value={address.fullName} onChange={(e) => setField('fullName', e.target.value)} placeholder="Aapka naam" className={inputClass} />
+                  <label className={labelClass} htmlFor="co-name">Full name *</label>
+                  <input id="co-name" type="text" autoComplete="name" value={address.fullName} onChange={(e) => setField('fullName', e.target.value)} placeholder="Your name" className={inputClass} />
                   {fieldError('fullName')}
                 </div>
                 <div>
-                  <label className={labelClass} htmlFor="co-phone">Mobile (WhatsApp) *</label>
+                  <label className={labelClass} htmlFor="co-phone">Mobile number (WhatsApp) *</label>
                   <input id="co-phone" type="tel" inputMode="numeric" autoComplete="tel-national" maxLength={10} value={address.phone} onChange={(e) => setField('phone', e.target.value.replace(/\D/g, ''))} placeholder="9876543210" className={inputClass} />
-                  <p className="text-xs text-slate-500 mt-1">Isi number pe WhatsApp/call aayega</p>
+                  <p className="text-xs text-slate-500 mt-1">We will WhatsApp or call you on this number</p>
                   {fieldError('phone')}
                 </div>
                 <div>
@@ -304,28 +304,28 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
                   {fieldError('pincode')}
                 </div>
                 <div>
-                  <label className={labelClass} htmlFor="co-flat">Ghar / Flat no. *</label>
+                  <label className={labelClass} htmlFor="co-flat">House / flat no. *</label>
                   <input id="co-flat" type="text" autoComplete="address-line1" value={address.flatNo} onChange={(e) => setField('flatNo', e.target.value)} placeholder="H.No. 12, 2nd floor" className={inputClass} />
                   {fieldError('flatNo')}
                 </div>
               </div>
 
               <div>
-                <label className={labelClass} htmlFor="co-area">Area / Gali *</label>
-                <input id="co-area" type="text" autoComplete="address-line2" value={address.area} onChange={(e) => setField('area', e.target.value)} placeholder="Model Town, mandir ke paas" className={inputClass} />
+                <label className={labelClass} htmlFor="co-area">Area / street *</label>
+                <input id="co-area" type="text" autoComplete="address-line2" value={address.area} onChange={(e) => setField('area', e.target.value)} placeholder="Model Town, near the temple" className={inputClass} />
                 {fieldError('area')}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className={labelClass} htmlFor="co-city">Shahar *</label>
+                  <label className={labelClass} htmlFor="co-city">City *</label>
                   <input id="co-city" type="text" autoComplete="address-level2" value={address.city} onChange={(e) => setField('city', e.target.value)} placeholder="Panipat" className={inputClass} />
                   {fieldError('city')}
                 </div>
                 <div>
                   <label className={labelClass} htmlFor="co-state">State *</label>
                   <select id="co-state" value={address.state} onChange={(e) => setField('state', e.target.value)} className={inputClass}>
-                    <option value="">State chunein</option>
+                    <option value="">Select state</option>
                     {INDIAN_STATES.map((st) => <option key={st} value={st}>{st}</option>)}
                   </select>
                   {fieldError('state')}
@@ -334,13 +334,13 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
 
               {!currentUser && (
                 <div>
-                  <label className={labelClass} htmlFor="co-email">Email (zaroori nahi)</label>
-                  <input id="co-email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="aap@gmail.com" className={inputClass} />
+                  <label className={labelClass} htmlFor="co-email">Email (optional)</label>
+                  <input id="co-email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@gmail.com" className={inputClass} />
                 </div>
               )}
 
               <button type="submit" className="w-full py-3.5 bg-brand-cta hover:bg-brand-cta-hover text-white font-semibold text-base rounded-xl shadow-md flex items-center justify-center gap-2">
-                <span>Aage badhein · {formatPrice(total)}</span>
+                <span>Continue · {formatPrice(total)}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </form>
@@ -353,7 +353,7 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
               {/* Order summary */}
               <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-slate-600">Saman</span>
+                  <span className="text-slate-600">Items</span>
                   <span className="font-semibold text-slate-800">{formatPrice(subtotal)}</span>
                 </div>
                 <div className="flex justify-between">
@@ -361,12 +361,12 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
                   <span className={`font-semibold ${shipping === 0 ? 'text-emerald-700' : 'text-slate-800'}`}>{shipping === 0 ? 'FREE' : formatPrice(shipping)}</span>
                 </div>
                 <div className="flex justify-between font-bold border-t border-slate-200 pt-2 text-base">
-                  <span className="text-slate-900">Kul</span>
+                  <span className="text-slate-900">Total</span>
                   <span className="font-heading text-lg text-brand-cta">{formatPrice(total)}</span>
                 </div>
               </div>
 
-              <div className="space-y-3" role="radiogroup" aria-label="Payment ka tareeka">
+              <div className="space-y-3" role="radiogroup" aria-label="Payment method">
                 <button
                   type="button"
                   role="radio"
@@ -377,7 +377,7 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
                   <CreditCard className="w-5 h-5 text-brand-navy shrink-0" />
                   <div>
                     <h4 className="text-base font-semibold text-slate-800">Online Payment (UPI / Card)</h4>
-                    <p className="text-sm text-slate-500">Sabse fast confirm</p>
+                    <p className="text-sm text-slate-500">Fastest confirmation</p>
                   </div>
                 </button>
 
@@ -395,12 +395,12 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
                   <div>
                     <h4 className="text-base font-semibold text-slate-800">Cash on Delivery</h4>
                     <p className="text-sm text-slate-500">
-                      {codAllowed ? 'Saman aane par paise dein' : `COD sirf ${formatPrice(COD_MAX_AMOUNT)} tak ke order par hai`}
+                      {codAllowed ? 'Pay when your order arrives' : `Available on orders up to ${formatPrice(COD_MAX_AMOUNT)}`}
                     </p>
                   </div>
                 </button>
                 <p className="text-xs text-slate-500">
-                  Cash on Delivery {formatPrice(COD_MAX_AMOUNT)} tak ke order par. Order ke baad hum WhatsApp pe confirm karte hain.
+                  Cash on delivery is available on orders up to {formatPrice(COD_MAX_AMOUNT)}. We confirm every order with you on WhatsApp.
                 </p>
               </div>
 
@@ -412,7 +412,7 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
               <div className="flex gap-3 pt-2">
                 <button onClick={() => setStep(1)} disabled={orderLoading} className="px-4 py-3 bg-slate-100 text-slate-700 text-sm font-semibold rounded-xl flex items-center gap-1 disabled:opacity-50">
                   <ArrowLeft className="w-4 h-4" />
-                  <span>Peeche</span>
+                  <span>Back</span>
                 </button>
                 <button
                   onClick={handlePlaceOrder}
@@ -420,11 +420,11 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
                   className="flex-1 py-3.5 bg-brand-cta hover:bg-brand-cta-hover text-white font-semibold text-base rounded-xl shadow-md disabled:opacity-70 flex items-center justify-center gap-2"
                 >
                   {orderLoading ? (
-                    <><Loader2 className="w-4 h-4 animate-spin" /><span>Order ho raha hai...</span></>
+                    <><Loader2 className="w-4 h-4 animate-spin" /><span>Placing order...</span></>
                   ) : effectiveMethod === 'COD' ? (
-                    <span>Order Karein · {formatPrice(total)} COD</span>
+                    <span>Place Order · {formatPrice(total)} COD</span>
                   ) : (
-                    <span>{formatPrice(total)} Pay Karein</span>
+                    <span>Pay {formatPrice(total)}</span>
                   )}
                 </button>
               </div>
@@ -437,19 +437,19 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
                 <Check className="w-8 h-8 stroke-[3]" />
               </div>
               <h2 className="text-2xl font-bold text-brand-navy">
-                Shukriya {placedOrder.shippingAddress?.fullName?.split(' ')[0] || ''}! Order #{placedOrder.orderId} mil gaya.
+                Thank you {placedOrder.shippingAddress?.fullName?.split(' ')[0] || ''}! Order #{placedOrder.orderId} is confirmed.
               </h2>
-              <p className="text-base text-slate-700">2 din mein dispatch hoga.</p>
+              <p className="text-base text-slate-700">It will be dispatched within 2 days.</p>
 
               <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-sm text-left space-y-1 max-w-md mx-auto">
-                <div className="flex justify-between"><span className="text-slate-500">Kul</span><span className="font-semibold">{formatPrice(placedOrder.totalAmount)}</span></div>
+                <div className="flex justify-between"><span className="text-slate-500">Total</span><span className="font-semibold">{formatPrice(placedOrder.totalAmount)}</span></div>
                 <div className="flex justify-between"><span className="text-slate-500">Payment</span><span className="font-semibold">{placedOrder.paymentMethod === 'COD' ? 'Cash on Delivery' : 'Online (paid)'}</span></div>
                 <div className="flex justify-between gap-3"><span className="text-slate-500 shrink-0">Address</span><span className="font-semibold text-right">{placedOrder.shippingAddress?.city}, {placedOrder.shippingAddress?.pincode}</span></div>
               </div>
 
               {placedOrder.paymentMethod === 'COD' && (
                 <p className="text-base font-semibold text-slate-800 max-w-md mx-auto">
-                  Order confirm karne ke liye WhatsApp pe "Haan" bhejein. Confirm hone ke baad hi saman bheja jayega.
+                  Please confirm your order on WhatsApp. We ship cash-on-delivery orders once you confirm.
                 </p>
               )}
 
@@ -460,17 +460,17 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
                 className="inline-flex items-center justify-center gap-2 w-full max-w-md px-6 py-3.5 bg-[#25D366] text-brand-navy text-base font-bold rounded-xl shadow-md"
               >
                 <MessageCircle className="w-5 h-5" />
-                <span>WhatsApp pe order confirm karein</span>
+                <span>Confirm order on WhatsApp</span>
               </a>
 
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
                 {currentUser && (
                   <button onClick={() => navigate('/orders')} className="px-6 py-3 bg-brand-navy text-white text-sm font-semibold rounded-xl">
-                    Mere Orders
+                    My Orders
                   </button>
                 )}
                 <Link to="/shop" className="px-6 py-3 text-brand-navy text-sm font-semibold underline underline-offset-4">
-                  Shopping jaari rakhein
+                  Continue shopping
                 </Link>
               </div>
             </div>
@@ -478,7 +478,7 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
 
           {step < 3 && cartItems.length === 0 && (
             <p className="text-sm text-slate-600 mt-4">
-              Cart khaali hai. <Link to="/shop" className="text-brand-navy font-semibold underline">Shopping shuru karein</Link>
+              Your cart is empty. <Link to="/shop" className="text-brand-navy font-semibold underline">Start shopping</Link>
             </p>
           )}
         </div>
