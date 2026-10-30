@@ -14,6 +14,7 @@ import ProductCard from '../components/ProductCard';
 import Container, { Section } from '../components/ui/Container';
 import SectionHeader from '../components/ui/SectionHeader';
 import Button from '../components/ui/Button';
+import TiltCard from '../components/ui/TiltCard';
 import { whatsappUrl, PHONE_DISPLAY, EMAIL } from '../config/store';
 import { getActiveCampaign, sortForHomeGrid } from '../config/campaign';
 
@@ -229,18 +230,20 @@ export default function HomePage({
             </ul>
           </div>
 
-          <dl className="grid gap-px overflow-hidden rounded-lg bg-white/10 bg-brand-navy text-white">
-            {FACTS.map(f => (
-              <div key={f.big} className="bg-brand-navy px-6 py-6 sm:px-8">
-                <dt className="text-sm text-white/70">{f.label}</dt>
-                <dd className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">{f.big}</dd>
-                <dd className="mt-1 text-sm text-white/70">{f.note}</dd>
+          <TiltCard className="rounded-lg bg-brand-navy text-white">
+            <dl className="grid">
+              {FACTS.map((f, i) => (
+                <div key={f.big} className={`tilt-layer px-6 py-6 sm:px-8 ${i > 0 ? 'border-t border-white/15' : ''}`}>
+                  <dt className="text-sm text-white/70">{f.label}</dt>
+                  <dd className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">{f.big}</dd>
+                  <dd className="mt-1 text-sm text-white/70">{f.note}</dd>
+                </div>
+              ))}
+              <div className="px-6 pb-4 sm:px-8">
+                <p className="text-[11px] text-white/50">*Source: Apparel Resources</p>
               </div>
-            ))}
-            <div className="bg-brand-navy px-6 pb-4 sm:px-8">
-              <p className="text-[11px] text-white/50">*Source: Apparel Resources</p>
-            </div>
-          </dl>
+            </dl>
+          </TiltCard>
         </div>
       </Section>
 

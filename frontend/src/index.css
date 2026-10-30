@@ -623,3 +623,41 @@ summary { list-style: none; }
   .is-open .alm-swing { animation: none; }
   .alm-rig, .alm-door { transition: none; }
 }
+
+/* ---- TiltCard (3D stat card) ---- */
+.tilt-scene { perspective: 1000px; }
+.tilt-card {
+  --rx: 0deg; --ry: 0deg; --gx: 50%; --gy: 50%;
+  position: relative;
+  transform-style: preserve-3d;
+  transform: rotateX(var(--rx)) rotateY(var(--ry));
+  transition: transform 0.5s cubic-bezier(.2,.8,.2,1), box-shadow 0.5s;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.12) inset,
+    0 2px 4px rgba(11,42,85,.12),
+    0 18px 40px -12px rgba(11,42,85,.45),
+    0 40px 70px -30px rgba(11,42,85,.35);
+  background-image: linear-gradient(145deg, #12386F 0%, #0B2A55 45%, #081F40 100%);
+}
+.tilt-card[data-active] { transition: transform 0.08s linear, box-shadow 0.3s; box-shadow:
+    0 1px 0 rgba(255,255,255,.14) inset,
+    0 4px 8px rgba(11,42,85,.14),
+    0 30px 60px -12px rgba(11,42,85,.5),
+    0 60px 90px -30px rgba(11,42,85,.4); }
+.tilt-layer { transform: translateZ(28px); }
+.tilt-glare {
+  pointer-events: none; position: absolute; inset: 0; border-radius: inherit;
+  background: radial-gradient(circle at var(--gx) var(--gy), rgba(255,255,255,.16), transparent 55%);
+  opacity: 0; transition: opacity 0.3s;
+}
+.tilt-card[data-active] .tilt-glare { opacity: 1; }
+@media (hover: none) {
+  .tilt-card { animation: tilt-float 7s ease-in-out infinite; }
+}
+@keyframes tilt-float {
+  0%, 100% { transform: rotateX(4deg) rotateY(-5deg); }
+  50% { transform: rotateX(-3deg) rotateY(5deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tilt-card { animation: none; transition: none; transform: none; }
+}
