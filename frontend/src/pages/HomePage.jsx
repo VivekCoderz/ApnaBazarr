@@ -6,6 +6,7 @@ import {
 import HeroBanner from '../components/HeroBanner';
 import TrustStrip from '../components/TrustStrip';
 import CategoryShowcase from '../components/CategoryShowcase';
+import AlmirahShowcase from '../components/AlmirahShowcase';
 import WaitlistBand from '../components/WaitlistBand';
 import ProductSpotlight, { ProductSpotlightSkeleton } from '../components/ProductSpotlight';
 import RecentlyViewed from '../components/RecentlyViewed';
@@ -179,6 +180,9 @@ export default function HomePage({
         />
         <CategoryShowcase products={products} loading={loading} />
       </Section>
+
+      {/* 3D open-almirah showcase: doors swing open on scroll */}
+      <AlmirahShowcase />
 
       <ProductsSection
         products={products}
