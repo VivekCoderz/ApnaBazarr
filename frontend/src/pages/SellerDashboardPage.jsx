@@ -677,14 +677,14 @@ export default function SellerDashboardPage({ currentUser, onLogout, onAuthSucce
   const sidebarContent = (
     <div className="h-full flex flex-col justify-between bg-white border-r border-slate-200 select-none">
       <div className="p-6 space-y-6 flex-1 flex flex-col min-h-0 overflow-y-auto">
-        {/* Apna Bazar Premium Logo */}
+        {/* Dhagaro Premium Logo */}
         <div className="flex flex-col space-y-1">
           <div className="flex items-center space-x-2">
             <div className="w-9 h-9 bg-[#ff5e14] rounded-xl flex items-center justify-center text-white font-black text-lg shadow-sm shrink-0">
               <ShoppingBag className="w-5 h-5 text-white" />
             </div>
             <div>
-              <span className="text-base font-black text-[#0a2342] tracking-tight block">Apna Bazar</span>
+              <span className="text-base font-black text-[#0a2342] tracking-tight block">Dhagaro</span>
               <span className="text-[7.5px] text-slate-400 font-extrabold uppercase tracking-widest block leading-none">Sab Kuch, Apke Liye</span>
             </div>
           </div>
@@ -755,7 +755,7 @@ export default function SellerDashboardPage({ currentUser, onLogout, onAuthSucce
           <div className="absolute w-24 h-24 bg-[#ff5e14]/5 rounded-full blur-2xl -bottom-8 -right-8" />
           <div className="space-y-1 relative z-10">
             <h4 className="text-xs font-bold text-slate-800">Grow Your Business</h4>
-            <p className="text-[10px] text-slate-500 font-semibold leading-relaxed">Boost sales with Apna Bazar promotions and offers.</p>
+            <p className="text-[10px] text-slate-500 font-semibold leading-relaxed">Boost sales with Dhagaro promotions and offers.</p>
           </div>
           <button 
             onClick={() => { setActiveTab('support'); setMobileMenuOpen(false); }}

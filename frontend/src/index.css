@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Mukta:wght@400;600;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 /* Brand kit (business plan/03-brand-kit.md, Option A "Navy Bharosa").
@@ -48,8 +48,14 @@
 
   --color-slate-50: #F3F5F9;
 
-  --font-sans: 'Mukta', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-heading: 'Baloo 2', 'Mukta', system-ui, sans-serif;
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Mukta', sans-serif;
+  --font-heading: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* Design system: one card shadow + one lifted (hover) shadow */
+  --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.05);
+  --shadow-lift: 0 4px 14px rgba(16, 24, 40, 0.08);
+  --color-ink: #1A2233;
+  --color-line: #E5E7EB;
 }
 
 :root {
@@ -62,7 +68,8 @@
 }
 
 body {
-  font-family: 'Mukta', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Mukta', sans-serif;
+  font-feature-settings: 'cv11', 'ss01';
   color: #1A2233;
   background-color: #FFFFFF;
   overflow-x: hidden;
@@ -72,7 +79,8 @@ body {
 h1, h2, h3,
 .font-script,
 .font-serif-heading {
-  font-family: 'Baloo 2', 'Mukta', system-ui, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  letter-spacing: -0.01em;
 }
 
 /* Glassmorphism & Custom Shadow Effects */
@@ -132,4 +140,33 @@ h1, h2, h3,
 
 .animate-slide-left {
   animation: slideLeft 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ── Design system helpers ─────────────────────────────────────────── */
+
+/* One visible focus ring for every interactive element (keyboard only) */
+:focus-visible {
+  outline: 2px solid #F47A1F;
+  outline-offset: 2px;
+}
+
+/* <details> accordions: hide the default marker */
+summary::-webkit-details-marker { display: none; }
+summary { list-style: none; }
+
+.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Product page: mobile sticky buy bar must not cover the footer */
+@media (max-width: 1023px) {
+  body.has-buy-bar { padding-bottom: 76px; }
 }

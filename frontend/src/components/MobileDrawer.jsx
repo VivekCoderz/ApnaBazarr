@@ -1,6 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { X, Search, Heart, ShoppingBag, User, Phone, Mail, ChevronRight } from 'lucide-react';
+import { X, Search, Heart, ShoppingBag, Phone, Mail, ChevronRight } from 'lucide-react';
+import { CATEGORIES, CORE_CATEGORIES, categoryHref } from '../config/store';
+import CategoryGlyph from './ui/CategoryGlyph';
 
 export default function MobileDrawer({ isOpen, onClose, cartCount, wishlistCount, onOpenCart, onOpenWishlist, onOpenSearch, currentUser }) {
   if (!isOpen) return null;
@@ -39,17 +41,17 @@ export default function MobileDrawer({ isOpen, onClose, cartCount, wishlistCount
       <div className="fixed inset-y-0 left-0 max-w-xs w-full bg-white shadow-2xl z-50 flex flex-col animate-fade-in">
         
         {/* Header */}
-        <div className="p-4 border-b flex items-center justify-between bg-slate-900 text-white">
+        <div className="p-4 border-b flex items-center justify-between bg-brand-navy text-white">
           <div className="flex items-center">
             <img 
-              src="/brand-lockup-reverse.png" 
-              alt="Apna Bazarr" 
-              className="h-8 w-auto object-contain" 
+              src="/dhagaro-logo-white.svg" 
+              alt="Dhagaro" 
+              className="h-7 w-auto" 
             />
           </div>
           <button 
             onClick={onClose}
-            className="p-1 rounded-full text-slate-300 hover:text-white hover:bg-slate-800 transition-colors"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-white/80 hover:text-white hover:bg-white/10 transition-colors" aria-label="Close menu"
           >
             <X className="w-6 h-6" />
           </button>
@@ -71,7 +73,7 @@ export default function MobileDrawer({ isOpen, onClose, cartCount, wishlistCount
             <Heart className="w-5 h-5 mb-1 text-slate-700" />
             <span>Wishlist</span>
             {wishlistCount > 0 && (
-              <span className="absolute -top-1 right-2 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
+              <span className="absolute -top-1 right-2 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-semibold">
                 {wishlistCount}
               </span>
             )}
@@ -83,7 +85,7 @@ export default function MobileDrawer({ isOpen, onClose, cartCount, wishlistCount
             <ShoppingBag className="w-5 h-5 mb-1 text-slate-700" />
             <span>Cart</span>
             {cartCount > 0 && (
-              <span className="absolute -top-1 right-2 bg-brand-navy text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
+              <span className="absolute -top-1 right-2 bg-brand-navy text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-semibold">
                 {cartCount}
               </span>
             )}
@@ -91,13 +93,26 @@ export default function MobileDrawer({ isOpen, onClose, cartCount, wishlistCount
         </div>
 
         {/* Navigation List */}
-        <nav className="flex-1 overflow-y-auto p-4 space-y-1">
+        <nav className="flex-1 overflow-y-auto p-4 space-y-1" aria-label="Menu">
+          <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-[0.14em] text-brand-cta">Shop by category</p>
+          {CATEGORIES.filter(c => CORE_CATEGORIES.includes(c.name)).map(c => (
+            <Link
+              key={c.name}
+              to={categoryHref(c.name)}
+              onClick={onClose}
+              className="flex min-h-11 items-center gap-3 rounded-lg px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-brand-cream hover:text-brand-navy transition-colors"
+            >
+              <CategoryGlyph name={c.name} className="h-5 w-5 shrink-0 text-slate-500" />
+              <span>{c.label}</span>
+            </Link>
+          ))}
+          <div className="my-3 border-t border-line" />
           {navLinks.map((link, idx) => (
             <Link
               key={idx}
               to={link.to}
               onClick={onClose}
-              className="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-semibold text-slate-700 hover:bg-blue-50 hover:text-brand-navy transition-colors"
+              className="flex min-h-11 items-center justify-between px-3 py-2.5 rounded-lg text-sm font-semibold text-slate-700 hover:bg-brand-cream hover:text-brand-navy transition-colors"
             >
               <span>{link.label}</span>
               <ChevronRight className="w-4 h-4 text-slate-400" />

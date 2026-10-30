@@ -16,7 +16,7 @@ module.exports = async (req, res, next) => {
         _id: new (require('mongoose').Types.ObjectId)('000000000000000000000000'),
         email: 'admin@apnabazarr.com',
         role: 'admin',
-        name: 'Apna Bazarr Admin'
+        name: 'Dhagaro Admin'
       };
       return next();
     }

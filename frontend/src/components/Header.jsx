@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Search, Heart, ShoppingBag, User, Menu, Package, Settings, LogOut, ChevronDown, X, LogIn, ShieldCheck } from 'lucide-react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Search, Heart, ShoppingBag, User, Menu, Package, Settings, LogOut, ChevronDown, X, LogIn, ShieldCheck, MessageCircle } from 'lucide-react';
 import { formatPrice } from '../utils/format';
-import { categoryLabel } from '../config/store';
+import { categoryLabel, categoryHref, NAV_CATEGORIES, whatsappUrl, PHONE_DISPLAY } from '../config/store';
 
 export default function Header({
   cartCount,
@@ -17,6 +17,8 @@ export default function Header({
   onLogout
 }) {
   const navigate = useNavigate();
+  const { pathname, search } = useLocation();
+  const activeCategory = pathname === '/shop' ? new URLSearchParams(search).get('category') : null;
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [showMobileSearchDropdown, setShowMobileSearchDropdown] = useState(false);
@@ -132,346 +134,282 @@ export default function Header({
     }
   };
 
+  const renderResults = (results, close, extraClass) => (
+    <div className={`${extraClass} overflow-hidden rounded-lg border border-line bg-white shadow-lift z-50 animate-fade-in`}>
+      <div className="max-h-72 divide-y divide-slate-100 overflow-y-auto p-2">
+        {results.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            onClick={() => {
+              close();
+              setSearchQuery('');
+              navigate(`/product/${item.id}`);
+            }}
+            className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left transition-colors hover:bg-brand-cream"
+          >
+            <img src={item.image} alt="" className="h-11 w-11 rounded-lg bg-slate-100 object-cover" />
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-sm font-semibold text-ink">{item.name}</span>
+              <span className="text-xs text-slate-500">{categoryLabel(item.category)}</span>
+            </span>
+            <span className="text-sm font-semibold text-brand-cta">{formatPrice(item.price)}</span>
+          </button>
+        ))}
+      </div>
+      <button
+        type="button"
+        onClick={handleSearchSubmit}
+        className="w-full border-t border-slate-100 bg-brand-cream p-3 text-center text-sm font-semibold text-brand-navy hover:underline"
+      >
+        View all results for "{searchQuery}" →
+      </button>
+    </div>
+  );
+
+  const renderSearchForm = (focused, setFocused, setDropdown) => (
+    <form onSubmit={handleSearchSubmit} className="relative" role="search">
+      <input
+        type="search"
+        value={searchQuery}
+        onFocus={() => {
+          setDropdown(true);
+          setFocused(true);
+        }}
+        onBlur={() => {
+          setTimeout(() => setFocused(false), 200);
+        }}
+        onChange={(e) => {
+          setSearchQuery(e.target.value);
+          setDropdown(true);
+        }}
+        placeholder="Search for suits, co-ord sets, bedsheets…"
+        aria-label="Search products"
+        className="h-11 w-full rounded-lg border border-line bg-brand-cream pl-11 pr-10 text-sm text-ink placeholder:text-transparent focus:border-brand-navy focus:bg-white focus:outline-none focus:placeholder:text-slate-500 [&::-webkit-search-cancel-button]:hidden"
+      />
+      {!searchQuery && !focused && (
+        <div className="pointer-events-none absolute left-11 top-1/2 flex -translate-y-1/2 select-none items-center gap-1 text-sm text-slate-500" aria-hidden="true">
+          <span>Search for</span>
+          <span className="font-semibold text-brand-navy">{placeholder}</span>
+          <span className="animate-pulse font-light text-brand-navy">|</span>
+        </div>
+      )}
+      <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" aria-hidden="true" />
+      {searchQuery && (
+        <button
+          type="button"
+          onClick={() => setSearchQuery('')}
+          aria-label="Clear search"
+          className="absolute right-1.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full text-slate-500 hover:bg-white hover:text-slate-700"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      )}
+    </form>
+  );
+
+  const iconBtn = 'relative flex h-11 w-11 items-center justify-center rounded-full text-brand-navy transition-colors hover:bg-brand-cream';
+
   return (
-    <header className={`bg-white sticky top-0 z-40 shadow-xs border-b border-slate-100 transition-transform duration-300 ease-in-out ${hideHeaderTop ? '-translate-y-20' : 'translate-y-0'}`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20 gap-4">
-          
+    <header className={`sticky top-0 z-40 border-b border-line bg-white/95 backdrop-blur transition-transform duration-300 ease-in-out ${hideHeaderTop ? '-translate-y-16' : 'translate-y-0'}`}>
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 items-center justify-between gap-4 lg:h-[72px]">
+
           {/* LEFT: Logo & Mobile Hamburger */}
-          <div className="flex items-center space-x-3 shrink-0">
+          <div className="flex shrink-0 items-center gap-1">
             <button
               onClick={onOpenMobileMenu}
-              className="lg:hidden p-2 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 focus:outline-none"
-              aria-label="Open Menu"
+              className={`${iconBtn} -ml-2 lg:hidden`}
+              aria-label="Open menu"
             >
-              <Menu className="w-6 h-6" />
+              <Menu className="h-6 w-6" />
             </button>
 
-            <Link to="/" className="flex items-center space-x-2 group">
-              <img 
-                src="/brand-lockup.png" 
-                alt="Apna Bazarr" 
-                className="h-9 sm:h-11 w-auto object-contain transition-transform group-hover:scale-105" 
+            <Link to="/" className="flex items-center" aria-label="Dhagaro home">
+              <img
+                src="/dhagaro-logo.svg"
+                alt="Dhagaro"
+                className="h-8 w-auto sm:h-9"
               />
             </Link>
           </div>
 
-          {/* CENTER: Working Embedded Live Search Bar */}
-          <div className="flex-1 max-w-xl relative hidden md:block" ref={searchRef}>
-            <form onSubmit={handleSearchSubmit} className="relative">
-              <input
-                type="text"
-                value={searchQuery}
-                onFocus={() => {
-                  setShowSearchDropdown(true);
-                  setIsSearchFocused(true);
-                }}
-                onBlur={() => {
-                  setTimeout(() => setIsSearchFocused(false), 200);
-                }}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setShowSearchDropdown(true);
-                }}
-                placeholder="Search for suits, co-ord sets, bedsheets…" aria-label="Search products"
-                className="w-full bg-slate-50 border border-slate-200 rounded-full pl-11 pr-10 py-2.5 text-xs text-slate-800 font-semibold placeholder:text-transparent focus:placeholder:text-slate-400 focus:outline-none focus:border-brand-navy focus:bg-white transition-all shadow-xs"
-              />
-              {!searchQuery && !isSearchFocused && (
-                <div className="absolute left-11 top-[11.5px] pointer-events-none select-none text-xs font-bold text-slate-400 flex items-center space-x-1">
-                  <span>Search for</span>
-                  <span className="text-brand-navy font-black">{placeholder}</span>
-                  <span className="text-brand-navy font-light animate-pulse">|</span>
-                </div>
-              )}
-              <Search className="w-4 h-4 text-slate-400 absolute left-4 top-3.5" />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 p-0.5"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </form>
-
-            {/* Live Search Results Dropdown Popup */}
-            {showSearchDropdown && searchResults.length > 0 && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden z-50 animate-fade-in">
-                <div className="p-2 divide-y divide-slate-100">
-                  {searchResults.map((item) => (
-                    <div
-                      key={item.id}
-                      onClick={() => {
-                        setShowSearchDropdown(false);
-                        setSearchQuery('');
-                        navigate(`/product/${item.id}`);
-                      }}
-                      className="flex items-center space-x-3 p-2.5 rounded-xl hover:bg-blue-50/70 transition-colors cursor-pointer"
-                    >
-                      <img src={item.image} alt={item.name} className="w-10 h-10 object-cover rounded-lg bg-slate-100" />
-                      <div className="flex-1 min-w-0">
-                        <h5 className="text-xs font-bold text-slate-800 truncate">{item.name}</h5>
-                        <span className="text-[11px] text-slate-400">{categoryLabel(item.category)}</span>
-                      </div>
-                      <span className="text-xs font-extrabold text-brand-navy">{formatPrice(item.price)}</span>
-                    </div>
-                  ))}
-                </div>
-                <div 
-                  onClick={handleSearchSubmit}
-                  className="bg-slate-50 p-2.5 text-center text-xs font-bold text-brand-navy hover:underline border-t border-slate-100 cursor-pointer"
-                >
-                  View all results for "{searchQuery}" →
-                </div>
-              </div>
-            )}
+          {/* CENTER: Live search (desktop) */}
+          <div className="relative hidden max-w-xl flex-1 md:block" ref={searchRef}>
+            {renderSearchForm(isSearchFocused, setIsSearchFocused, setShowSearchDropdown)}
+            {showSearchDropdown && searchResults.length > 0 &&
+              renderResults(searchResults, () => setShowSearchDropdown(false), 'absolute left-0 right-0 top-full mt-2')}
           </div>
 
-          {/* RIGHT: Action Icons & Conditional Auth Menu */}
-          <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
-            
-            {/* Wishlist Icon */}
+          {/* RIGHT: actions */}
+          <div className="flex shrink-0 items-center gap-1 sm:gap-2">
             <button
               onClick={handleWishlistClick}
-              className="hidden sm:block p-2.5 text-slate-700 hover:text-brand-navy hover:bg-slate-50 rounded-full transition-colors relative"
-              title={currentUser ? "Wishlist" : "Log in to view Wishlist"}
+              className={`${iconBtn} hidden sm:flex`}
+              title={currentUser ? 'Wishlist' : 'Log in to view Wishlist'}
+              aria-label="Wishlist"
             >
-              <Heart className="w-5 h-5" />
+              <Heart className="h-5 w-5" />
               {currentUser && wishlistCount > 0 && (
-                <span className="absolute top-1 right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-white">
+                <span className="absolute right-1 top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full border-2 border-white bg-[#B91C1C] px-1 text-[10px] font-semibold text-white">
                   {wishlistCount}
                 </span>
               )}
             </button>
 
-            {/* Cart Icon */}
-            <button
-              onClick={handleCartClick}
-              className="p-2.5 text-slate-700 hover:text-brand-navy hover:bg-slate-50 rounded-full transition-colors relative"
-              title="Cart"
-              aria-label="Cart"
-            >
-              <ShoppingBag className="w-5 h-5" />
+            <button onClick={handleCartClick} className={iconBtn} title="Cart" aria-label={`Cart${cartCount ? `, ${cartCount} items` : ''}`}>
+              <ShoppingBag className="h-5 w-5" />
               {cartCount > 0 && (
-                <span className="absolute top-1 right-1 bg-brand-navy text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-white">
+                <span className="absolute right-1 top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full border-2 border-white bg-brand-cta px-1 text-[10px] font-semibold text-white">
                   {cartCount}
                 </span>
               )}
             </button>
 
-            {/* Direct Admin Panel Switch button for Authenticated Admins */}
             {isAdminAuthenticated && (
               <Link
                 to="/admin"
-                className="p-2 sm:px-3.5 sm:py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs rounded-full sm:rounded-xl shadow-md transition-all flex items-center space-x-1.5 shrink-0 hover:scale-105 active:scale-95"
+                className="flex h-10 shrink-0 items-center gap-1.5 rounded-lg bg-amber-100 px-3 text-xs font-semibold text-amber-900 transition-colors hover:bg-amber-200"
                 title="Go to Admin Panel"
               >
-                <ShieldCheck className="w-4 h-4 text-slate-950" />
-                <span className="hidden sm:inline">Admin Panel</span>
+                <ShieldCheck className="h-4 w-4" />
+                <span className="hidden sm:inline">Admin</span>
               </Link>
             )}
 
-            {/* CONDITIONAL AUTH / PROFILE AREA */}
             {!currentUser ? (
-              /* GUEST USER: ONLY LOGIN / REGISTER BUTTON DISPLAYED */
               <button
                 onClick={onOpenAuth}
-                className="p-2 sm:px-4 sm:py-2 bg-slate-900 hover:bg-brand-navy text-white font-extrabold text-xs rounded-full sm:rounded-xl shadow-md transition-colors flex items-center space-x-1.5 shrink-0"
+                className="flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-lg bg-brand-navy px-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700 sm:px-4"
+                aria-label="Log in"
               >
-                <LogIn className="w-4 h-4 text-white" />
+                <LogIn className="h-4 w-4" />
                 <span className="hidden sm:inline">Login</span>
               </button>
             ) : (
-              /* LOGGED-IN USER: FULL PROFILE DROPDOWN MENU */
               <div className="relative" ref={profileRef}>
                 <button
                   onClick={() => setShowProfileMenu(!showProfileMenu)}
-                  className="flex items-center space-x-1.5 p-1.5 sm:px-3 sm:py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-full sm:rounded-xl transition-all"
-                  title="Account Menu"
+                  className="flex h-11 items-center gap-1.5 rounded-lg px-1.5 text-ink transition-colors hover:bg-brand-cream sm:px-2"
+                  aria-label="Account menu"
+                  aria-expanded={showProfileMenu}
                 >
-                  <div className="w-7 h-7 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-xs">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-navy text-xs font-semibold text-white">
                     {currentUser.name.charAt(0).toUpperCase()}
-                  </div>
-                  <span className="hidden sm:inline text-xs font-bold text-slate-800 max-w-[90px] truncate">
+                  </span>
+                  <span className="hidden max-w-[90px] truncate text-sm font-semibold sm:inline">
                     {currentUser.name.split(' ')[0]}
                   </span>
-                  <ChevronDown className="w-3.5 h-3.5 text-slate-500 hidden sm:inline" />
+                  <ChevronDown className="hidden h-4 w-4 text-slate-500 sm:inline" />
                 </button>
 
-                {/* Profile Dropdown Popup Menu */}
                 {showProfileMenu && (
-                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-slate-200 py-2 z-50 animate-fade-in divide-y divide-slate-100">
-                    
-                    {/* User Overview */}
-                    <div className="px-4 py-3 bg-slate-50/80">
-                      <p className="text-xs font-extrabold text-slate-900 truncate">
-                        {currentUser.name}
-                      </p>
-                      <p className="text-[11px] text-slate-500 truncate">
-                        {currentUser.email}
-                      </p>
+                  <div className="absolute right-0 z-50 mt-2 w-60 divide-y divide-slate-100 rounded-lg border border-line bg-white py-2 shadow-lift animate-fade-in">
+                    <div className="px-4 py-3">
+                      <p className="truncate text-sm font-semibold text-ink">{currentUser.name}</p>
+                      <p className="truncate text-xs text-slate-500">{currentUser.email}</p>
                     </div>
 
-                    {/* Nav Links */}
-                    <div className="py-1">
+                    <div className="py-1 text-sm">
                       {currentUser.email === 'admin@apnabazarr.com' && (
-                        <Link
-                          to="/admin"
-                          onClick={() => setShowProfileMenu(false)}
-                          className="flex items-center space-x-2.5 px-4 py-2.5 text-xs font-black text-amber-700 bg-amber-50 hover:bg-amber-100 border-b border-slate-100 transition-colors"
-                        >
-                          <ShieldCheck className="w-4 h-4 text-amber-600" />
+                        <Link to="/admin" onClick={() => setShowProfileMenu(false)} className="flex items-center gap-2.5 px-4 py-2.5 font-semibold text-amber-900 hover:bg-amber-50">
+                          <ShieldCheck className="h-4 w-4" />
                           <span>Switch to Admin Panel</span>
                         </Link>
                       )}
-
                       {currentUser?.role === 'seller' ? (
-                        <Link
-                          to="/seller"
-                          onClick={() => setShowProfileMenu(false)}
-                          className="flex items-center space-x-2.5 px-4 py-2.5 text-xs font-black text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border-b border-slate-100 transition-colors"
-                        >
-                          <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                        <Link to="/seller" onClick={() => setShowProfileMenu(false)} className="flex items-center gap-2.5 px-4 py-2.5 font-semibold text-emerald-800 hover:bg-emerald-50">
+                          <ShieldCheck className="h-4 w-4" />
                           <span>Seller Dashboard</span>
                         </Link>
                       ) : null}
-
                       {currentUser.email !== 'admin@apnabazarr.com' && (
-                        <Link
-                          to="/reseller"
-                          onClick={() => setShowProfileMenu(false)}
-                          className="flex items-center space-x-2.5 px-4 py-2.5 text-xs font-black text-emerald-700 hover:bg-emerald-50 border-b border-slate-100 transition-colors"
-                        >
-                          <Package className="w-4 h-4 text-emerald-600" />
+                        <Link to="/reseller" onClick={() => setShowProfileMenu(false)} className="flex items-center gap-2.5 px-4 py-2.5 font-semibold text-slate-700 hover:bg-brand-cream hover:text-brand-navy">
+                          <Package className="h-4 w-4 text-slate-500" />
                           <span>{currentUser.resellerProfile?.code ? 'Reseller Dashboard' : 'Become a Reseller'}</span>
                         </Link>
                       )}
-
-                      <Link
-                        to="/profile"
-                        onClick={() => setShowProfileMenu(false)}
-                        className="flex items-center space-x-2.5 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-blue-50 hover:text-brand-navy transition-colors"
-                      >
-                        <User className="w-4 h-4 text-slate-500" />
+                      <Link to="/profile" onClick={() => setShowProfileMenu(false)} className="flex items-center gap-2.5 px-4 py-2.5 font-semibold text-slate-700 hover:bg-brand-cream hover:text-brand-navy">
+                        <User className="h-4 w-4 text-slate-500" />
                         <span>My Profile</span>
                       </Link>
-
-                      <Link
-                        to="/orders"
-                        onClick={() => setShowProfileMenu(false)}
-                        className="flex items-center space-x-2.5 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-blue-50 hover:text-brand-navy transition-colors"
-                      >
-                        <Package className="w-4 h-4 text-slate-500" />
+                      <Link to="/orders" onClick={() => setShowProfileMenu(false)} className="flex items-center gap-2.5 px-4 py-2.5 font-semibold text-slate-700 hover:bg-brand-cream hover:text-brand-navy">
+                        <Package className="h-4 w-4 text-slate-500" />
                         <span>My Orders</span>
                       </Link>
-
-                      <Link
-                        to="/settings"
-                        onClick={() => setShowProfileMenu(false)}
-                        className="flex items-center space-x-2.5 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-blue-50 hover:text-brand-navy transition-colors"
-                      >
-                        <Settings className="w-4 h-4 text-slate-500" />
+                      <Link to="/settings" onClick={() => setShowProfileMenu(false)} className="flex items-center gap-2.5 px-4 py-2.5 font-semibold text-slate-700 hover:bg-brand-cream hover:text-brand-navy">
+                        <Settings className="h-4 w-4 text-slate-500" />
                         <span>Account Settings</span>
                       </Link>
-
                     </div>
 
-                    {/* Logout Action */}
                     <div className="pt-1">
                       <button
                         onClick={() => {
                           setShowProfileMenu(false);
                           onLogout();
                         }}
-                        className="w-full text-left flex items-center space-x-2.5 px-4 py-2 text-xs font-bold text-red-600 hover:bg-red-50 transition-colors"
+                        className="flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm font-semibold text-[#B91C1C] hover:bg-red-50"
                       >
-                        <LogOut className="w-4 h-4" />
+                        <LogOut className="h-4 w-4" />
                         <span>Logout</span>
                       </button>
                     </div>
-
                   </div>
                 )}
               </div>
             )}
-
           </div>
-
         </div>
 
-        {/* Mobile Search Bar Row (Visible on mobile only) */}
-        <div className={`pb-3.5 block md:hidden transition-all duration-300 ${hideHeaderTop ? 'pt-3.5' : 'pt-0'}`} ref={mobileSearchRef}>
-          <form onSubmit={handleSearchSubmit} className="relative">
-            <input
-              type="text"
-              value={searchQuery}
-              onFocus={() => {
-                setShowMobileSearchDropdown(true);
-                setIsMobileSearchFocused(true);
-              }}
-              onBlur={() => {
-                setTimeout(() => setIsMobileSearchFocused(false), 200);
-              }}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setShowMobileSearchDropdown(true);
-              }}
-              placeholder="Search for suits, co-ord sets, bedsheets…" aria-label="Search products"
-              className="w-full bg-slate-50 border border-slate-205 rounded-full pl-11 pr-10 py-2.5 text-xs text-slate-800 font-semibold placeholder:text-transparent focus:placeholder:text-slate-400 focus:outline-none focus:border-brand-navy focus:bg-white transition-all shadow-xs"
-            />
-            {!searchQuery && !isMobileSearchFocused && (
-              <div className="absolute left-11 top-[11.5px] pointer-events-none select-none text-xs font-bold text-slate-400 flex items-center space-x-1">
-                <span>Search for</span>
-                <span className="text-brand-navy font-black">{placeholder}</span>
-                <span className="text-brand-navy font-light animate-pulse">|</span>
-              </div>
-            )}
-            <Search className="w-4 h-4 text-slate-400 absolute left-4 top-3" />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 p-0.5"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </form>
-
-          {/* Mobile Live Search Dropdown Popup */}
-          {showMobileSearchDropdown && searchResults.length > 0 && (
-            <div className="absolute left-4 right-4 mt-2 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden z-50 animate-fade-in">
-              <div className="p-2 divide-y divide-slate-100 max-h-72 overflow-y-auto">
-                {searchResults.map((item) => (
-                  <div
-                    key={item.id}
-                    onClick={() => {
-                      setShowMobileSearchDropdown(false);
-                      setSearchQuery('');
-                      navigate(`/product/${item.id}`);
-                    }}
-                    className="flex items-center space-x-3 p-2.5 rounded-xl hover:bg-blue-50/70 transition-colors cursor-pointer"
-                  >
-                    <img src={item.image} alt={item.name} className="w-10 h-10 object-cover rounded-lg bg-slate-100" />
-                    <div className="flex-1 min-w-0">
-                      <h5 className="text-xs font-bold text-slate-800 truncate">{item.name}</h5>
-                      <span className="text-[11px] text-slate-400">{categoryLabel(item.category)}</span>
-                    </div>
-                    <span className="text-xs font-extrabold text-brand-navy">{formatPrice(item.price)}</span>
-                  </div>
-                ))}
-              </div>
-              <div 
-                onClick={handleSearchSubmit}
-                className="bg-slate-50 p-2.5 text-center text-xs font-bold text-brand-navy hover:underline border-t border-slate-100 cursor-pointer"
-              >
-                View all results for "{searchQuery}" →
-              </div>
-            </div>
-          )}
+        {/* Mobile search row */}
+        <div className={`relative block pb-3 transition-all duration-300 md:hidden ${hideHeaderTop ? 'pt-3' : 'pt-0'}`} ref={mobileSearchRef}>
+          {renderSearchForm(isMobileSearchFocused, setIsMobileSearchFocused, setShowMobileSearchDropdown)}
+          {showMobileSearchDropdown && searchResults.length > 0 &&
+            renderResults(searchResults, () => setShowMobileSearchDropdown(false), 'absolute left-0 right-0 mt-2')}
         </div>
       </div>
+
+      {/* Desktop category nav */}
+      <nav aria-label="Categories" className="hidden border-t border-line lg:block">
+        <div className="mx-auto flex h-12 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          <ul className="flex items-center gap-1">
+            {NAV_CATEGORIES.map(name => {
+              const active = activeCategory === name;
+              return (
+                <li key={name}>
+                  <Link
+                    to={categoryHref(name)}
+                    aria-current={active ? 'page' : undefined}
+                    className={`relative flex h-12 items-center px-3 text-[15px] font-semibold transition-colors ${active ? 'text-brand-cta' : 'text-ink hover:text-brand-cta'}`}
+                  >
+                    {categoryLabel(name)}
+                    {active && <span className="absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-brand-cta" />}
+                  </Link>
+                </li>
+              );
+            })}
+            <li>
+              <Link
+                to="/shop"
+                className={`relative flex h-12 items-center px-3 text-[15px] font-semibold transition-colors ${pathname === '/shop' && !activeCategory ? 'text-brand-cta' : 'text-ink hover:text-brand-cta'}`}
+              >
+                All products
+              </Link>
+            </li>
+          </ul>
+          <div className="flex items-center gap-5 text-sm font-semibold">
+            <Link to="/reseller" className="flex h-12 items-center gap-1.5 text-brand-navy hover:text-brand-cta">
+              <span className="h-2 w-2 rounded-full bg-brand-orange" aria-hidden="true" />
+              Become a Reseller
+            </Link>
+            <a href={whatsappUrl()} target="_blank" rel="noreferrer" className="flex h-12 items-center gap-1.5 text-slate-600 hover:text-brand-navy">
+              <MessageCircle className="h-4 w-4" aria-hidden="true" />
+              Help: {PHONE_DISPLAY}
+            </a>
+          </div>
+        </div>
+      </nav>
     </header>
   );
 }

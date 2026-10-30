@@ -525,7 +525,7 @@ export default function CheckoutModal({ isOpen, onClose, cartItems, onOrderCompl
                   Order Successfully Placed!
                 </h3>
                 <p className="text-xs text-slate-500 mt-1">
-                  Thank you for shopping with <span className="font-bold text-slate-800">Apna Bazarr</span>
+                  Thank you for shopping with <span className="font-bold text-slate-800">Dhagaro</span>
                 </p>
                 <span className="inline-block mt-2 px-3 py-1 bg-blue-50 text-brand-navy font-extrabold text-xs rounded-full border border-blue-100">
                   Order ID: {placedOrder.orderId}

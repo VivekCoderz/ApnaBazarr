@@ -21,7 +21,7 @@ export default function ProfilePage({ currentUser }) {
             <h1 className="text-xl sm:text-2xl font-extrabold">{user.name}</h1>
             <p className="text-xs text-slate-400 mt-0.5">{user.email}</p>
             <span className="inline-block mt-2 text-[10px] font-extrabold bg-emerald-900/60 text-emerald-300 px-2.5 py-0.5 rounded-full border border-emerald-700">
-              VERIFIED APNA BAZARR CUSTOMER
+              VERIFIED Dhagaro CUSTOMER
             </span>
           </div>
         </div>

@@ -36,7 +36,7 @@ export default async function handler(req, res) {
     return res.status(200).send(shell);
   }
 
-  const title = `${product.name} – ₹${product.price} | Apna Bazarr`;
+  const title = `${product.name} – ₹${product.price} | Dhagaro`;
   const description =
     product.originalPrice && product.originalPrice > product.price
       ? `Only ₹${product.price} (MRP ₹${product.originalPrice}). Straight from Panipat to your home. Cash on delivery available.`
@@ -48,7 +48,7 @@ export default async function handler(req, res) {
     <title>${escapeHtml(title)}</title>
     <meta name="description" content="${escapeHtml(description)}" />
     <meta property="og:type" content="product" />
-    <meta property="og:site_name" content="Apna Bazarr" />
+    <meta property="og:site_name" content="Dhagaro" />
     <meta property="og:title" content="${escapeHtml(title)}" />
     <meta property="og:description" content="${escapeHtml(description)}" />
     <meta property="og:url" content="${escapeHtml(url)}" />

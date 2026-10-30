@@ -25,7 +25,7 @@ export default function AdminPage({ products, orders, feedbacks = [], onAddProdu
         </button>
 
         <span className="hidden md:inline text-[10px] font-black tracking-widest uppercase text-amber-450 text-amber-400">
-          Apna Bazarr — 100% Full-Screen Admin Workspace
+          Dhagaro — 100% Full-Screen Admin Workspace
         </span>
 
         <div className="flex items-center gap-2 shrink-0">

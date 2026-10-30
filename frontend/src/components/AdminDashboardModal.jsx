@@ -392,7 +392,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
       rating: 5,
       reviewsCount: 1,
       image: newProd.image,
-      description: newProd.description || "High quality product from Apna Bazarr.",
+      description: newProd.description || "High quality product from Dhagaro.",
       tags: ["New Arrival", "Best Selling"],
       sizes: newProd.sizes ? newProd.sizes.split(',').map(s => s.trim()).filter(Boolean) : [],
       colors: newProd.colors ? newProd.colors.split(',').map(c => c.trim()).filter(Boolean) : [],
@@ -564,7 +564,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
               <div className="bg-blue-50/80 p-5 rounded-2xl border border-blue-200 text-xs text-slate-700 space-y-1.5">
                 <h4 className="font-extrabold text-slate-900 text-sm">💡 Single-Seller Profit Calculation Rule:</h4>
                 <p>• <span className="font-bold text-slate-900">Kharida Price (Cost Price)</span>: The exact price you paid to purchase/manufacture the item.</p>
-                <p>• <span className="font-bold text-slate-900">Becha Price (Selling Price)</span>: The price shown to customers on Apna Bazarr.</p>
+                <p>• <span className="font-bold text-slate-900">Becha Price (Selling Price)</span>: The price shown to customers on Dhagaro.</p>
                 <p>• <span className="font-bold text-emerald-700 font-extrabold">Profit Per Piece</span> = Selling Price - Cost Price.</p>
                 <p className="text-[11px] text-slate-500 italic pt-1">* Buyers can only see the Selling Price and Discount %. Your Cost Price remains completely private.</p>
               </div>

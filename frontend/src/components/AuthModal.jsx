@@ -75,7 +75,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
 
           <div className="space-y-1">
             <span className="text-xs font-bold uppercase tracking-wider text-brand-navy">
-              Apna Bazarr Account
+              Dhagaro Account
             </span>
             <h3 className="text-xl font-extrabold text-white">
               {isLogin ? "Welcome Back!" : "Create Your Account"}

@@ -1,21 +1,19 @@
-import React from 'react';
-
 // Grey pulse placeholder shaped like a ProductCard (shown while products load)
 export function ProductCardSkeleton() {
   return (
-    <div className="bg-white rounded-xl overflow-hidden border border-slate-100 animate-pulse" aria-hidden="true">
-      <div className="aspect-square bg-slate-200" />
-      <div className="p-2 sm:p-3 space-y-2">
-        <div className="h-3 bg-slate-200 rounded w-11/12" />
-        <div className="h-3 bg-slate-200 rounded w-2/3" />
-        <div className="h-5 bg-slate-200 rounded w-1/3 mt-2" />
-        <div className="h-8 bg-slate-200 rounded-lg sm:hidden" />
+    <div className="animate-pulse overflow-hidden rounded-lg border border-line bg-white" aria-hidden="true">
+      <div className="aspect-[4/5] bg-slate-200" />
+      <div className="space-y-2 p-3 sm:p-4">
+        <div className="h-3 w-1/3 rounded bg-slate-200" />
+        <div className="h-3.5 w-11/12 rounded bg-slate-200" />
+        <div className="h-3.5 w-2/3 rounded bg-slate-200" />
+        <div className="mt-2 h-5 w-1/3 rounded bg-slate-200" />
       </div>
     </div>
   );
 }
 
-export function ProductGridSkeleton({ count = 8, className = 'grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6' }) {
+export function ProductGridSkeleton({ count = 8, className = 'grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 lg:grid-cols-4' }) {
   return (
     <div className={className} role="status" aria-label="Loading products">
       {Array.from({ length: count }, (_, i) => <ProductCardSkeleton key={i} />)}

@@ -33,3 +33,34 @@ export const CATEGORIES = [
 export function categoryLabel(name) {
   return CATEGORIES.find(c => c.name === name)?.label || name;
 }
+
+// Categories always shown on the homepage/shop, even before they have stock
+// (then as "Coming soon" with a WhatsApp notify link). Others appear once they have products.
+export const CORE_CATEGORIES = ['Kambal & Dohar', 'Bedsheet', 'Cushion & Sofa Cover', 'Suit Sets', 'Co-ord Sets'];
+
+// Desktop header nav: the main categories (plus the reseller link)
+export const NAV_CATEGORIES = ['Kambal & Dohar', 'Bedsheet', 'Suit Sets', 'Co-ord Sets'];
+
+export const EMAIL = 'appnabaazar@gmail.com';
+
+export function notifyMeUrl(label) {
+  return whatsappUrl(`Hi Dhagaro, please notify me when ${label} are available.`);
+}
+
+export const categoryHref = (name) => `/shop?category=${encodeURIComponent(name)}`;
+
+// Category tiles: live categories first, then the core ones that are "coming soon"
+export function categoryTiles(products = []) {
+  const counts = {};
+  products.forEach(p => {
+    const cat = p.category?.trim();
+    if (cat) counts[cat] = (counts[cat] || 0) + 1;
+  });
+  const known = CATEGORIES.filter(c => counts[c.name] || CORE_CATEGORIES.includes(c.name));
+  const others = Object.keys(counts)
+    .filter(name => !CATEGORIES.some(c => c.name === name))
+    .map(name => ({ name, label: name }));
+  return [...known, ...others]
+    .map(c => ({ ...c, count: counts[c.name] || 0 }))
+    .sort((a, b) => (b.count > 0) - (a.count > 0));
+}

@@ -26,13 +26,13 @@ export default function PolicyPage({ type }) {
             </div>
             <p className="text-xs text-slate-400">Last updated: August 13, 2026</p>
             <div className="space-y-4 text-xs sm:text-sm text-slate-600 leading-relaxed font-semibold">
-              <p>Welcome to Apna Bazarr. These terms and conditions outline the rules and regulations for the use of Apna Bazarr's Website.</p>
+              <p>Welcome to Dhagaro. These terms and conditions outline the rules and regulations for the use of Dhagaro's Website.</p>
               <h3 className="text-base font-black text-slate-900 pt-2">1. Intellectual Property Rights</h3>
-              <p>Other than the content you own, under these Terms, Apna Bazarr and/or its licensors own all the intellectual property rights and materials contained in this Website.</p>
+              <p>Other than the content you own, under these Terms, Dhagaro and/or its licensors own all the intellectual property rights and materials contained in this Website.</p>
               <h3 className="text-base font-black text-slate-900 pt-2">2. Restrictions</h3>
               <p>You are specifically restricted from all of the following: publishing any Website material in any other media; selling, sublicensing and/or otherwise commercializing any Website material; publicly performing and/or showing any Website material; using this Website in any way that is or may be damaging to this Website.</p>
               <h3 className="text-base font-black text-slate-900 pt-2">3. Limitation of Liability</h3>
-              <p>In no event shall Apna Bazarr, nor any of its officers, directors and employees, be held liable for anything arising out of or in any way connected with your use of this Website whether such liability is under contract.</p>
+              <p>In no event shall Dhagaro, nor any of its officers, directors and employees, be held liable for anything arising out of or in any way connected with your use of this Website whether such liability is under contract.</p>
             </div>
           </div>
         );
@@ -45,7 +45,7 @@ export default function PolicyPage({ type }) {
             </div>
             <p className="text-xs text-slate-400">Last updated: August 13, 2026</p>
             <div className="space-y-4 text-xs sm:text-sm text-slate-600 leading-relaxed font-semibold">
-              <p>At Apna Bazarr, accessible from Apna Bazarr, one of our main priorities is the privacy of our visitors. This Privacy Policy document contains types of information that is collected and recorded by Apna Bazarr and how we use it.</p>
+              <p>At Dhagaro, accessible from Dhagaro, one of our main priorities is the privacy of our visitors. This Privacy Policy document contains types of information that is collected and recorded by Dhagaro and how we use it.</p>
               <h3 className="text-base font-black text-slate-900 pt-2">Information We Collect</h3>
               <p>The personal information that you are asked to provide, and the reasons why you are asked to provide it, will be made clear to you at the point we ask you to provide your personal information.</p>
               <h3 className="text-base font-black text-slate-900 pt-2">How We Use Your Information</h3>

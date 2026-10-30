@@ -1,113 +1,104 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, Phone, MapPin, MessageCircle } from 'lucide-react';
-import { whatsappUrl, CATEGORIES } from '../config/store';
+import { Mail, Phone, MapPin, MessageCircle, Banknote } from 'lucide-react';
+import { whatsappUrl, CATEGORIES, PHONE_DISPLAY, EMAIL, COD_MAX_AMOUNT, categoryHref } from '../config/store';
+import { formatPrice } from '../utils/format';
+import Button from './ui/Button';
+
+const HELP_LINKS = [
+  { to: '/shipping', label: 'Shipping Policy' },
+  { to: '/refunds', label: 'Returns & Refunds' },
+  { to: '/orders', label: 'Track my orders' },
+  { to: '/contact', label: 'Contact us' },
+  { to: '/terms', label: 'Terms & Conditions' },
+  { to: '/privacy', label: 'Privacy Policy' }
+];
+
+const linkCls = 'inline-flex min-h-8 items-center text-sm text-white/70 transition-colors hover:text-white';
 
 export default function Footer({ products = [] }) {
   // Only link categories that have live products (no empty pages)
   const liveCategories = CATEGORIES.filter(c => products.some(p => p.category === c.name));
   return (
-    <footer className="bg-slate-900 text-slate-300 pt-16 pb-8 border-t border-slate-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <footer className="bg-blue-800 text-white">
+      <div aria-hidden="true" className="h-[3px] bg-brand-orange" />
+      <div className="mx-auto max-w-7xl px-4 pb-8 pt-12 sm:px-6 sm:pt-16 lg:px-8">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-10 border-b border-white/10 pb-10 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr]">
 
-        {/* Main Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 pb-12 border-b border-slate-800">
-
-          {/* Column 1: Brand Info (2 Cols on lg) */}
-          <div className="lg:col-span-2 space-y-4">
-            <Link to="/" className="flex items-center space-x-2">
-              <img
-                src="/brand-lockup-reverse.png"
-                alt="Apna Bazarr"
-                className="h-10 w-auto object-contain"
-              />
+          {/* Brand */}
+          <div className="col-span-2 space-y-4 lg:col-span-1">
+            <Link to="/" className="inline-flex" aria-label="Dhagaro home">
+              <img src="/dhagaro-logo-white.svg" alt="Dhagaro" className="h-10 w-auto" />
             </Link>
-            <p className="text-sm text-slate-200 font-semibold">Panipat se Seedha, Aapke Ghar Tak</p>
-            <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
-              Blankets, bedsheets, cushion covers and women's suit sets from Panipat at factory prices, with cash on delivery.
+            <p className="text-lg font-semibold text-brand-orange">Panipat se Seedha, Aapke Ghar Tak</p>
+            <p className="max-w-sm text-sm leading-relaxed text-white/70">
+              Blankets, bedsheets, cushion covers and women's suit sets from Panipat, India's City of Weavers, at factory prices with cash on delivery.
             </p>
-            <div className="space-y-2 text-xs text-slate-400 pt-2">
-              <div className="flex items-center space-x-2">
-                <MapPin className="w-4 h-4 text-brand-orange" />
-                <span>Panipat, Haryana</span>
-              </div>
-              <a href="tel:+919306810726" className="flex items-center space-x-2 hover:text-white transition-colors">
-                <Phone className="w-4 h-4 text-brand-orange" />
-                <span>+91 93068 10726</span>
-              </a>
-              <a href={whatsappUrl()} target="_blank" rel="noreferrer" className="flex items-center space-x-2 hover:text-white transition-colors">
-                <MessageCircle className="w-4 h-4 text-brand-orange" />
-                <span>WhatsApp: +91 93068 10726</span>
-              </a>
-              <a href="mailto:appnabaazar@gmail.com" className="flex items-center space-x-2 hover:text-white transition-colors">
-                <Mail className="w-4 h-4 text-brand-orange" />
-                <span>appnabaazar@gmail.com</span>
-              </a>
-            </div>
+            <Button href={whatsappUrl('Hello Dhagaro, I have a question.')} variant="whatsapp" size="sm">
+              <MessageCircle className="h-4 w-4" aria-hidden="true" /> Chat on WhatsApp
+            </Button>
           </div>
 
-          {/* Column 2: Shop */}
-          <div className="space-y-3">
-            <h4 className="text-sm font-bold text-white tracking-wider">
-              Shop
-            </h4>
-            <ul className="space-y-2 text-xs text-slate-400 font-semibold">
-              {liveCategories.map((category) => (
+          {/* Shop */}
+          <div>
+            <h2 className="mb-3 text-base font-semibold text-white">Shop</h2>
+            <ul className="space-y-1">
+              {liveCategories.map(category => (
                 <li key={category.name}>
-                  <Link to={`/shop?category=${encodeURIComponent(category.name)}`} className="hover:text-white hover:underline transition-colors">
-                    {category.label}
-                  </Link>
+                  <Link to={categoryHref(category.name)} className={linkCls}>{category.label}</Link>
                 </li>
               ))}
-              <li>
-                <Link to="/shop" className="hover:text-white hover:underline transition-colors">All Products</Link>
-              </li>
+              <li><Link to="/shop" className={linkCls}>All Products</Link></li>
+              <li><Link to="/reseller" className={linkCls}>Become a Reseller</Link></li>
             </ul>
           </div>
 
-          {/* Column 3: Help + Kamaayein */}
-          <div className="space-y-3">
-            <h4 className="text-sm font-bold text-white tracking-wider">
-              Help
-            </h4>
-            <ul className="space-y-2 text-xs text-slate-400 font-semibold">
-              <li>
-                <Link to="/shipping" className="hover:text-white hover:underline transition-colors">Shipping Policy</Link>
-              </li>
-              <li>
-                <Link to="/refunds" className="hover:text-white hover:underline transition-colors">Returns & Refunds</Link>
-              </li>
-              <li>
-                <Link to="/contact" className="hover:text-white hover:underline transition-colors">Contact</Link>
-              </li>
-              <li>
-                <Link to="/terms" className="hover:text-white hover:underline transition-colors">Terms & Conditions</Link>
-              </li>
-              <li>
-                <Link to="/privacy" className="hover:text-white hover:underline transition-colors">Privacy Policy</Link>
-              </li>
-              <li>
-                <Link to="/reseller" className="hover:text-white hover:underline transition-colors">Become a Reseller</Link>
-              </li>
+          {/* Help */}
+          <div>
+            <h2 className="mb-3 text-base font-semibold text-white">Help</h2>
+            <ul className="space-y-1">
+              {HELP_LINKS.map(link => (
+                <li key={link.to}><Link to={link.to} className={linkCls}>{link.label}</Link></li>
+              ))}
             </ul>
           </div>
 
-        </div>
-
-        {/* Bottom Bar */}
-        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-          <p>© 2026 <span className="text-slate-300 font-bold">Apna Bazarr</span>, Panipat.</p>
-
-          <div className="flex items-center space-x-3 text-slate-400">
-            <span className="font-semibold text-[11px] text-slate-500">Payment:</span>
-            <div className="flex space-x-2">
-              <span className="bg-slate-800 px-2 py-1 rounded text-[10px] font-bold text-slate-300">COD</span>
-              <span className="bg-slate-800 px-2 py-1 rounded text-[10px] font-bold text-slate-300">UPI</span>
-              <span className="bg-slate-800 px-2 py-1 rounded text-[10px] font-bold text-slate-300">Cards (Razorpay)</span>
-            </div>
+          {/* Contact */}
+          <div className="col-span-2 lg:col-span-1">
+            <h2 className="mb-3 text-base font-semibold text-white">Contact</h2>
+            <ul className="space-y-1 text-sm">
+              <li>
+                <a href={whatsappUrl()} target="_blank" rel="noreferrer" className={`${linkCls} gap-2`}>
+                  <MessageCircle className="h-4 w-4 text-brand-orange" aria-hidden="true" /> WhatsApp {PHONE_DISPLAY}
+                </a>
+              </li>
+              <li>
+                <a href="tel:+919306810726" className={`${linkCls} gap-2`}>
+                  <Phone className="h-4 w-4 text-brand-orange" aria-hidden="true" /> {PHONE_DISPLAY}
+                </a>
+              </li>
+              <li>
+                <a href={`mailto:${EMAIL}`} className={`${linkCls} gap-2`}>
+                  <Mail className="h-4 w-4 text-brand-orange" aria-hidden="true" /> {EMAIL}
+                </a>
+              </li>
+              <li className={`${linkCls} gap-2 hover:text-white/70`}>
+                <MapPin className="h-4 w-4 text-brand-orange" aria-hidden="true" /> Panipat, Haryana, India
+              </li>
+            </ul>
+            <p className="mt-4 text-xs text-white/60">We reply Monday to Saturday.</p>
           </div>
         </div>
 
+        {/* Bottom bar */}
+        <div className="flex flex-col gap-4 pt-6 text-xs text-white/60 sm:flex-row sm:items-center sm:justify-between">
+          <p>© 2026 <span className="font-semibold text-white/80">Dhagaro</span>, Panipat.</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded bg-white/10 px-2.5 py-1 font-semibold text-white/90">
+              <Banknote className="h-3.5 w-3.5 text-brand-orange" aria-hidden="true" /> Cash on Delivery up to {formatPrice(COD_MAX_AMOUNT)}
+            </span>
+            <span className="rounded bg-white/10 px-2.5 py-1 font-semibold text-white/90">UPI &amp; cards via Razorpay</span>
+          </div>
+        </div>
       </div>
     </footer>
   );

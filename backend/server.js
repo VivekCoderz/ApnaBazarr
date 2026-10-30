@@ -41,7 +41,7 @@ app.use('/reseller', resellerRoute);
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
-    store: 'Apna Bazarr API',
+    store: 'Dhagaro API',
     market: 'India (INR)',
     cloudinary: !!process.env.CLOUDINARY_CLOUD_NAME ? 'connected' : 'not configured'
   });
@@ -51,7 +51,7 @@ app.get('/api/health', (req, res) => {
 const MONGODB_URI = process.env.MONGO_URI || process.env.MONGODB_URI;
 mongoose.connect(MONGODB_URI)
   .then(() => {
-    console.log("✅ Database connected to Apna Bazarr MongoDB");
+    console.log("✅ Database connected to Dhagaro MongoDB");
   })
   .catch((err) => {
     console.warn("⚠️  MongoDB connection warning:", err.message);
@@ -68,5 +68,5 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🚀 Apna Bazarr Backend running`);
+  console.log(`🚀 Dhagaro Backend running`);
 });

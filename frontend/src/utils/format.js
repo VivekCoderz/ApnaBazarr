@@ -14,3 +14,8 @@ export function displayName(name) {
   }
   return clean;
 }
+
+// Whole-number discount vs MRP: 1150 of 1399 -> 18
+export function discountPercent(p) {
+  return p.originalPrice > p.price ? Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100) : 0;
+}

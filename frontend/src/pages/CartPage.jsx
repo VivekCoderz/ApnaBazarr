@@ -36,7 +36,7 @@ export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem }) 
               <ShoppingBag className="w-8 h-8 stroke-[1.5]" />
             </div>
             <h3 className="text-lg font-semibold text-slate-800">Your cart is empty.</h3>
-            <Link to="/shop" className="inline-block px-6 py-3 bg-brand-cta hover:bg-brand-cta-hover text-white text-sm font-semibold rounded-xl shadow-md">
+            <Link to="/shop" className="inline-flex min-h-11 items-center px-6 bg-brand-cta hover:bg-brand-cta-hover text-white text-sm font-semibold rounded-lg">
               Start shopping
             </Link>
           </div>
@@ -163,7 +163,7 @@ export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem }) 
               <button
                 onClick={() => navigate('/checkout')}
                 disabled={belowMinimum || shippingLoading}
-                className={`w-full py-3.5 text-white font-semibold text-base rounded-xl shadow-md transition-colors flex items-center justify-center space-x-2 ${
+                className={`w-full min-h-12 py-3.5 text-white font-semibold text-base rounded-lg transition-colors flex items-center justify-center space-x-2 ${
                   belowMinimum || shippingLoading
                     ? 'bg-slate-300 cursor-not-allowed opacity-60'
                     : 'bg-brand-cta hover:bg-brand-cta-hover'

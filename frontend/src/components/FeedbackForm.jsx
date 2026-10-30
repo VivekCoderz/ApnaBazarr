@@ -116,7 +116,7 @@ export default function FeedbackForm({ onSubmitFeedback, currentUser }) {
           <Lock className="w-7 h-7 text-slate-400" />
         </div>
         <h3 className="text-lg font-extrabold text-slate-900">Login Required</h3>
-        <p className="text-xs text-slate-500">Please log in to your Apna Bazarr account to submit feedback.</p>
+        <p className="text-xs text-slate-500">Please log in to your Dhagaro account to submit feedback.</p>
       </div>
     );
   }
@@ -127,7 +127,7 @@ export default function FeedbackForm({ onSubmitFeedback, currentUser }) {
         <MessageSquare className="w-6 h-6 text-brand-navy" />
         <div>
           <h3 className="text-lg font-extrabold text-slate-900">Customer Feedback & Review</h3>
-          <p className="text-xs text-slate-500">We value your shopping experience at Apna Bazarr!</p>
+          <p className="text-xs text-slate-500">We value your shopping experience at Dhagaro!</p>
         </div>
       </div>
 
@@ -201,7 +201,7 @@ export default function FeedbackForm({ onSubmitFeedback, currentUser }) {
               required
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Tell us what you loved or how we can improve Apna Bazarr..."
+              placeholder="Tell us what you loved or how we can improve Dhagaro..."
               className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-brand-navy"
             />
           </div>

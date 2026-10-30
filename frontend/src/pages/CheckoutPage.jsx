@@ -27,7 +27,7 @@ const labelClass = 'block text-sm font-semibold text-slate-700 mb-1';
 
 // Plain-text WhatsApp message (no emojis: they break on WhatsApp Web)
 const confirmMessage = (order) =>
-  `Hello Apna Bazarr, I confirm my order #${order.orderId}. ` +
+  `Hello Dhagaro, I confirm my order #${order.orderId}. ` +
   `Name: ${order.shippingAddress?.fullName || ''}. ` +
   `Total: Rs ${Math.round(order.totalAmount)} (${order.paymentMethod === 'COD' ? 'Cash on Delivery' : 'Paid online'}). Yes, please ship it.`;
 
@@ -188,9 +188,9 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
           key: orderData.key,
           amount: orderData.amount,
           currency: 'INR',
-          name: 'Apna Bazarr',
+          name: 'Dhagaro',
           description: 'Order payment',
-          image: '/brand-icon.png',
+          image: '/favicon-192.png',
           order_id: orderData.order_id,
           handler: async function (response) {
             try {
@@ -339,7 +339,7 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
                 </div>
               )}
 
-              <button type="submit" className="w-full py-3.5 bg-brand-cta hover:bg-brand-cta-hover text-white font-semibold text-base rounded-xl shadow-md flex items-center justify-center gap-2">
+              <button type="submit" className="w-full min-h-12 py-3.5 bg-brand-cta hover:bg-brand-cta-hover text-white font-semibold text-base rounded-lg flex items-center justify-center gap-2">
                 <span>Continue · {formatPrice(total)}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
@@ -410,14 +410,14 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
                 </p>
               )}
               <div className="flex gap-3 pt-2">
-                <button onClick={() => setStep(1)} disabled={orderLoading} className="px-4 py-3 bg-slate-100 text-slate-700 text-sm font-semibold rounded-xl flex items-center gap-1 disabled:opacity-50">
+                <button onClick={() => setStep(1)} disabled={orderLoading} className="min-h-12 px-5 py-3 bg-slate-100 text-slate-700 text-sm font-semibold rounded-lg flex items-center gap-1 disabled:opacity-50">
                   <ArrowLeft className="w-4 h-4" />
                   <span>Back</span>
                 </button>
                 <button
                   onClick={handlePlaceOrder}
                   disabled={orderLoading}
-                  className="flex-1 py-3.5 bg-brand-cta hover:bg-brand-cta-hover text-white font-semibold text-base rounded-xl shadow-md disabled:opacity-70 flex items-center justify-center gap-2"
+                  className="flex-1 min-h-12 py-3.5 bg-brand-cta hover:bg-brand-cta-hover text-white font-semibold text-base rounded-lg disabled:opacity-70 flex items-center justify-center gap-2"
                 >
                   {orderLoading ? (
                     <><Loader2 className="w-4 h-4 animate-spin" /><span>Placing order...</span></>

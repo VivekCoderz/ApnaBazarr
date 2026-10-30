@@ -64,7 +64,7 @@ export default function RegisterSellerPage({ currentUser, onAuthSuccess }) {
         <div className="relative space-y-4">
           <div className="flex items-center space-x-2.5">
             <span className="bg-brand-navy/20 text-[#3b82f6] px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider">
-              Apna Bazarr Partner
+              Dhagaro Partner
             </span>
           </div>
           <h1 className="text-4xl lg:text-5xl font-black tracking-tight leading-tight">
@@ -99,7 +99,7 @@ export default function RegisterSellerPage({ currentUser, onAuthSuccess }) {
         </div>
 
         <div className="relative text-xs text-slate-500 font-bold uppercase tracking-wider">
-          © Apna Bazarr Multi-Vendor Network
+          © Dhagaro Multi-Vendor Network
         </div>
       </div>
 
@@ -196,7 +196,7 @@ export default function RegisterSellerPage({ currentUser, onAuthSuccess }) {
 
           <div className="border-t border-slate-100 pt-4 flex items-center justify-center space-x-2 text-[10px] font-bold text-slate-400 uppercase tracking-wide">
             <ShieldCheck className="w-4 h-4 text-emerald-500" />
-            <span>Secured Apna Bazarr Merchant Authorization</span>
+            <span>Secured Dhagaro Merchant Authorization</span>
           </div>
         </div>
       </div>

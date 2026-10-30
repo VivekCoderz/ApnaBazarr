@@ -1,148 +1,104 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Star, Heart, Eye } from 'lucide-react';
-import { formatPrice, displayName } from '../utils/format';
-import { FREE_DELIVERY_ABOVE, DELIVERY_CHARGE } from '../config/store';
+import { Link } from 'react-router-dom';
+import { Star, Heart } from 'lucide-react';
+import { formatPrice, displayName, discountPercent } from '../utils/format';
+import { FREE_DELIVERY_ABOVE, DELIVERY_CHARGE, categoryLabel } from '../config/store';
+import Badge from './ui/Badge';
+
+// Cloudinary resize for card images (4:5)
+const cardImage = (url) =>
+  url && url.includes('res.cloudinary.com') && url.includes('/upload/')
+    ? url.replace('/upload/', '/upload/w_480,h_600,c_fill,q_auto,f_auto/')
+    : url;
 
 export default function ProductCard({ product, onToggleWishlist, isWishlisted, compact = false }) {
-  const navigate = useNavigate();
-
   const isOutOfStock = product.inStock === false || product.stock <= 0;
   const isClosed = product.seller && product.seller.isOpen === false;
   // Stars only for real reviews (rating is null when there are none)
   const hasReviews = product.reviewsCount > 0 && product.rating != null;
-
-  const openProduct = () => navigate(`/product/${product.id}`);
+  const off = discountPercent(product);
+  const isNew = /new/i.test(product.badge || '');
+  const href = `/product/${product.id}`;
+  const name = displayName(product.name);
 
   return (
-    <div
-      onClick={openProduct}
-      className={`group bg-white rounded-xl overflow-hidden border border-slate-100 custom-card-shadow transition-all duration-300 flex flex-col justify-between h-full relative cursor-pointer ${
-        isOutOfStock || isClosed ? 'opacity-90' : ''
-      }`}
-    >
-
-      {/* Top Image Container */}
-      <div className="relative aspect-square overflow-hidden bg-slate-50">
-
-        {/* Badges */}
-        <div className="absolute top-2.5 left-2.5 z-10 flex flex-col items-start gap-1">
-          {isOutOfStock ? (
-            <span className="bg-red-600 text-white font-bold text-[10px] px-2 py-0.5 rounded-xs shadow-xs">
-              Out of stock
-            </span>
-          ) : isClosed ? (
-            <span className="bg-amber-600 text-white font-bold text-[10px] px-2 py-0.5 rounded-xs shadow-xs">
-              Shop closed
-            </span>
-          ) : (
-            <>
-              <span className="bg-emerald-600 text-white font-bold text-[10px] px-2 py-0.5 rounded-xs shadow-xs">
-                COD
-              </span>
-              {product.discount && (
-                <span className="bg-white/95 text-emerald-700 font-bold text-[10px] px-2 py-0.5 rounded-xs shadow-xs">
-                  {product.discount}
-                </span>
-              )}
-            </>
-          )}
-        </div>
-
-        {/* Wishlist Floating Button */}
-        {onToggleWishlist && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleWishlist(product);
-            }}
-            className={`absolute top-2.5 right-2.5 z-10 p-2 rounded-full shadow-md transition-all duration-200 ${
-              isWishlisted
-                ? 'bg-red-500 text-white'
-                : 'bg-white/90 text-slate-600 hover:text-red-500 hover:bg-white'
-            }`}
-            title="Save to wishlist"
-            aria-label="Save to wishlist"
-          >
-            <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-current' : ''}`} />
-          </button>
-        )}
-
-        {/* Product Main Image */}
-        <img
-          src={product.image}
-          alt={product.name}
-          loading="lazy"
-          width="400"
-          height="400"
-          className="w-full h-full object-cover object-center group-hover:scale-108 transition-transform duration-500"
-        />
-
-        {/* Desktop hover action: size is chosen on the product page */}
-        <div className="hidden sm:flex absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-slate-900/70 via-slate-900/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 items-center justify-center">
-          <span className="px-3 py-2 bg-white text-slate-800 rounded-lg shadow-md text-xs font-semibold flex items-center gap-1">
-            <Eye className="w-4 h-4" />
-            <span>View</span>
-          </span>
-        </div>
-
-      </div>
-
-      {/* Product Details Section */}
-      <div className="p-2 sm:p-3 flex flex-col justify-between flex-1 space-y-1 sm:space-y-1.5">
-
-        <h4 className="text-xs sm:text-sm font-semibold text-slate-800 group-hover:text-brand-navy transition-colors line-clamp-2 leading-snug">
-          {displayName(product.name)}
-        </h4>
-
-        <div>
-          {/* Rating: only when there are real reviews */}
-          {!compact && hasReviews && (
-            <div className="flex items-center gap-1 my-0.5">
-              <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
-              <span className="text-[11px] font-semibold text-slate-700">{product.rating.toFixed(1)}</span>
-              <span className="text-[11px] text-slate-400">({product.reviewsCount})</span>
-            </div>
-          )}
-
-          {/* Price */}
-          <div className="flex items-baseline gap-1.5 pt-0.5">
-            <span className="font-heading text-base sm:text-lg font-bold text-brand-cta">
-              {formatPrice(product.price)}
-            </span>
-            {product.originalPrice > product.price && (
-              <span className="text-[11px] font-semibold text-slate-400 line-through">
-                {formatPrice(product.originalPrice)}
-              </span>
+    <div className="group relative flex h-full flex-col overflow-hidden rounded-lg border border-line bg-white shadow-card transition-[box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:shadow-lift">
+      <Link to={href} className="flex h-full flex-col" aria-label={`${name}, ${formatPrice(product.price)}`}>
+        {/* Image 4:5 */}
+        <span className="relative block aspect-[4/5] overflow-hidden bg-brand-cream">
+          <img
+            src={cardImage(product.image)}
+            alt={name}
+            loading="lazy"
+            width="480"
+            height="600"
+            className={`h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 ${isOutOfStock ? 'opacity-60' : ''}`}
+          />
+          <span className="absolute left-2.5 top-2.5 flex flex-col items-start gap-1">
+            {isOutOfStock ? (
+              <Badge tone="muted">Out of stock</Badge>
+            ) : isClosed ? (
+              <Badge tone="muted">Shop closed</Badge>
+            ) : (
+              <>
+                {off > 0 && <Badge tone="sale">{off}% off</Badge>}
+                {isNew && !compact && <Badge tone="new">New</Badge>}
+              </>
             )}
-          </div>
+          </span>
+          {/* Desktop hover hint */}
+          <span className="absolute inset-x-3 bottom-3 hidden translate-y-2 items-center justify-center rounded-md bg-white/95 py-2 text-sm font-semibold text-brand-navy opacity-0 shadow-card transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100 sm:flex">
+            View details
+          </span>
+        </span>
 
-          {/* Delivery line (flat rule: ₹499+ free, otherwise ₹49) */}
+        {/* Details */}
+        <span className={`flex flex-1 flex-col gap-1 ${compact ? 'p-2.5' : 'p-3 sm:p-4'}`}>
           {!compact && (
-            <p className={`text-[11px] font-semibold mt-0.5 ${product.price >= FREE_DELIVERY_ABOVE ? 'text-emerald-700' : 'text-slate-500'}`}>
-              {product.price >= FREE_DELIVERY_ABOVE
-                ? 'Free Delivery'
-                : `₹${DELIVERY_CHARGE} delivery · free above ₹${FREE_DELIVERY_ABOVE}`}
-            </p>
+            <span className="text-xs font-semibold text-slate-500">{categoryLabel(product.category)}</span>
           )}
-        </div>
+          <span className="line-clamp-2 text-sm font-semibold leading-snug text-ink group-hover:text-brand-navy sm:text-[15px]">
+            {name}
+          </span>
 
-        {/* Mobile button: goes to the product page (size is chosen there) */}
-        {!compact && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              openProduct();
-            }}
-            className="w-full mt-1.5 py-2 rounded-lg text-sm font-semibold sm:hidden bg-brand-cta text-white hover:bg-brand-cta-hover transition-colors"
-          >
-            {isOutOfStock ? 'Out of stock' : 'View'}
-          </button>
-        )}
+          {!compact && hasReviews && (
+            <span className="flex items-center gap-1">
+              <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" aria-hidden="true" />
+              <span className="text-xs font-semibold text-slate-700">{product.rating.toFixed(1)}</span>
+              <span className="text-xs text-slate-500">({product.reviewsCount})</span>
+            </span>
+          )}
 
-      </div>
+          <span className="mt-auto flex flex-wrap items-baseline gap-x-2 pt-1">
+            <span className="text-lg font-semibold text-brand-cta sm:text-xl">{formatPrice(product.price)}</span>
+            {product.originalPrice > product.price && (
+              <s className="text-xs text-slate-500 sm:text-sm">{formatPrice(product.originalPrice)}</s>
+            )}
+          </span>
 
+          {!compact && (
+            <span className="text-xs font-semibold text-slate-600">
+              {product.price >= FREE_DELIVERY_ABOVE
+                ? <><span className="text-emerald-700">Free delivery</span> · COD</>
+                : `₹${DELIVERY_CHARGE} delivery · COD`}
+            </span>
+          )}
+        </span>
+      </Link>
+
+      {onToggleWishlist && (
+        <button
+          type="button"
+          onClick={() => onToggleWishlist(product)}
+          className={`absolute right-2 top-2 z-10 flex h-10 w-10 items-center justify-center rounded-full shadow-card transition-colors ${
+            isWishlisted ? 'bg-[#B91C1C] text-white' : 'bg-white/95 text-slate-600 hover:text-[#B91C1C]'
+          }`}
+          aria-label={isWishlisted ? 'Remove from wishlist' : 'Save to wishlist'}
+          aria-pressed={Boolean(isWishlisted)}
+          title="Save to wishlist"
+        >
+          <Heart className={`h-[18px] w-[18px] ${isWishlisted ? 'fill-current' : ''}`} />
+        </button>
+      )}
     </div>
   );
 }
