@@ -3,9 +3,8 @@ import ProductCard from './ProductCard';
 import { Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function RecentlyViewed({ items, onAddToCart, onQuickView, onToggleWishlist, wishlistItems, cartItems }) {
-  if (!items || items.length === 0) return null;
-
   const scrollRef = useRef(null);
+  if (!items || items.length === 0) return null;
 
   const scroll = (direction) => {
     if (scrollRef.current) {

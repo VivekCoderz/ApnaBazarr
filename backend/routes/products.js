@@ -1,4 +1,5 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const router = express.Router();
 const Product = require('../models/Product');
 const Review = require('../models/Review');
@@ -30,6 +31,27 @@ async function isAdminRequest(req) {
   } catch {
     return false;
   }
+}
+
+// Product fields a seller/admin may write. Anything else in the body (seller, _id,
+// rating, reviewsCount, timestamps) is ignored so a seller cannot reassign a product
+// to another shop or fake its rating.
+const WRITABLE_FIELDS = ['name', 'category', 'gender', 'price', 'originalPrice', 'costPrice', 'discount', 'badge', 'stock',
+  'image', 'description', 'tags', 'isCustomizable', 'customizationType', 'customizationPrompt', 'sizes', 'colors', 'images',
+  'inStock', 'isActive', 'weight', 'length', 'width', 'height'];
+
+function pickWritable(body = {}) {
+  const out = {};
+  WRITABLE_FIELDS.forEach(f => { if (body[f] !== undefined) out[f] = body[f]; });
+  return out;
+}
+
+// Returns an error message for an invalid price, otherwise null
+function priceError(update, requirePrice) {
+  if (update.price === undefined) return requirePrice ? 'Please enter a selling price.' : null;
+  const price = Number(update.price);
+  if (!(price > 0)) return 'Selling price must be more than ₹0.';
+  return null;
 }
 
 // GET /products - fetch all products from MongoDB
@@ -156,6 +178,9 @@ router.get('/seller/my-products', auth, async (req, res) => {
 // GET /products/:id - fetch single product from MongoDB
 router.get('/:id', async (req, res) => {
   try {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
     const product = await Product.findById(req.params.id).populate('seller', 'name email sellerProfile');
     if (!product) {
       return res.status(404).json({ success: false, message: 'Product not found' });
@@ -227,6 +252,10 @@ router.post('/', auth, async (req, res) => {
       return res.status(403).json({ success: false, message: 'Forbidden. Only sellers and admins can add products.' });
     }
     const { name, category, gender, price, originalPrice, costPrice, discount, badge, stock, image, description, tags, isCustomizable, customizationType, customizationPrompt, sizes, colors, images, isActive } = req.body;
+    const badPrice = priceError({ price }, true);
+    if (badPrice) {
+      return res.status(400).json({ success: false, message: badPrice });
+    }
     const newProduct = await Product.create({
       name, category, gender, price, originalPrice, costPrice, discount, badge, stock, image, description, tags, inStock: true,
       isActive: isActive !== false,
@@ -268,6 +297,9 @@ router.post('/', auth, async (req, res) => {
 // PUT /products/:id - toggle stock status or update details
 router.put('/:id', auth, async (req, res) => {
   try {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
     const product = await Product.findById(req.params.id);
     if (!product) {
       return res.status(404).json({ success: false, message: 'Product not found' });
@@ -277,7 +309,12 @@ router.put('/:id', auth, async (req, res) => {
       return res.status(403).json({ success: false, message: 'Forbidden. You do not own this product.' });
     }
 
-    const updated = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const update = pickWritable(req.body);
+    const badPrice = priceError(update, false);
+    if (badPrice) {
+      return res.status(400).json({ success: false, message: badPrice });
+    }
+    const updated = await Product.findByIdAndUpdate(req.params.id, update, { new: true, runValidators: true });
     const formatted = {
       id: updated._id,
       name: updated.name,
@@ -313,6 +350,9 @@ router.put('/:id', auth, async (req, res) => {
 // DELETE /products/:id - delete product from MongoDB
 router.delete('/:id', auth, async (req, res) => {
   try {
+    if (!mongoose.isValidObjectId(req.params.id)) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
     const product = await Product.findById(req.params.id);
     if (!product) {
       return res.status(404).json({ success: false, message: 'Product not found' });

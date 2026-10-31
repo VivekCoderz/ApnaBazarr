@@ -6,6 +6,13 @@
     <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon-180.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Start connections early: API (Render), product photos (Cloudinary), fonts -->
+    <link rel="preconnect" href="https://apnabazarr-backend.onrender.com" crossorigin />
+    <link rel="preconnect" href="https://res.cloudinary.com" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Linked here instead of @import in index.css, which made the font CSS wait for the app CSS -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
     <title>Dhagaro | Blankets, Bedsheets & Suit Sets from Panipat</title>
     <meta name="theme-color" content="#0B2A55" />
     <meta name="description" content="Straight from Panipat to your home. Blankets, bedsheets and suit sets at factory prices. Cash on delivery available." />

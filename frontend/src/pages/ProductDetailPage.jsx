@@ -4,7 +4,7 @@ import { Star, ShoppingBag, Heart, Truck, RotateCcw, Upload, CheckCircle, Sparkl
 import ProductCard from '../components/ProductCard';
 import { whatsappShareUrl } from '../utils/referral';
 import { useShippingQuote } from '../utils/shipping';
-import { formatPrice, displayName } from '../utils/format';
+import { formatPrice, displayName, cloudinaryImage } from '../utils/format';
 import { FREE_DELIVERY_ABOVE, DELIVERY_CHARGE, COD_MAX_AMOUNT, RETURN_POLICY_LINE, whatsappUrl, categoryLabel } from '../config/store';
 import Button from '../components/ui/Button';
 import { buttonClass } from '../components/ui/buttonClass';
@@ -55,13 +55,26 @@ export default function ProductDetailPage({
   const [quantity, setQuantity] = useState(1);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
 
-  // Reset selected size and color when product changes
+  // Product Customization States
+  const [customTextVal, setCustomTextVal] = useState('');
+  const [customImageVal, setCustomImageVal] = useState('');
+  const [uploadingCustomImage, setUploadingCustomImage] = useState(false);
+  const [customizationError, setCustomizationError] = useState('');
+
+  // Reset choices when another product is opened (e.g. from "related products"): the page
+  // component is reused, so a stale photo index / quantity / personalisation would carry over.
+  // Keyed on the id, not the object, so a background product refresh doesn't wipe choices.
+  const productId = product?.id;
   useEffect(() => {
-    if (product) {
-      setSelectedSize(product.sizes && product.sizes.length > 0 ? product.sizes[0] : '');
-      setSelectedColor(product.colors && product.colors.length > 0 ? product.colors[0] : 'Default');
-    }
-  }, [product]);
+    if (!product) return;
+    setSelectedSize(product.sizes && product.sizes.length > 0 ? product.sizes[0] : '');
+    setSelectedColor(product.colors && product.colors.length > 0 ? product.colors[0] : 'Default');
+    setQuantity(1);
+    setActiveImageIndex(0);
+    setCustomTextVal('');
+    setCustomImageVal('');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productId]);
 
   // Reviews State — load from DB
   const [reviews, setReviews] = useState([]);
@@ -84,11 +97,6 @@ export default function ProductDetailPage({
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
   const [reviewError, setReviewError] = useState('');
 
-  // Product Customization States
-  const [customTextVal, setCustomTextVal] = useState('');
-  const [customImageVal, setCustomImageVal] = useState('');
-  const [uploadingCustomImage, setUploadingCustomImage] = useState(false);
-  const [customizationError, setCustomizationError] = useState('');
 
   const handleAddToCartWithCustomization = () => {
     if (product.isCustomizable) {
@@ -189,22 +197,25 @@ export default function ProductDetailPage({
     return () => document.body.classList.remove('has-buy-bar');
   }, [hasProduct]);
 
-  // Track product view on mount
+  // Track product view once per product (not on every background refresh of the list)
   useEffect(() => {
     if (product && onProductViewed) onProductViewed(product);
-  }, [product, onProductViewed]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productId, onProductViewed]);
 
-  // Load reviews from DB
+  // Load reviews from DB; ignore a late answer for a product the visitor already left
   useEffect(() => {
-    if (!product) return;
-    const productId = String(product.id);
+    if (!productId) return undefined;
+    let cancelled = false;
     setReviewsLoading(true);
-    fetch(`${BASE_URL}/reviews?productId=${productId}`)
+    setReviews([]);
+    fetch(`${BASE_URL}/reviews?productId=${encodeURIComponent(String(productId))}`)
       .then(r => r.json())
-      .then(data => { if (data.success) setReviews(data.reviews); })
+      .then(data => { if (!cancelled && data.success) setReviews(data.reviews); })
       .catch(() => {})
-      .finally(() => setReviewsLoading(false));
-  }, [product?.id]);
+      .finally(() => { if (!cancelled) setReviewsLoading(false); });
+    return () => { cancelled = true; };
+  }, [productId]);
 
   // Upload photo to Cloudinary via backend
   const handleReviewPhotoUpload = async (e) => {
@@ -428,8 +439,12 @@ export default function ProductDetailPage({
           <div className="space-y-3 lg:sticky lg:top-36 lg:col-span-6">
             <div className="relative overflow-hidden rounded-lg bg-brand-cream">
               <img
-                src={imagesList[activeImageIndex]}
+                src={cloudinaryImage(imagesList[activeImageIndex] || product.image, 900)}
                 alt={name}
+                width="900"
+                height="1125"
+                fetchPriority="high"
+                decoding="async"
                 className="aspect-[4/5] w-full object-cover sm:aspect-square"
               />
               {off > 0 && <Badge tone="sale" className="absolute left-4 top-4">{off}% off</Badge>}
@@ -457,7 +472,7 @@ export default function ProductDetailPage({
                       activeImageIndex === idx ? 'border-brand-navy' : 'border-transparent opacity-70 hover:opacity-100'
                     }`}
                   >
-                    <img src={img} alt="" className="h-full w-full object-cover" />
+                    <img src={cloudinaryImage(img, 160)} alt="" width="80" height="80" loading="lazy" className="h-full w-full object-cover" />
                   </button>
                 ))}
               </div>
@@ -561,7 +576,7 @@ export default function ProductDetailPage({
               <div className="flex items-center rounded-md border border-slate-300" role="group" aria-label="Quantity">
                 <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="flex h-11 w-11 items-center justify-center rounded-md text-lg font-semibold text-ink hover:bg-brand-cream" aria-label="Decrease quantity">−</button>
                 <span className="w-8 text-center text-sm font-semibold text-ink" aria-live="polite">{quantity}</span>
-                <button onClick={() => setQuantity(quantity + 1)} className="flex h-11 w-11 items-center justify-center rounded-md text-lg font-semibold text-ink hover:bg-brand-cream" aria-label="Increase quantity">+</button>
+                <button onClick={() => setQuantity(Math.min(10, quantity + 1))} className="flex h-11 w-11 items-center justify-center rounded-md text-lg font-semibold text-ink hover:bg-brand-cream" aria-label="Increase quantity">+</button>
               </div>
               <span className={`inline-flex items-center gap-1.5 text-sm font-semibold ${isOutOfStock ? 'text-[#B91C1C]' : 'text-emerald-700'}`}>
                 <span className={`h-2 w-2 rounded-full ${isOutOfStock ? 'bg-[#B91C1C]' : 'bg-emerald-600'}`} aria-hidden="true" />
@@ -760,7 +775,7 @@ export default function ProductDetailPage({
 
                   {(rev.photoUrl || rev.videoUrl) && (
                     <div className="flex gap-3">
-                      {rev.photoUrl && <img src={rev.photoUrl} alt="Customer photo" loading="lazy" className="h-24 w-24 rounded-lg border border-line object-cover" />}
+                      {rev.photoUrl && <img src={cloudinaryImage(rev.photoUrl, 200)} alt="Customer photo" loading="lazy" width="96" height="96" className="h-24 w-24 rounded-lg border border-line object-cover" />}
                       {rev.videoUrl && <video src={rev.videoUrl} controls className="h-24 w-32 rounded-lg border border-line object-cover" />}
                     </div>
                   )}
@@ -935,7 +950,7 @@ export default function ProductDetailPage({
       </div>
 
       {/* Mobile sticky buy bar */}
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white/95 px-4 py-3 shadow-[0_-8px_24px_-12px_rgba(11,42,85,0.25)] backdrop-blur lg:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white px-4 py-3 shadow-[0_-8px_24px_-12px_rgba(11,42,85,0.25)] lg:hidden">
         <div className="mx-auto flex max-w-xl items-center gap-3">
           <div className="min-w-0 flex-1">
             <p className="text-xl font-semibold leading-none text-brand-cta">{formatPrice(product.price)}</p>

@@ -29,8 +29,13 @@ async function uploadToCloudinary(file, endpoint) {
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-export default function AdminDashboardModal({ isOpen, onClose, products, orders, onAddProduct, onDeleteProduct, onUpdateOrderStatus, onToggleStock, onToggleActive, onAddOfflineOrder }) {
-  if (!isOpen) return null;
+// Hooks live in the inner component so the early return never changes the hook order
+export default function AdminDashboardModal(props) {
+  if (!props.isOpen) return null;
+  return <AdminDashboardContent {...props} />;
+}
+
+function AdminDashboardContent({ isOpen, onClose, products, orders, onAddProduct, onDeleteProduct, onUpdateOrderStatus, onToggleStock, onToggleActive, onAddOfflineOrder }) {
 
   const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'addProduct', 'inventory', 'orders', 'feedbacks', 'reviews', 'settings'
   const [showAddOfflineOrderModal, setShowAddOfflineOrderModal] = useState(false);
@@ -71,10 +76,10 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
   };
 
   const updateOfflineItem = (index, field, value) => {
-    const updated = [...offlineItems];
+    const updated = offlineItems.map((it, i) => (i === index ? { ...it } : it));
     updated[index][field] = value;
     if (field === 'productId') {
-      const prod = products.find(p => String(p._id) === String(value));
+      const prod = products.find(p => String(p.id) === String(value));
       if (prod) {
         updated[index]['price'] = prod.price;
       }
@@ -268,9 +273,12 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
 
   useEffect(() => {
     if (!isOpen) return;
+    // Feedback list and the COD code are admin-only on the server: send the admin token
+    const adminToken = getToken();
+    const adminInit = { credentials: 'include', headers: adminToken ? { Authorization: `Bearer ${adminToken}` } : {} };
     // Load feedbacks
     setFeedbacksLoading(true);
-    fetch(`${BASE_URL}/feedbacks`)
+    fetch(`${BASE_URL}/feedbacks`, adminInit)
       .then(r => r.json())
       .then(d => { if (d.success) setFeedbacks(d.feedbacks || []); })
       .catch(() => {})
@@ -283,7 +291,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
       .catch(() => {})
       .finally(() => setReviewsLoading(false));
     // Load settings
-    fetch(`${BASE_URL}/settings`)
+    fetch(`${BASE_URL}/settings`, adminInit)
       .then(r => r.json())
       .then(d => {
         if (d.success && d.settings) {
@@ -325,7 +333,7 @@ export default function AdminDashboardModal({ isOpen, onClose, products, orders,
   // Compute total cost price of sold items across orders
   const totalCost = orders.reduce((sum, ord) => {
     const itemsCost = ord.items.reduce((itemSum, item) => {
-      const origProd = products.find(p => p.id === item.id || p.name === item.name || String(p._id) === String(item.productId));
+      const origProd = products.find(p => String(p.id) === String(item.productId)) || products.find(p => p.name === item.name);
       const costPerPiece = origProd && origProd.costPrice ? origProd.costPrice : (item.price * 0.6);
       return itemSum + (costPerPiece * item.quantity);
     }, 0);

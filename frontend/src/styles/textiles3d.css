@@ -1,0 +1,657 @@
+/* ── Homepage: 3D home-textiles showcase (HomeTextiles3D.jsx) ──────────────
+   Every scene is built at a fixed size in px and scaled with --k; all depth is
+   CSS 3D. Only transform (and opacity on flat, leaf shadows) is animated.
+   World axes: x right, y down (floor at y = 0), z towards the viewer. */
+
+/* Stage = perspective camera filling the hero panel; .tx-scale = fixed-size model space;
+   .tx-rig = world origin + view angle */
+.tx-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #E9EDF3;
+  perspective: 1500px;
+  perspective-origin: 50% 25%;
+}
+.tx-scale {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: var(--sw);
+  height: var(--sh);
+  margin-left: calc(var(--sw) / -2);
+  transform: scale(var(--k));
+  transform-origin: 50% 0;
+  transform-style: preserve-3d;
+}
+.tx-rig {
+  position: absolute;
+  left: calc(50% + var(--ox, 0px));
+  top: var(--oy);
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+  transform: rotateX(var(--tilt)) rotateY(var(--turn));
+}
+
+/* Hero panel: 210px tall on phones, 240px on small tablets, 360px on desktop */
+.tx-bed { --sw: 560px; --sh: 430px; --k: 0.5; }
+.tx-bed .tx-rig { --ox: -34px; --oy: 280px; --tilt: -24deg; --turn: -32deg; }
+.tx-cushions,
+.tx-towels,
+.tx-curtains { --sw: 320px; --sh: 260px; --k: 0.8; perspective: 1100px; perspective-origin: 50% 30%; }
+.tx-cushions .tx-rig { --oy: 214px; --tilt: -14deg; --turn: -24deg; }
+.tx-towels .tx-rig { --ox: -18px; --oy: 226px; --tilt: -8deg; --turn: -22deg; }
+.tx-curtains .tx-rig { --oy: 252px; --tilt: -6deg; --turn: -18deg; }
+.tx-cushions { --k: 0.96; }
+.tx-towels { --k: 0.9; }
+@media (min-width: 640px) {
+  .tx-bed { --k: 0.56; }
+  .tx-cushions, .tx-towels, .tx-curtains { --k: 0.92; }
+}
+@media (min-width: 1024px) {
+  .tx-bed { --k: 0.76; }
+  .tx-cushions, .tx-curtains { --k: 1.36; }
+  .tx-towels { --k: 1.24; }
+}
+
+/* Reset state: no transitions, so leaving a slide snaps back instantly (off screen)
+   and the reveal can replay next time. */
+.tx-stage:not(.is-on) *,
+.tx-stage:not(.is-on) *::before,
+.tx-stage:not(.is-on) *::after {
+  transition: none !important;
+  animation: none !important;
+}
+
+/* ── Generic geometry ──────────────────────────────────────────────────── */
+.tx-box {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-style: preserve-3d;
+  transform: translate3d(var(--x), var(--y), var(--z));
+}
+.tx-f {
+  position: absolute;
+  display: block;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  /* --shade darkens/lightens a face according to which way it points */
+  --shade: rgba(0, 0, 0, 0);
+}
+.tx-front,
+.tx-back {
+  width: var(--w);
+  height: var(--h);
+  margin: calc(var(--h) / -2) 0 0 calc(var(--w) / -2);
+}
+.tx-front { transform: translateZ(calc(var(--d) / 2)); }
+.tx-left,
+.tx-right {
+  width: var(--d);
+  height: var(--h);
+  margin: calc(var(--h) / -2) 0 0 calc(var(--d) / -2);
+  --shade: rgba(0, 0, 0, 0.16);
+}
+.tx-right { transform: rotateY(90deg) translateZ(calc(var(--w) / 2)); }
+.tx-left { transform: rotateY(-90deg) translateZ(calc(var(--w) / 2)); }
+.tx-top {
+  width: var(--w);
+  height: var(--d);
+  margin: calc(var(--d) / -2) 0 0 calc(var(--w) / -2);
+  transform: rotateX(90deg) translateZ(calc(var(--h) / 2));
+  --shade: rgba(255, 255, 255, 0.12);
+}
+.tx-flat {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+}
+.tx-at,
+.tx-drop {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-style: preserve-3d;
+}
+.tx-shadow {
+  background: radial-gradient(closest-side, rgba(11, 30, 60, 0.34), rgba(11, 30, 60, 0.14) 60%, rgba(11, 30, 60, 0));
+}
+
+/* Room surfaces */
+.tx-wall {
+  position: absolute;
+  left: -450px;
+  top: -330px;
+  width: 900px;
+  height: 330px;
+  display: block;
+}
+.tx-wall-plaster {
+  background:
+    radial-gradient(70% 60% at 50% 30%, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0) 70%),
+    linear-gradient(180deg, #E4E9F0, #D9DFE8);
+}
+.tx-wall-tile {
+  background:
+    radial-gradient(70% 60% at 40% 35%, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0) 70%),
+    repeating-linear-gradient(0deg, rgba(150, 162, 180, 0.45) 0 1px, rgba(0, 0, 0, 0) 1px 41px),
+    repeating-linear-gradient(90deg, rgba(150, 162, 180, 0.45) 0 1px, rgba(0, 0, 0, 0) 1px 41px),
+    linear-gradient(180deg, #EEF1F5, #E1E6ED);
+}
+.tx-floor {
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0) 30%),
+    repeating-linear-gradient(90deg, rgba(120, 100, 80, 0.10) 0 1px, rgba(0, 0, 0, 0) 1px 46px),
+    linear-gradient(180deg, #D7D0C6, #E6E0D7);
+}
+
+/* ── Bed ───────────────────────────────────────────────────────────────── */
+.bed-wall { transform: translateZ(-216px); left: -480px; width: 960px; top: -420px; height: 420px; }
+.bed-floor {
+  background:
+    radial-gradient(45% 40% at 50% 35%, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0) 70%),
+    repeating-linear-gradient(90deg, rgba(110, 90, 70, 0.12) 0 1px, rgba(0, 0, 0, 0) 1px 58px),
+    linear-gradient(180deg, #CFC7BB, #DDD6CB);
+}
+.tx-rug {
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.10) 0 1px, rgba(0, 0, 0, 0.03) 1px 3px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0) 0 14px, rgba(11, 42, 85, 0.22) 14px 17px, rgba(0, 0, 0, 0) 17px calc(100% - 17px), rgba(11, 42, 85, 0.22) calc(100% - 17px) calc(100% - 14px), rgba(0, 0, 0, 0) calc(100% - 14px)),
+    linear-gradient(180deg, rgba(0, 0, 0, 0) 0 14px, rgba(11, 42, 85, 0.22) 14px 17px, rgba(0, 0, 0, 0) 17px calc(100% - 17px), rgba(11, 42, 85, 0.22) calc(100% - 17px) calc(100% - 14px), rgba(0, 0, 0, 0) calc(100% - 14px)),
+    linear-gradient(180deg, #ECE7DF, #F4F0EA);
+  border-radius: 2px;
+}
+
+/* Navy channel-tufted headboard */
+.bed-head .tx-f {
+  background:
+    linear-gradient(var(--shade), var(--shade)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0) 30%, rgba(0, 0, 0, 0) 60%, rgba(0, 0, 0, 0.30)),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.04) 0 1px, rgba(255, 255, 255, 0.02) 1px 2px),
+    #0B2A55;
+}
+.bed-head .tx-front {
+  border-radius: 8px 8px 0 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0) 30%, rgba(0, 0, 0, 0) 60%, rgba(0, 0, 0, 0.30)),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.42) 0 1px, rgba(0, 0, 0, 0.14) 3px, rgba(255, 255, 255, 0.08) 13px, rgba(255, 255, 255, 0.03) 24px, rgba(0, 0, 0, 0.16) 37px, rgba(0, 0, 0, 0.42) 41.5px),
+    linear-gradient(90deg, #0F3366, #0B2A55 60%, #09244A);
+}
+.bed-head .tx-top { --shade: rgba(255, 255, 255, 0.06); border-radius: 8px 8px 0 0; }
+.bed-head .tx-right { --shade: rgba(0, 0, 0, 0.32); }
+
+.bed-base .tx-f {
+  background:
+    linear-gradient(var(--shade), var(--shade)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(0, 0, 0, 0) 30%, rgba(0, 0, 0, 0.22)),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.05) 0 1px, rgba(255, 255, 255, 0.02) 1px 2px),
+    #0C2C59;
+}
+.bed-base .tx-right { --shade: rgba(0, 0, 0, 0.3); }
+.bed-leg .tx-f { background: linear-gradient(var(--shade), var(--shade)), linear-gradient(180deg, #6B4529, #4A2F1B); }
+
+/* White quilted mattress */
+.bed-mattress .tx-f {
+  background:
+    linear-gradient(var(--shade), var(--shade)),
+    linear-gradient(180deg, #C3CCD8 0 2px, rgba(0, 0, 0, 0) 2px calc(100% - 2px), #C3CCD8 calc(100% - 2px)),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0) 0 22px, rgba(60, 80, 110, 0.12) 22px 23px),
+    linear-gradient(180deg, #FFFFFF, #E5EAF0);
+}
+.bed-mattress .tx-right { --shade: rgba(20, 35, 60, 0.12); }
+.bed-mattress .tx-top {
+  background:
+    repeating-linear-gradient(45deg, rgba(0, 0, 0, 0) 0 20px, rgba(60, 80, 110, 0.08) 20px 21px),
+    repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0) 0 20px, rgba(60, 80, 110, 0.08) 20px 21px),
+    #F7F9FB;
+}
+
+/* Bedsheet: four hinged strips, drapes on their edges. Folded state = resting in the air. */
+.tx-sheet {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 284px;
+  height: 0;
+  transform-origin: 0 0;
+  transform-style: preserve-3d;
+  transform: translate3d(-142px, -420px, -170px) rotateX(90deg) rotateZ(-9deg);
+  transition: transform 0.7s cubic-bezier(0.3, 0.75, 0.35, 1);
+}
+.is-on .tx-sheet { transform: translate3d(-142px, -83px, -190px) rotateX(90deg); }
+
+.tx-strip,
+.tx-drape {
+  position: absolute;
+  display: block;
+  background-size: 100% 100%, 190px auto;
+  background-repeat: no-repeat, repeat;
+}
+.tx-strip {
+  left: 0;
+  top: 0;
+  width: 284px;
+  height: 96px; /* 1px overlap hides the hinge seam */
+  transform-style: preserve-3d;
+  transform-origin: 50% 0;
+  background-image:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.10), rgba(0, 0, 0, 0) 5%, rgba(255, 255, 255, 0.06) 40%, rgba(0, 0, 0, 0) 70%, rgba(0, 0, 0, 0.12)),
+    var(--print, none);
+  background-position: 0 0, var(--pos);
+  transition: transform 0.55s cubic-bezier(0.45, 0.05, 0.25, 1);
+  transition-delay: calc(0.22s + var(--i) * 0.14s);
+}
+.tx-strip .tx-strip { top: 95px; }
+/* accordion: alternate hinge directions so the folds stack on top of each other */
+.tx-fold-1,
+.tx-fold-3 { transform: rotateX(178deg); }
+.tx-fold-2 { transform: rotateX(-178deg); }
+.is-on .tx-strip { transform: rotateX(0deg); }
+
+.tx-drape {
+  top: 0;
+  width: 38px;
+  height: 96px;
+  transition: transform 0.45s cubic-bezier(0.4, 0.1, 0.3, 1.25);
+  transition-delay: calc(0.8s + var(--i) * 0.05s);
+}
+.tx-drape-l {
+  left: -38px;
+  transform-origin: 100% 50%;
+  transform: rotateY(178deg);
+  background-image:
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0) 0 15px, rgba(0, 0, 0, 0.12) 21px, rgba(0, 0, 0, 0) 27px),
+    linear-gradient(270deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.32)),
+    var(--print, none);
+  background-size: 100% 100%, 100% 100%, 190px auto;
+  background-repeat: no-repeat, no-repeat, repeat;
+  background-position: 0 0, 0 0, var(--pos);
+}
+.tx-drape-r {
+  left: 100%;
+  transform-origin: 0 50%;
+  transform: rotateY(-178deg);
+  background-image:
+    repeating-linear-gradient(180deg, rgba(0, 0, 0, 0) 0 15px, rgba(0, 0, 0, 0.12) 21px, rgba(0, 0, 0, 0) 27px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.30)),
+    var(--print, none);
+  background-size: 100% 100%, 100% 100%, 190px auto;
+  background-repeat: no-repeat, no-repeat, repeat;
+  background-position: 0 0, 0 0, var(--pos);
+}
+.tx-drape-foot {
+  left: 0;
+  top: 95px;
+  width: 100%;
+  height: 38px;
+  transform-origin: 50% 0;
+  transform: rotateX(178deg);
+  transition-delay: 0.98s;
+  background-image:
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0) 0 22px, rgba(0, 0, 0, 0.10) 30px, rgba(0, 0, 0, 0) 38px),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.04), rgba(0, 0, 0, 0.16)),
+    var(--print, none);
+  background-size: 100% 100%, 100% 100%, 190px auto;
+  background-repeat: no-repeat, no-repeat, repeat;
+  background-position: 0 0, 0 0, var(--pos);
+}
+.is-on .tx-drape-l { transform: rotateY(-90deg); }
+.is-on .tx-drape-r { transform: rotateY(90deg); }
+.is-on .tx-drape-foot { transform: rotateX(-90deg); }
+
+/* Pillows lean on the headboard; pinched corners via a fixed-size path */
+.tx-pillow {
+  position: absolute;
+  left: -60px;
+  top: -74px;
+  width: 120px;
+  height: 74px;
+  display: block;
+  transform-origin: 50% 100%;
+  --pose: rotateX(32deg);
+  transform: var(--pose);
+  clip-path: path('M4,7 Q60,0 116,7 Q120,37 116,67 Q60,74 4,67 Q0,37 4,7 Z');
+  background:
+    radial-gradient(60% 55% at 46% 42%, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0) 75%),
+    radial-gradient(100% 100% at 50% 50%, rgba(0, 0, 0, 0) 45%, rgba(40, 55, 85, 0.30) 100%),
+    repeating-linear-gradient(90deg, rgba(11, 42, 85, 0.035) 0 2px, rgba(0, 0, 0, 0) 2px 5px),
+    linear-gradient(180deg, #F3F5F8, #D9DFE7);
+}
+.tx-pillow-shadow {
+  position: absolute;
+  left: -70px;
+  top: -34px;
+  width: 140px;
+  height: 68px;
+  display: block;
+  transform: translate3d(0, 0, -14px) rotateX(90deg);
+  background: radial-gradient(closest-side, rgba(11, 30, 60, 0.42), rgba(11, 30, 60, 0));
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+  transition-delay: calc(1.38s + var(--i) * 0.14s);
+}
+.is-on .tx-pillow-shadow { opacity: 1; }
+
+/* Drops: start far above (clipped by the stage), fall, settle with a small bounce + squash */
+.tx-drop { transform: translate3d(0, -640px, 0); }
+.is-on .tx-drop {
+  transform: none;
+  animation: txDrop 0.7s linear both;
+}
+.is-on .tx-drop-pillow { animation-delay: calc(1s + var(--i) * 0.14s); }
+.is-on .tx-drop-pillow .tx-pillow { animation: txSquash 0.7s linear both; animation-delay: calc(1s + var(--i) * 0.14s); }
+@keyframes txDrop {
+  0% { transform: translate3d(0, -340px, 0) rotateX(-10deg); animation-timing-function: cubic-bezier(0.55, 0, 0.9, 0.45); }
+  55% { transform: translate3d(0, 0, 0) rotateX(3deg); animation-timing-function: cubic-bezier(0.2, 0.6, 0.4, 1); }
+  72% { transform: translate3d(0, -10px, 0) rotateX(-1deg); animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.4); }
+  86% { transform: translate3d(0, 0, 0) rotateX(0.5deg); animation-timing-function: ease-out; }
+  93% { transform: translate3d(0, -2px, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+@keyframes txSquash {
+  0%, 54% { transform: var(--pose) scale(1, 1); }
+  62% { transform: var(--pose) scale(1.05, 0.9); }
+  76% { transform: var(--pose) scale(0.99, 1.03); }
+  88% { transform: var(--pose) scale(1.01, 0.99); }
+  100% { transform: var(--pose) scale(1, 1); }
+}
+
+/* ── Cushions on a sofa ────────────────────────────────────────────────── */
+.cush-wall { transform: translateZ(-60px); }
+.sofa-fab .tx-f {
+  border-radius: 5px;
+  background-color: #CEC8BE;
+  background-image:
+    linear-gradient(var(--shade), var(--shade)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.10), rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.12)),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.07) 0 1px, rgba(0, 0, 0, 0) 1px 2px),
+    repeating-linear-gradient(0deg, rgba(60, 50, 40, 0.05) 0 1px, rgba(0, 0, 0, 0) 1px 2px);
+}
+.sofa-fab .tx-right { --shade: rgba(0, 0, 0, 0.18); }
+.sofa-fab .tx-top { --shade: rgba(255, 255, 255, 0.14); }
+.sofa-arm .tx-top, .sofa-back .tx-top { border-radius: 8px; }
+.sofa-seat .tx-front { --shade: rgba(255, 255, 255, 0.04); }
+.sofa-leg .tx-f { background: linear-gradient(var(--shade), var(--shade)), linear-gradient(180deg, #6B4529, #4A2F1B); }
+
+.tx-cushion {
+  position: absolute;
+  left: -32px;
+  top: -64px;
+  width: 64px;
+  height: 64px;
+  display: block;
+  transform-origin: 50% 100%;
+  --pose: rotateX(14deg) rotateZ(var(--tilt));
+  transform: var(--pose);
+  clip-path: path('M3,4 Q32,0 61,4 Q64,32 61,60 Q32,64 3,60 Q0,32 3,4 Z');
+  background-image:
+    radial-gradient(55% 55% at 44% 40%, rgba(255, 255, 255, 0.26), rgba(255, 255, 255, 0) 75%),
+    radial-gradient(95% 95% at 50% 50%, rgba(0, 0, 0, 0) 50%, rgba(20, 15, 10, 0.42) 100%),
+    var(--print, none);
+  background-size: 100% 100%, 100% 100%, 150px auto;
+  background-position: 0 0, 0 0, var(--pos);
+}
+.tx-cushion-shadow {
+  position: absolute;
+  left: -38px;
+  top: -16px;
+  width: 76px;
+  height: 32px;
+  display: block;
+  transform: translate3d(0, 0, -6px) rotateX(90deg);
+  background: radial-gradient(closest-side, rgba(40, 30, 20, 0.38), rgba(40, 30, 20, 0));
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+  transition-delay: calc(0.5s + var(--i) * 0.16s);
+}
+.is-on .tx-cushion-shadow { opacity: 1; }
+.is-on .tx-drop-cushion { animation-delay: calc(0.15s + var(--i) * 0.16s); animation-duration: 0.75s; }
+.is-on .tx-drop-cushion .tx-cushion { animation: txSquash 0.75s linear both; animation-delay: calc(0.15s + var(--i) * 0.16s); }
+
+/* ── Towels ────────────────────────────────────────────────────────────── */
+.tx-towel-navy { --c: #1E3A66; }
+.tx-towel-ivory { --c: #EEEAE2; }
+.tx-towel-stone { --c: #C5B7A1; }
+.towel-bracket .tx-f,
+.towel-rail {
+  background: linear-gradient(var(--shade, rgba(0,0,0,0)), var(--shade, rgba(0,0,0,0))), linear-gradient(180deg, #FFFFFF, #C9CDD3 35%, #8B9099 70%, #D8DBE0);
+}
+.towel-rail {
+  position: absolute;
+  left: -118px;
+  top: -180.5px;
+  width: 172px;
+  height: 7px;
+  display: block;
+  border-radius: 4px;
+  transform: translateZ(26px);
+  box-shadow: 0 3px 4px rgba(0, 0, 0, 0.25);
+}
+.tx-towel {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-style: preserve-3d;
+}
+.towel-drop {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-style: preserve-3d;
+  transform: translate3d(0, -420px, 0);
+  transition: transform 0.55s cubic-bezier(0.25, 0.8, 0.35, 1);
+  transition-delay: calc(0.05s + var(--i) * 0.2s);
+}
+.is-on .towel-drop { transform: none; }
+.towel-back,
+.towel-over,
+.towel-front,
+.towel-front-inner {
+  position: absolute;
+  display: block;
+  left: -33px;
+  width: 66px;
+  background-color: var(--c);
+  background-image:
+    linear-gradient(var(--tshade, rgba(0, 0, 0, 0)), var(--tshade, rgba(0, 0, 0, 0))),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0) 12%, rgba(255, 255, 255, 0.06) 45%, rgba(0, 0, 0, 0) 80%, rgba(0, 0, 0, 0.18)),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.07) 0 1px, rgba(255, 255, 255, 0.05) 1px 2px, rgba(0, 0, 0, 0) 2px 3px),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.04) 0 1px, rgba(0, 0, 0, 0) 1px 3px);
+}
+.towel-back {
+  top: -2px;
+  height: 120px;
+  border-radius: 0 0 3px 3px;
+  transform: translateZ(-4px);
+  --tshade: rgba(0, 0, 0, 0.14);
+}
+.towel-back::after,
+.towel-front-inner::after {
+  /* woven dobby border near the hem */
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 9px;
+  height: 9px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.16) 0 1px, rgba(255, 255, 255, 0.14) 1px 8px, rgba(0, 0, 0, 0.16) 8px);
+}
+.towel-over {
+  left: -33px;
+  top: -9px;
+  height: 9px;
+  border-radius: 3px;
+  transform: rotateX(90deg);
+  --tshade: rgba(255, 255, 255, 0.1);
+}
+.towel-front {
+  top: -4px;
+  height: 54px;
+  transform-style: preserve-3d;
+  transform-origin: 50% 0;
+  --pose: translateZ(4px);
+  transform: var(--pose) rotateX(125deg);
+}
+.is-on .towel-front {
+  transform: var(--pose);
+  animation: txFlap 1.1s linear both;
+  animation-delay: calc(0.35s + var(--i) * 0.2s);
+}
+@keyframes txFlap {
+  0% { transform: var(--pose) rotateX(125deg); animation-timing-function: cubic-bezier(0.5, 0, 0.75, 0.6); }
+  38% { transform: var(--pose) rotateX(-16deg); animation-timing-function: cubic-bezier(0.3, 0.5, 0.5, 1); }
+  58% { transform: var(--pose) rotateX(7deg); animation-timing-function: ease-in-out; }
+  76% { transform: var(--pose) rotateX(-3deg); animation-timing-function: ease-in-out; }
+  90% { transform: var(--pose) rotateX(1deg); }
+  100% { transform: var(--pose) rotateX(0deg); }
+}
+.towel-front-inner {
+  left: 0;
+  top: 53px;
+  height: 52px;
+  border-radius: 0 0 3px 3px;
+  transform-origin: 50% 0;
+  transform: rotateX(178deg);
+  transition: transform 0.5s cubic-bezier(0.4, 0.1, 0.3, 1.2);
+  transition-delay: calc(0.65s + var(--i) * 0.2s);
+}
+.is-on .towel-front-inner { transform: rotateX(0deg); }
+
+.towel-stool .tx-f {
+  background:
+    linear-gradient(var(--shade), var(--shade)),
+    repeating-linear-gradient(90deg, rgba(60, 30, 10, 0.10) 0 1px, rgba(0, 0, 0, 0) 1px 5px, rgba(255, 220, 180, 0.06) 5px 7px),
+    linear-gradient(180deg, #B07A4A, #8C5A32);
+}
+.towel-stool .tx-right { --shade: rgba(0, 0, 0, 0.22); }
+.towel-fold .tx-f {
+  background-color: var(--c);
+  background-image:
+    linear-gradient(var(--shade), var(--shade)),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.07) 0 1px, rgba(255, 255, 255, 0.05) 1px 2px, rgba(0, 0, 0, 0) 2px 3px);
+}
+.towel-fold .tx-front {
+  border-radius: 3px 3px 6px 6px / 3px 3px 50% 50%;
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0) 35%, rgba(0, 0, 0, 0) 60%, rgba(0, 0, 0, 0.28)),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.07) 0 1px, rgba(255, 255, 255, 0.05) 1px 2px, rgba(0, 0, 0, 0) 2px 3px);
+}
+.towel-fold .tx-right { --shade: rgba(0, 0, 0, 0.22); border-radius: 0 3px 6px 0; }
+.is-on .tx-drop-fold { animation-delay: calc(0.75s + var(--i) * 0.18s); animation-duration: 0.65s; }
+
+/* ── Curtains ──────────────────────────────────────────────────────────── */
+.cur-window {
+  position: absolute;
+  left: -76px;
+  top: -222px;
+  width: 152px;
+  height: 160px;
+  display: block;
+  transform: translateZ(1px);
+  background: #FBFCFD;
+  box-shadow: 0 0 0 1px rgba(30, 45, 70, 0.08), 0 6px 14px -6px rgba(30, 45, 70, 0.3);
+}
+.cur-glass {
+  position: absolute;
+  inset: 8px;
+  display: block;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0) calc(50% - 3px), #FBFCFD calc(50% - 3px) calc(50% + 3px), rgba(0, 0, 0, 0) calc(50% + 3px)),
+    linear-gradient(180deg, rgba(0, 0, 0, 0) 38%, #FBFCFD 38% calc(38% + 6px), rgba(0, 0, 0, 0) calc(38% + 6px)),
+    linear-gradient(125deg, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, 0.45) 40%, rgba(255, 255, 255, 0) 52%),
+    linear-gradient(180deg, #BCD3EA, #DCE9F5 55%, #EEF0EA 75%, #CBD5C4);
+  box-shadow: inset 0 3px 6px rgba(20, 35, 60, 0.25), inset 0 0 0 1px rgba(20, 35, 60, 0.1);
+}
+.cur-sill .tx-f { background: linear-gradient(var(--shade), var(--shade)), linear-gradient(180deg, #FFFFFF, #E6EAF0); }
+.cur-rod {
+  position: absolute;
+  left: -132px;
+  top: -241px;
+  width: 264px;
+  height: 5px;
+  display: block;
+  border-radius: 3px;
+  transform: translateZ(30px);
+  background: linear-gradient(180deg, #5A5F68, #2B2F36 60%, #4A4F57);
+  box-shadow: 0 3px 4px rgba(0, 0, 0, 0.22);
+}
+.cur-rod::before,
+.cur-rod::after {
+  content: '';
+  position: absolute;
+  top: -3px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #7A808A, #2B2F36 70%);
+}
+.cur-rod::before { left: -9px; }
+.cur-rod::after { right: -9px; }
+
+.cur-at {
+  position: absolute;
+  top: -238px;
+  transform-style: preserve-3d;
+  transform: translateZ(25px);
+  --a: 17deg;
+}
+.cur-l { left: -126px; }
+.cur-r { left: 126px; }
+.is-on .cur-at { --a: 64deg; }
+.cur-sway,
+.cur-fall {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-style: preserve-3d;
+  transform-origin: 0 0;
+}
+.cur-fall {
+  transform: scaleY(0.05);
+  transition: transform 0.8s cubic-bezier(0.3, 0.8, 0.3, 1) 0.05s;
+}
+.is-on .cur-fall { transform: scaleY(1); }
+.is-on .cur-sway { animation: txSway 4.6s ease-in-out 1.8s infinite alternate; }
+@keyframes txSway {
+  from { transform: rotateX(-1.2deg); }
+  to { transform: rotateX(1.4deg); }
+}
+.tx-pleat {
+  position: absolute;
+  top: 0;
+  width: 17px;
+  height: 232px;
+  display: block;
+  transform-style: preserve-3d;
+  background-color: #D8CCB8;
+  background-image:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.10) 0 7px, rgba(0, 0, 0, 0) 7px calc(100% - 12px), rgba(0, 0, 0, 0.08) calc(100% - 12px)),
+    linear-gradient(90deg, var(--l1), var(--l2) 55%, var(--l3)),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.07) 0 1px, rgba(0, 0, 0, 0) 1px 3px),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.05) 0 1px, rgba(0, 0, 0, 0) 1px 3px);
+  transition: transform 1s cubic-bezier(0.5, 0, 0.2, 1) 0.7s;
+}
+.tx-pleat.is-lit { --l1: rgba(255, 255, 255, 0.10); --l2: rgba(255, 255, 255, 0.26); --l3: rgba(255, 255, 255, 0.06); }
+.tx-pleat.is-shade { --l1: rgba(40, 25, 10, 0.08); --l2: rgba(40, 25, 10, 0.20); --l3: rgba(40, 25, 10, 0.30); }
+.cur-l .tx-pleat { left: calc(100% - 0.6px); transform-origin: 0 50%; }
+.cur-r .tx-pleat { right: calc(100% - 0.6px); transform-origin: 100% 50%; }
+.cur-l .tx-pleat.is-first { left: 0; transform: rotateY(var(--a)); }
+.cur-r .tx-pleat.is-first { right: 0; transform: rotateY(calc(var(--a) * -1)); }
+.cur-l .is-odd { transform: rotateY(calc(var(--a) * -2)); }
+.cur-l .is-even { transform: rotateY(calc(var(--a) * 2)); }
+.cur-r .is-odd { transform: rotateY(calc(var(--a) * 2)); }
+.cur-r .is-even { transform: rotateY(calc(var(--a) * -2)); }
+
+/* Reduced motion: no animation, everything in its settled state */
+@media (prefers-reduced-motion: reduce) {
+  .tx-stage *,
+  .tx-stage *::before,
+  .tx-stage *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

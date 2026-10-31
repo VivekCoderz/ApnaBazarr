@@ -22,6 +22,53 @@ export const AUTOPLAY_MS = 2000;
 // Any slide may set `bannerImage` (Cloudinary URL, landscape ~1600x700) to use a real banner
 // photo full-bleed with a dark gradient behind the text; no code change needed.
 // `theme`: navy | light. `hideWhenLive` hides the slide once that category has products.
+// 3D textile scenes (CSS 3D, see components/HomeTextiles3D.jsx). They lead the carousel;
+// each scene replays its animation whenever its slide becomes active. Illustrations only:
+// these categories are not in stock yet, so the copy says "Coming soon".
+const SHOP_CTA = { label: "Shop what's in stock", to: '/shop' };
+export const SCENE_SLIDES = [
+  {
+    id: 'scene-bed',
+    kind: 'scene',
+    scene: 'bed',
+    theme: 'navy',
+    kicker: 'Coming soon · Made in Panipat',
+    headline: 'Bedsheets that dress the whole bed',
+    subline: 'Printed cotton bedsheets with pillow covers, from Panipat. Get the first look on WhatsApp.',
+    cta: { label: 'Notify me on WhatsApp', whatsapp: 'Hi Dhagaro, please notify me when bedsheets are available.' }
+  },
+  {
+    id: 'scene-cushions',
+    kind: 'scene',
+    scene: 'cushions',
+    theme: 'light',
+    kicker: 'Coming soon · Cushion covers',
+    headline: 'Cushion covers to refresh your sofa',
+    subline: 'Prints and solids, made in Panipat. Coming soon to the shop.',
+    cta: SHOP_CTA
+  },
+  {
+    id: 'scene-towels',
+    kind: 'scene',
+    scene: 'towels',
+    theme: 'navy',
+    kicker: 'Coming soon · Towels',
+    headline: 'Soft towels for every day',
+    subline: 'Bath and hand towels from Panipat. Coming soon to the shop.',
+    cta: SHOP_CTA
+  },
+  {
+    id: 'scene-curtains',
+    kind: 'scene',
+    scene: 'curtains',
+    theme: 'light',
+    kicker: 'Coming soon · Curtains',
+    headline: 'Curtains that let the light in',
+    subline: 'Panels for living rooms and bedrooms, from Panipat. Coming soon to the shop.',
+    cta: SHOP_CTA
+  }
+];
+
 export const SLIDE_OFFER = {
   id: 'offer',
   kind: 'offer',
@@ -71,6 +118,7 @@ export const CAMPAIGNS = [
     // 3rd item of the announcement bar until the Diwali cut-off, then the default
     announcementExtra: { text: 'Order by 4 Nov for Diwali delivery', until: '2026-11-04T23:59:59+05:30' },
     slides: [
+      ...SCENE_SLIDES,
       {
         id: 'diwali',
         kind: 'products',
@@ -101,6 +149,7 @@ export const CAMPAIGNS = [
     cta: { label: 'Shop blankets', category: 'Kambal & Dohar' },
     secondary: { label: 'Suit sets for the wedding season', category: 'Suit Sets' },
     slides: [
+      ...SCENE_SLIDES,
       {
         id: 'winter',
         kind: 'products',
@@ -131,6 +180,7 @@ const DEFAULT_CAMPAIGN = {
   cta: { label: 'Shop all products', to: '/shop' },
   secondary: { label: 'Become a reseller and earn from home', to: '/reseller' },
   slides: [
+    ...SCENE_SLIDES,
     {
       id: 'panipat',
       kind: 'products',
@@ -265,6 +315,10 @@ export function getHeroSlides(products = [], now = getNow()) {
     .filter(slide => !slide.hideWhenLive || !products.some(p => p.category === slide.hideWhenLive))
     .forEach(slide => {
       if (slide.kind !== 'products') {
+        if (slide.kind === 'scene') {
+          out.push({ ...slide, layout: 'split', image: null, cta: ctaFor(slide.cta) });
+          return;
+        }
         out.push({ ...slide, layout: slide.bannerImage ? 'fullbleed' : 'text', image: slide.bannerImage || null, cta: ctaFor(slide.cta) });
         if (extra.length) { out.push(...extra); extra = []; }
         return;

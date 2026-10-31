@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useEffect, useCallback, useMemo, useRef, lazy, Suspense } from 'react';
+import { BrowserRouter, Routes, Route, Link, useNavigate, useLocation, useNavigationType } from 'react-router-dom';
 
 import Header from './components/Header';
 import TopBar from './components/TopBar';
@@ -11,23 +11,35 @@ import FeedbackForm from './components/FeedbackForm';
 import Footer from './components/Footer';
 import WhatsAppFab from './components/WhatsAppFab';
 
-// Pages
+// Pages: the shopping path (home, shop, product, cart) ships in the main bundle;
+// everything else is a separate chunk loaded on first visit, so shoppers on cheap
+// phones don't download and parse the admin/seller dashboards.
 import HomePage from './pages/HomePage';
 import ShopPage from './pages/ShopPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import CartPage from './pages/CartPage';
-import CheckoutPage from './pages/CheckoutPage';
-import ProfilePage from './pages/ProfilePage';
-import OrdersPage from './pages/OrdersPage';
-import SettingsPage from './pages/SettingsPage';
-import AdminPage from './pages/AdminPage';
-import AdminLoginPage from './pages/AdminLoginPage';
-import WishlistPage from './pages/WishlistPage';
-import PolicyPage from './pages/PolicyPage';
-import RegisterSellerPage from './pages/RegisterSellerPage';
-import SellerDashboardPage from './pages/SellerDashboardPage';
-import ResellerPage from './pages/ResellerPage';
-import AdminResellersPage from './pages/AdminResellersPage';
+const loadCheckoutPage = () => import('./pages/CheckoutPage');
+const CheckoutPage = lazy(loadCheckoutPage);
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const OrdersPage = lazy(() => import('./pages/OrdersPage'));
+const SettingsPage = lazy(() => import('./pages/SettingsPage'));
+const AdminPage = lazy(() => import('./pages/AdminPage'));
+const AdminLoginPage = lazy(() => import('./pages/AdminLoginPage'));
+const WishlistPage = lazy(() => import('./pages/WishlistPage'));
+const PolicyPage = lazy(() => import('./pages/PolicyPage'));
+const RegisterSellerPage = lazy(() => import('./pages/RegisterSellerPage'));
+const SellerDashboardPage = lazy(() => import('./pages/SellerDashboardPage'));
+const ResellerPage = lazy(() => import('./pages/ResellerPage'));
+const AdminResellersPage = lazy(() => import('./pages/AdminResellersPage'));
+
+// Shown while a page chunk downloads (usually a fraction of a second)
+function PageFallback() {
+  return (
+    <div className="min-h-[60vh] flex items-center justify-center" role="status" aria-label="Loading page">
+      <span className="h-8 w-8 rounded-full border-2 border-slate-200 border-t-brand-navy animate-spin" />
+    </div>
+  );
+}
 import { captureReferral } from './utils/referral';
 
 import { Check, ShieldCheck } from 'lucide-react';
@@ -57,6 +69,8 @@ const writeGuestCart = (items) => {
     else localStorage.removeItem(GUEST_CART_KEY);
   } catch { /* storage blocked: cart still works for this visit */ }
 };
+// Same per-line limit as the server (backend/controllers/order.js MAX_QTY_PER_LINE)
+const MAX_QTY_PER_LINE = 50;
 const cartLineKey = (item) =>
   [item.id, item.customText || '', item.customImage || '', item.selectedSize || '', item.selectedColor || ''].join('|');
 // Account cart + guest cart; the same line keeps the larger quantity (no doubling)
@@ -101,6 +115,7 @@ function AppContent() {
       const result = await res.json();
       if (result.success && result.data) {
         setProducts(result.data);
+        productsLoadedAt.current = Date.now();
       }
     } catch {
       console.warn('Could not reach backend for products.');
@@ -109,14 +124,56 @@ function AppContent() {
     }
   };
 
+  // Fetch the checkout chunk in the background once the shopper opens the cart
+  useEffect(() => {
+    if (pathname !== '/cart') return undefined;
+    const idle = window.requestIdleCallback || ((cb) => setTimeout(cb, 300));
+    const cancel = window.cancelIdleCallback || clearTimeout;
+    const handle = idle(() => { loadCheckoutPage().catch(() => {}); });
+    return () => cancel(handle);
+  }, [pathname]);
+
   // Remember the reseller who shared the link (?ref=CODE)
   useEffect(() => {
     captureReferral(search);
   }, [search]);
 
-  // Automatically scroll to the top of the page on route/path changes + fetch fresh products
+  // New page: start at the top. Back/forward: return to where the visitor was
+  // (e.g. the same spot in the shop grid) instead of jumping to the top.
+  const navigationType = useNavigationType();
+  const { key: locationKey } = useLocation();
+  const scrollPositions = useRef(new Map());
+  const currentKey = useRef(locationKey);
   useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    // Remember the scroll position of the page being viewed (once per frame at most)
+    let frame = 0;
+    const onScroll = () => {
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        scrollPositions.current.set(currentKey.current, window.scrollY);
+      });
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      cancelAnimationFrame(frame);
+    };
+  }, []);
+  useEffect(() => {
+    currentKey.current = locationKey;
+    const saved = navigationType === 'POP' ? scrollPositions.current.get(locationKey) : undefined;
+    // Wait a frame so the new page has rendered before restoring the position
+    const frame = requestAnimationFrame(() => window.scrollTo({ top: saved || 0, left: 0, behavior: 'instant' }));
+    return () => cancelAnimationFrame(frame);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
+
+  // Refresh the catalogue on navigation, but at most once a minute: a full /products
+  // download + re-render on every page change made navigation janky on cheap phones
+  const productsLoadedAt = useRef(0);
+  useEffect(() => {
+    if (Date.now() - productsLoadedAt.current < 60000) return;
     loadProducts();
   }, [pathname]);
   
@@ -127,6 +184,9 @@ function AppContent() {
   const [recentlyViewed, setRecentlyViewed] = useState([]);
 
   const [currentUser, setCurrentUser] = useState(null);
+  // False until the saved session (cookie) has been checked, so account pages don't
+  // redirect or show "please log in" during the first second after a refresh
+  const [authReady, setAuthReady] = useState(false);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
 
   // ─── On Mount: restore session + load products ──────────────────────
@@ -168,17 +228,23 @@ function AppContent() {
         }
       } catch {
         // Silently ignore if not logged in
+      } finally {
+        setAuthReady(true);
       }
     };
 
     restoreSession();
-    loadProducts();
+    // Products are loaded by the pathname effect above
   }, []);
 
   // Load feedbacks for admin from backend
   const loadFeedbacks = async () => {
     try {
-      const res = await fetch(`${BASE_URL}/feedbacks`);
+      const token = getToken();
+      const res = await fetch(`${BASE_URL}/feedbacks`, {
+        credentials: 'include',
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
       const data = await res.json();
       if (data.success) setFeedbacks(data.feedbacks || []);
     } catch (err) {
@@ -355,9 +421,26 @@ function AppContent() {
     if (productsLoading || products.length === 0) return;
     const validProductIds = new Set(products.map(p => String(p.id)));
 
-    setCartItems(prev => prev.filter(item => validProductIds.has(String(item.id))));
-    setWishlistItems(prev => prev.filter(item => validProductIds.has(String(item.id))));
-    setRecentlyViewed(prev => prev.filter(item => validProductIds.has(String(item.id))));
+    const byId = new Map(products.map(p => [String(p.id), p]));
+    // Drop removed products and refresh prices, so the cart total matches what the server charges
+    setCartItems(prev => {
+      const next = prev
+        .filter(item => validProductIds.has(String(item.id)))
+        .map(item => {
+          const live = byId.get(String(item.id));
+          return live && (live.price !== item.price || live.name !== item.name || live.image !== item.image)
+            ? { ...item, price: live.price, name: live.name, image: live.image }
+            : item;
+        });
+      return next.length === prev.length && next.every((item, i) => item === prev[i]) ? prev : next;
+    });
+    // Keep the same array when nothing was removed, so the account isn't re-synced on every page change
+    const keepValid = prev => {
+      const next = prev.filter(item => validProductIds.has(String(item.id)));
+      return next.length === prev.length ? prev : next;
+    };
+    setWishlistItems(keepValid);
+    setRecentlyViewed(keepValid);
   }, [products, productsLoading]);
 
   // Modal States
@@ -365,11 +448,15 @@ function AppContent() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [quickViewProduct, setQuickViewProduct] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
+  const toastTimer = useRef(null);
 
+  // One timer at a time: a new toast is not cut short by the previous toast's timer
   const showToast = (msg) => {
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(''), 3500);
+    clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToastMessage(''), 3500);
   };
+  useEffect(() => () => clearTimeout(toastTimer.current), []);
 
   // Track Recently Viewed Products
   const handleProductViewed = useCallback((product) => {
@@ -412,7 +499,7 @@ function AppContent() {
            (item.customImage || '') === customImage &&
            (item.selectedSize || '') === selectedSize &&
            (item.selectedColor || '') === selectedColor)
-            ? { ...item, quantity: item.quantity + quantityToAdd }
+            ? { ...item, quantity: Math.min(MAX_QTY_PER_LINE, item.quantity + quantityToAdd) }
             : item
         );
       } else {
@@ -440,7 +527,7 @@ function AppContent() {
            (item.customImage || '') === customImage &&
            (item.selectedSize || '') === selectedSize &&
            (item.selectedColor || '') === selectedColor)
-            ? { ...item, quantity: newQty }
+            ? { ...item, quantity: Math.min(MAX_QTY_PER_LINE, newQty) }
             : item
         )
       );
@@ -508,6 +595,8 @@ function AppContent() {
         setProducts(prev => [data.data, ...prev]);
         if (isAdminAuthenticated) loadAdminProducts();
         showToast(`Product "${data.data.name}" published to store!`);
+      } else {
+        showToast(data.message || 'Could not add the product.');
       }
     } catch {
       showToast("Failed to add product to database.");
@@ -531,6 +620,8 @@ function AppContent() {
           setProducts(prev => prev.filter(p => String(p.id) !== String(productId)));
           setAdminAllProducts(prev => prev && prev.filter(p => String(p.id) !== String(productId)));
           showToast("Product deleted successfully");
+        } else {
+          showToast(result.message || 'Could not delete the product.');
         }
       } catch {
         showToast("Failed to delete product from database.");
@@ -559,6 +650,8 @@ function AppContent() {
         loadProducts();
         loadAdminProducts();
         showToast(`Stock updated to: ${nextStatus ? 'In Stock' : 'Out of Stock'}`);
+      } else {
+        showToast(data.message || 'Could not update stock.');
       }
     } catch {
       showToast("Failed to update stock status in database.");
@@ -612,6 +705,8 @@ function AppContent() {
           prev.map(ord => (ord.orderId === orderId ? { ...ord, orderStatus: newStatus } : ord))
         );
         showToast(`Order ${orderId} updated to: ${newStatus}`);
+      } else {
+        showToast(result.message || 'Could not update the order status.');
       }
     } catch {
       showToast("Failed to update status in database.");
@@ -663,6 +758,7 @@ function AppContent() {
       await fetch(`${BASE_URL}/auth/logout`, { method: 'POST', headers, credentials: 'include' });
     } catch { /* ignore */ }
     clearToken();
+    setIsAdminAuthenticated(false);
     setCurrentUser(null);
     setOrders([]);
     setCartItems([]);
@@ -710,6 +806,7 @@ function AppContent() {
 
       {/* Multi-Page Routes */}
       <main className="flex-1">
+        <Suspense fallback={<PageFallback />}>
         <Routes>
           <Route
             path="/"
@@ -786,7 +883,7 @@ function AppContent() {
 
           <Route
             path="/profile"
-            element={<ProfilePage currentUser={currentUser} />}
+            element={<ProfilePage currentUser={currentUser} authReady={authReady} onOpenAuth={() => setIsAuthOpen(true)} />}
           />
 
           <Route
@@ -809,12 +906,12 @@ function AppContent() {
 
           <Route
             path="/orders"
-            element={<OrdersPage orders={orders} />}
+            element={<OrdersPage orders={orders} currentUser={currentUser} authReady={authReady} onOpenAuth={() => setIsAuthOpen(true)} />}
           />
 
           <Route
             path="/settings"
-            element={<SettingsPage />}
+            element={<SettingsPage currentUser={currentUser} authReady={authReady} onOpenAuth={() => setIsAuthOpen(true)} />}
           />
 
           <Route
@@ -828,17 +925,17 @@ function AppContent() {
 
           <Route
             path="/register-seller"
-            element={<RegisterSellerPage currentUser={currentUser} onAuthSuccess={handleAuthSuccess} />}
+            element={<RegisterSellerPage currentUser={currentUser} authReady={authReady} onAuthSuccess={handleAuthSuccess} onOpenAuth={() => setIsAuthOpen(true)} />}
           />
 
           <Route
             path="/seller"
-            element={<SellerDashboardPage currentUser={currentUser} onLogout={handleLogout} onAuthSuccess={handleAuthSuccess} />}
+            element={<SellerDashboardPage currentUser={currentUser} authReady={authReady} onLogout={handleLogout} onAuthSuccess={handleAuthSuccess} />}
           />
 
           <Route
             path="/reseller"
-            element={<ResellerPage currentUser={currentUser} products={products} onAuthSuccess={handleAuthSuccess} onOpenAuth={() => setIsAuthOpen(true)} />}
+            element={<ResellerPage currentUser={currentUser} authReady={authReady} products={products} onAuthSuccess={handleAuthSuccess} onOpenAuth={() => setIsAuthOpen(true)} />}
           />
 
           <Route
@@ -875,7 +972,22 @@ function AppContent() {
               </ProtectedAdminRoute>
             }
           />
+
+          {/* Unknown URLs (old links, typos) */}
+          <Route
+            path="*"
+            element={
+              <div className="py-20 px-4 bg-slate-50 min-h-[60vh] text-center space-y-4">
+                <h1 className="text-2xl font-bold text-brand-navy">Page not found</h1>
+                <p className="text-base text-slate-600">This link is broken or the page has moved.</p>
+                <Link to="/shop" className="inline-flex min-h-11 items-center px-6 bg-brand-cta hover:bg-brand-cta-hover text-white text-sm font-semibold rounded-lg">
+                  Browse the shop
+                </Link>
+              </div>
+            }
+          />
         </Routes>
+        </Suspense>
       </main>
 
       {/* Footer */}

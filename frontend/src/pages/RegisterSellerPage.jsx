@@ -5,7 +5,7 @@ import { Store, ArrowRight, ShieldCheck, Phone, MapPin, AlignLeft, AlertCircle, 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const getToken = () => '';
 
-export default function RegisterSellerPage({ currentUser, onAuthSuccess }) {
+export default function RegisterSellerPage({ currentUser, onAuthSuccess, onOpenAuth }) {
   const navigate = useNavigate();
 
   const [shopName, setShopName] = useState('');
@@ -18,6 +18,11 @@ export default function RegisterSellerPage({ currentUser, onAuthSuccess }) {
   const handleRegister = async (e) => {
     e.preventDefault();
     setErrorMsg('');
+    if (!currentUser) {
+      setErrorMsg('Please log in or create a free account first, then register your shop.');
+      if (onOpenAuth) onOpenAuth();
+      return;
+    }
     setLoading(true);
 
     try {

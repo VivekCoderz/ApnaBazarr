@@ -117,7 +117,9 @@ export default function ShopPage({ products, loading = false, onAddToCart, onQui
 
   if (sortBy === 'low-high') filtered.sort((a, b) => a.price - b.price);
   else if (sortBy === 'high-low') filtered.sort((a, b) => b.price - a.price);
-  else if (sortBy === 'newest') filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  // 'newest': the API already returns products newest first (and has no createdAt field),
+  // so the server order is kept; sorting on the missing date did nothing
+  else if (sortBy === 'newest') filtered.sort((a, b) => products.indexOf(a) - products.indexOf(b));
 
   const tiles = categoryTiles(products);
   const categoryIsEmpty = selectedCategory !== 'All' && !products.some(p => p.category === selectedCategory);

@@ -1,19 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Star, ShoppingBag, Heart, Shield, Truck, Check } from 'lucide-react';
-import { formatPrice, displayName } from '../utils/format';
+import { formatPrice, displayName, cloudinaryImage } from '../utils/format';
 
-export default function QuickViewModal({ product, onClose, onAddToCart, onToggleWishlist, isWishlisted }) {
-  if (!product) return null;
+// Hooks live in the inner component (keyed by product) so the early return never
+// changes the hook order and each product starts with its own size/colour choice
+export default function QuickViewModal(props) {
+  if (!props.product) return null;
+  return <QuickViewContent key={props.product.id} {...props} />;
+}
 
-  const [selectedColor, setSelectedColor] = useState(product.colors ? product.colors[0] : null);
-  const [selectedSize, setSelectedSize] = useState(product.sizes ? product.sizes[0] : null);
+function QuickViewContent({ product, onClose, onAddToCart, onToggleWishlist, isWishlisted }) {
+  const hasColors = Array.isArray(product.colors) && product.colors.length > 0;
+  const hasSizes = Array.isArray(product.sizes) && product.sizes.length > 0;
+  const [selectedColor, setSelectedColor] = useState(hasColors ? product.colors[0] : '');
+  const [selectedSize, setSelectedSize] = useState(hasSizes ? product.sizes[0] : '');
   const [quantity, setQuantity] = useState(1);
   const [addedSuccess, setAddedSuccess] = useState(false);
+  const addedTimer = useRef(null);
+
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      clearTimeout(addedTimer.current);
+    };
+  }, [onClose]);
 
   const handleAdd = () => {
     onAddToCart({ ...product, selectedColor, selectedSize }, quantity);
     setAddedSuccess(true);
-    setTimeout(() => setAddedSuccess(false), 2000);
+    clearTimeout(addedTimer.current);
+    addedTimer.current = setTimeout(() => setAddedSuccess(false), 2000);
   };
 
   return (
@@ -28,7 +46,9 @@ export default function QuickViewModal({ product, onClose, onAddToCart, onToggle
       <div className="relative bg-white rounded-2xl max-w-3xl w-full shadow-2xl overflow-hidden z-10 animate-fade-in my-auto border border-slate-200">
         
         <button
+          type="button"
           onClick={onClose}
+          aria-label="Close"
           className="absolute top-4 right-4 z-20 p-2 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-900 hover:text-white transition-colors"
         >
           <X className="w-5 h-5" />
@@ -44,8 +64,11 @@ export default function QuickViewModal({ product, onClose, onAddToCart, onToggle
               </span>
             )}
             <img
-              src={product.image}
+              src={cloudinaryImage(product.image, 640)}
               alt={product.name}
+              width="640"
+              height="640"
+              decoding="async"
               className="w-full h-full object-cover rounded-xl shadow-xs"
             />
           </div>
@@ -91,13 +114,17 @@ export default function QuickViewModal({ product, onClose, onAddToCart, onToggle
 
             {/* Color & Size Selector */}
             <div className="space-y-3 border-t border-slate-100 pt-3">
-              {product.colors && (
+              {hasColors && (
                 <div className="space-y-1">
                   <span className="text-xs font-bold text-slate-700">Color:</span>
                   <div className="flex items-center space-x-2">
                     {product.colors.map((color, idx) => (
                       <button
                         key={idx}
+                        type="button"
+                        aria-label={`Colour ${color}`}
+                        title={color}
+                        aria-pressed={selectedColor === color}
                         onClick={() => setSelectedColor(color)}
                         className={`w-6 h-6 rounded-full border-2 transition-all ${
                           selectedColor === color ? 'ring-2 ring-brand-navy ring-offset-2 scale-110' : 'border-white'
@@ -109,10 +136,10 @@ export default function QuickViewModal({ product, onClose, onAddToCart, onToggle
                 </div>
               )}
 
-              {product.sizes && (
+              {hasSizes && (
                 <div className="space-y-1">
                   <span className="text-xs font-bold text-slate-700">Size:</span>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     {product.sizes.map((size, idx) => (
                       <button
                         key={idx}
@@ -136,6 +163,8 @@ export default function QuickViewModal({ product, onClose, onAddToCart, onToggle
               <div className="flex items-center space-x-3">
                 <div className="flex items-center border border-slate-300 rounded-lg bg-slate-50">
                   <button
+                    type="button"
+                    aria-label="Decrease quantity"
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
                     className="px-3 py-2 text-slate-600 font-bold hover:bg-slate-200 rounded-l-lg"
                   >
@@ -145,7 +174,9 @@ export default function QuickViewModal({ product, onClose, onAddToCart, onToggle
                     {quantity}
                   </span>
                   <button
-                    onClick={() => setQuantity(quantity + 1)}
+                    type="button"
+                    aria-label="Increase quantity"
+                    onClick={() => setQuantity(Math.min(10, quantity + 1))}
                     className="px-3 py-2 text-slate-600 font-bold hover:bg-slate-200 rounded-r-lg"
                   >
                     +
@@ -179,6 +210,7 @@ export default function QuickViewModal({ product, onClose, onAddToCart, onToggle
                       : 'bg-slate-50 text-slate-600 border-slate-200 hover:text-red-500'
                   }`}
                   title="Wishlist"
+                  aria-label={isWishlisted ? 'Remove from wishlist' : 'Save to wishlist'}
                 >
                   <Heart className={`w-5 h-5 ${isWishlisted ? 'fill-current' : ''}`} />
                 </button>

@@ -33,3 +33,17 @@ module.exports = async (req, res, next) => {
     return res.status(401).json({ success: false, message: 'Invalid or expired session token.' });
   }
 };
+
+// Optional auth for public routes: returns the admin stand-in, the logged-in user, or
+// null. Never rejects the request.
+module.exports.optionalUser = async (req) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1] || req.cookies?.token;
+    if (!token) return null;
+    const decoded = jwt.verify(token, JWT_SECRET);
+    if (decoded.admin) return { role: 'admin', email: 'admin@apnabazarr.com' };
+    return await User.findById(decoded.id).select('-password');
+  } catch {
+    return null;
+  }
+};

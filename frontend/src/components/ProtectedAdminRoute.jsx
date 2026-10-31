@@ -10,14 +10,10 @@ export default function ProtectedAdminRoute({ children, isAdminAuthenticated, cu
   };
   const token = getCookie('apna_admin_token');
 
-  // Strict guard: if logged in as a normal customer, redirect to homepage
-  if (currentUser && currentUser.email !== 'admin@apnabazarr.com') {
-    return <Navigate to="/" replace />;
-  }
-
-  // The backend verifies the token on every admin API call
+  // Admin token decides access (the backend verifies it on every admin API call).
+  // Being logged in to a customer account at the same time must not lock the admin out.
   if (!isAdminAuthenticated && !token) {
-    return <Navigate to="/admin/login" replace />;
+    return <Navigate to={currentUser ? '/' : '/admin/login'} replace />;
   }
 
   return children;

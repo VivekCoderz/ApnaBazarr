@@ -29,7 +29,7 @@ async function uploadToCloudinary(file, endpoint) {
   }
 }
 
-export default function SellerDashboardPage({ currentUser, onLogout, onAuthSuccess }) {
+export default function SellerDashboardPage({ currentUser, authReady = true, onLogout, onAuthSuccess }) {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview'); // overview, products, orders, payouts, support, settings
   const [products, setProducts] = useState([]);
@@ -153,10 +153,10 @@ export default function SellerDashboardPage({ currentUser, onLogout, onAuthSucce
   };
 
   const updateOfflineItem = (index, field, value) => {
-    const updated = [...offlineItems];
+    const updated = offlineItems.map((it, i) => (i === index ? { ...it } : it));
     updated[index][field] = value;
     if (field === 'productId') {
-      const prod = products.find(p => String(p._id) === String(value));
+      const prod = products.find(p => String(p.id) === String(value));
       if (prod) {
         updated[index]['price'] = prod.price;
       }
@@ -288,7 +288,8 @@ export default function SellerDashboardPage({ currentUser, onLogout, onAuthSucce
   const loadSupportTickets = async () => {
     try {
       setTicketsLoading(true);
-      const res = await fetch(`${BASE_URL}/feedbacks`);
+      // The server returns only this seller's own feedback when the session cookie is sent
+      const res = await fetch(`${BASE_URL}/feedbacks`, { credentials: 'include' });
       const result = await res.json();
       if (result.success && result.feedbacks) {
         // Filter feedbacks/tickets belonging to this seller
@@ -306,6 +307,8 @@ export default function SellerDashboardPage({ currentUser, onLogout, onAuthSucce
   };
 
   useEffect(() => {
+    // Wait for the saved session to be checked before deciding to redirect (page refresh)
+    if (!authReady) return;
     if (!currentUser) {
       navigate('/');
       return;
@@ -333,7 +336,7 @@ export default function SellerDashboardPage({ currentUser, onLogout, onAuthSucce
     setAccountNumber(currentUser?.sellerProfile?.bankDetails?.accountNumber || '');
     setIfscCode(currentUser?.sellerProfile?.bankDetails?.ifscCode || '');
     setBankName(currentUser?.sellerProfile?.bankDetails?.bankName || '');
-  }, [currentUser]);
+  }, [currentUser, authReady]);
 
   // Raise Support ticket / Feedback submission
   const handleRaiseTicket = async (e) => {
@@ -1965,7 +1968,7 @@ export default function SellerDashboardPage({ currentUser, onLogout, onAuthSucce
                                 </div>
                                 <div className="text-right shrink-0">
                                   <span className="font-extrabold text-slate-800 block">₹{ord.totalAmount}</span>
-                                  <span className={`text-[8.5px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md mt-1 inline-block border \${
+                                  <span className={`text-[8.5px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md mt-1 inline-block border ${
                                     status === 'Delivered'
                                       ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
                                       : status === 'Shipped'
@@ -2129,7 +2132,7 @@ export default function SellerDashboardPage({ currentUser, onLogout, onAuthSucce
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {filteredProducts.map((prod) => (
-                        <tr key={prod._id} className="hover:bg-slate-50/50 transition-colors">
+                        <tr key={prod.id} className="hover:bg-slate-50/50 transition-colors">
                           <td className="py-3.5 px-2">
                             <img src={prod.image} alt={prod.name} className="w-11 h-11 object-cover rounded-xl border bg-white shadow-3xs" />
                           </td>
@@ -2146,8 +2149,8 @@ export default function SellerDashboardPage({ currentUser, onLogout, onAuthSucce
                           </td>
                           <td className="py-3.5 px-3">
                             <button
-                              onClick={() => handleToggleStock(prod._id, prod.inStock)}
-                              className={`px-2.5 py-1 text-[10px] font-black rounded-lg border uppercase tracking-wider transition-colors \${
+                              onClick={() => handleToggleStock(prod.id, prod.inStock)}
+                              className={`px-2.5 py-1 text-[10px] font-black rounded-lg border uppercase tracking-wider transition-colors ${
                                 prod.inStock 
                                   ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60 hover:bg-emerald-100' 
                                   : 'bg-rose-50 text-rose-700 border-rose-250 hover:bg-rose-100'
@@ -2173,7 +2176,7 @@ export default function SellerDashboardPage({ currentUser, onLogout, onAuthSucce
                                 <Settings className="w-4 h-4" />
                               </button>
                               <button
-                                onClick={() => handleDeleteProduct(prod._id)}
+                                onClick={() => handleDeleteProduct(prod.id)}
                                 className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg border border-transparent hover:border-rose-200 transition-all cursor-pointer"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -2246,7 +2249,7 @@ export default function SellerDashboardPage({ currentUser, onLogout, onAuthSucce
                             <select
                               value={ord.orderStatus || 'Order Placed'}
                               onChange={(e) => handleUpdateOrderStatus(ord.orderId, e.target.value)}
-                              className={`px-2 py-1 rounded-lg border text-[10px] font-black uppercase tracking-wider focus:outline-none bg-white \${
+                              className={`px-2 py-1 rounded-lg border text-[10px] font-black uppercase tracking-wider focus:outline-none bg-white ${
                                 ord.orderStatus === 'Delivered'
                                   ? 'border-emerald-250 text-emerald-700 bg-emerald-50'
                                   : ord.orderStatus === 'Shipped'
@@ -2401,7 +2404,7 @@ export default function SellerDashboardPage({ currentUser, onLogout, onAuthSucce
                             <td className="py-3 px-3 text-right text-slate-700 font-semibold">-₹{tx.shipping}</td>
                             <td className="py-3 px-3 text-right text-[#ff5e14] font-black">₹{tx.payout}</td>
                             <td className="py-3 px-3 text-center">
-                              <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded border \${
+                              <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded border ${
                                 tx.status === 'paid' 
                                   ? 'bg-emerald-50 text-emerald-700 border-emerald-250' 
                                   : 'bg-orange-50 text-orange-700 border-orange-250'
@@ -2504,7 +2507,7 @@ export default function SellerDashboardPage({ currentUser, onLogout, onAuthSucce
                             {[...Array(5)].map((_, sIdx) => (
                               <Star 
                                 key={sIdx} 
-                                className={`w-3.5 h-3.5 \${
+                                className={`w-3.5 h-3.5 ${
                                   sIdx < (rev.rating || 5) 
                                     ? 'fill-yellow-500 text-yellow-500' 
                                     : 'text-slate-200'
@@ -2620,7 +2623,7 @@ export default function SellerDashboardPage({ currentUser, onLogout, onAuthSucce
                             <div className="space-y-2 text-xs">
                               <div className="flex justify-between items-center">
                                 <span className="font-black text-sm text-[#0a2342] bg-[#0a2342]/5 px-2.5 py-0.5 rounded border tracking-wide uppercase">{c.code}</span>
-                                <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded border \${
+                                <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded border ${
                                   isExpired 
                                     ? 'bg-rose-50 text-rose-700 border-rose-150' 
                                     : 'bg-emerald-50 text-emerald-700 border-emerald-150'
@@ -2664,7 +2667,7 @@ export default function SellerDashboardPage({ currentUser, onLogout, onAuthSucce
                   <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Shop Open Status:</span>
                   <button
                     onClick={() => handleToggleShopOpen(!shopIsOpen)}
-                    className={`px-2.5 py-1 text-[10px] font-black rounded-lg border uppercase tracking-wider transition-colors \${
+                    className={`px-2.5 py-1 text-[10px] font-black rounded-lg border uppercase tracking-wider transition-colors ${
                       shopIsOpen 
                         ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' 
                         : 'bg-rose-50 text-rose-700 border-rose-250 hover:bg-rose-100'

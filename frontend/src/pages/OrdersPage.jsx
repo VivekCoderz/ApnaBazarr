@@ -1,7 +1,20 @@
 import React from 'react';
-import { Package, Truck, CheckCircle } from 'lucide-react';
+import { Package } from 'lucide-react';
+import SignInPrompt from '../components/SignInPrompt';
+import { formatPrice, cloudinaryImage } from '../utils/format';
 
-export default function OrdersPage({ orders }) {
+export default function OrdersPage({ orders, currentUser, authReady = true, onOpenAuth }) {
+  // Orders are linked to an account; guests get their confirmation on WhatsApp
+  if (!currentUser && orders.length === 0) {
+    return (
+      <SignInPrompt
+        authReady={authReady}
+        onOpenAuth={onOpenAuth}
+        message="Log in to see your orders. Ordered as a guest? Your order details are on WhatsApp."
+      />
+    );
+  }
+
   return (
     <div className="py-10 bg-slate-50 min-h-screen">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
@@ -29,7 +42,7 @@ export default function OrdersPage({ orders }) {
         ) : (
           <div className="space-y-4">
             {orders.map((ord, idx) => (
-              <div key={idx} className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-4">
+              <div key={ord.orderId || idx} className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-4">
                 
                 {/* Top Info */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
@@ -70,12 +83,12 @@ export default function OrdersPage({ orders }) {
 
                 {/* Item Previews */}
                 <div className="space-y-2">
-                  {ord.items.map((item, itemIdx) => (
+                  {(ord.items || []).map((item, itemIdx) => (
                     <div key={itemIdx} className="flex items-center space-x-3 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                      <img src={item.image} alt={item.name} className="w-12 h-12 object-cover rounded-lg bg-white" />
+                      <img src={cloudinaryImage(item.image, 96)} alt={item.name} width="48" height="48" loading="lazy" className="w-12 h-12 object-cover rounded-lg bg-white" />
                       <div className="flex-1 min-w-0">
                         <h5 className="text-xs font-bold text-slate-800 truncate">{item.name}</h5>
-                        <span className="text-[11px] text-slate-400">Qty: {item.quantity} × ₹{item.price}</span>
+                        <span className="text-[11px] text-slate-400">Qty: {item.quantity} × {formatPrice(item.price)}</span>
                         <div className="flex flex-wrap gap-1.5 mt-0.5 text-[10px] font-bold">
                           {(item.size || item.selectedSize) && (
                             <span className="text-slate-650">
@@ -107,7 +120,7 @@ export default function OrdersPage({ orders }) {
                           </div>
                         )}
                       </div>
-                      <span className="text-xs font-extrabold text-slate-900">₹{(item.price * item.quantity).toFixed(2)}</span>
+                      <span className="text-xs font-extrabold text-slate-900">{formatPrice(item.price * item.quantity)}</span>
                     </div>
                   ))}
                 </div>
@@ -115,7 +128,9 @@ export default function OrdersPage({ orders }) {
                 {/* Total */}
                 <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-100">
                   <span className="text-slate-500">Payment: <strong className="text-slate-800">{ord.paymentMethod}</strong></span>
-                  <span className="text-base font-extrabold text-brand-navy">Total Paid: ₹{ord.totalAmount.toFixed(2)}</span>
+                  <span className="text-base font-extrabold text-brand-navy">
+                    {ord.paymentStatus === 'Completed' ? 'Total paid' : 'Total'}: {formatPrice(ord.totalAmount)}
+                  </span>
                 </div>
 
               </div>

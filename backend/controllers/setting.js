@@ -1,10 +1,11 @@
 const Setting = require('../models/Setting');
+const { optionalUser } = require('../middlewares/auth');
 
 // POST /settings/verify-cod — verify if user entered correct secret code for COD
 exports.verifyCodCode = async (req, res) => {
   try {
     const { code } = req.body;
-    if (!code) {
+    if (!code || typeof code !== 'string') {
       return res.status(400).json({ success: false, message: 'Code is required.' });
     }
 
@@ -33,10 +34,12 @@ exports.getSettings = async (req, res) => {
       commissionSetting = await Setting.create({ key: 'commission_percentage', value: '10' });
     }
 
+    // The COD secret code is only shown to the admin
+    const viewer = await optionalUser(req);
     res.json({ 
       success: true, 
       settings: { 
-        secret_cod_code: setting.value,
+        secret_cod_code: viewer?.role === 'admin' ? setting.value : '',
         commission_percentage: commissionSetting.value
       } 
     });
@@ -49,6 +52,13 @@ exports.getSettings = async (req, res) => {
 exports.updateSettings = async (req, res) => {
   try {
     const { secret_cod_code, commission_percentage } = req.body;
+
+    if (secret_cod_code !== undefined && (typeof secret_cod_code !== 'string' || !secret_cod_code.trim())) {
+      return res.status(400).json({ success: false, message: 'COD code cannot be empty.' });
+    }
+    if (commission_percentage !== undefined && !(Number(commission_percentage) >= 0 && Number(commission_percentage) <= 50)) {
+      return res.status(400).json({ success: false, message: 'Commission must be a number between 0 and 50.' });
+    }
 
     let secretVal = secret_cod_code;
     if (secretVal !== undefined) {

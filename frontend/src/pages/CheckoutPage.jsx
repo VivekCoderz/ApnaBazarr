@@ -106,6 +106,8 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
     if (!address.area.trim()) errors.area = 'Please enter your area or street.';
     if (!address.city.trim()) errors.city = 'Please enter your city.';
     if (!address.state) errors.state = 'Please select your state.';
+    if (!currentUser && email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) errors.email = 'Please enter a valid email or leave it empty.';
+    if (cartItems.length === 0) return;
     setFormErrors(errors);
     if (Object.keys(errors).length > 0) return;
 
@@ -115,6 +117,8 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
   };
 
   const loadRazorpayScript = () => {
+    // Load checkout.js once; retries reuse it instead of adding another <script>
+    if (window.Razorpay) return Promise.resolve(true);
     return new Promise((resolve) => {
       const script = document.createElement('script');
       script.src = 'https://checkout.razorpay.com/v1/checkout.js';
@@ -258,6 +262,9 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
       }
     } catch (err) {
       setOrderError(err.message || 'Could not place the order. Please try again.');
+      // Also for online payment: an error before the Razorpay window opened must not
+      // leave the button stuck on "Placing order..."
+      setOrderLoading(false);
     } finally {
       if (effectiveMethod !== 'UPI') {
         setOrderLoading(false);
@@ -282,7 +289,7 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
         )}
 
         <div className="bg-white p-4 sm:p-8 rounded-2xl border border-slate-200 shadow-xs">
-          {step === 1 && (
+          {step === 1 && cartItems.length > 0 && (
             <form onSubmit={handleAddressSubmit} noValidate className="space-y-4">
               <h3 className="font-bold text-lg text-slate-900 border-b pb-2">1. Delivery address</h3>
 
@@ -335,7 +342,8 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
               {!currentUser && (
                 <div>
                   <label className={labelClass} htmlFor="co-email">Email (optional)</label>
-                  <input id="co-email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@gmail.com" className={inputClass} />
+                  <input id="co-email" type="email" autoComplete="email" value={email} onChange={(e) => { setEmail(e.target.value); setFormErrors(prev => ({ ...prev, email: '' })); }} placeholder="you@gmail.com" className={inputClass} />
+                  {fieldError('email')}
                 </div>
               )}
 
@@ -346,7 +354,7 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
             </form>
           )}
 
-          {step === 2 && (
+          {step === 2 && cartItems.length > 0 && (
             <div className="space-y-4">
               <h3 className="font-bold text-lg text-slate-900 border-b pb-2">2. Payment</h3>
 

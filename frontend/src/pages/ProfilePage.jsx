@@ -1,12 +1,12 @@
 import React from 'react';
-import { User, Mail, Phone, MapPin, ShieldCheck, CheckCircle } from 'lucide-react';
+import { User, Mail, Phone, MapPin } from 'lucide-react';
+import SignInPrompt from '../components/SignInPrompt';
 
-export default function ProfilePage({ currentUser }) {
-  const user = currentUser || {
-    name: "Guest User",
-    email: "guest@apnabazarr.com",
-    phone: "9999999999"
-  };
+export default function ProfilePage({ currentUser, authReady = true, onOpenAuth }) {
+  if (!currentUser) {
+    return <SignInPrompt authReady={authReady} onOpenAuth={onOpenAuth} message="Log in to see your profile." />;
+  }
+  const user = { ...currentUser, name: currentUser.name || 'Customer' };
 
   return (
     <div className="py-10 bg-slate-50 min-h-screen">
@@ -21,7 +21,7 @@ export default function ProfilePage({ currentUser }) {
             <h1 className="text-xl sm:text-2xl font-extrabold">{user.name}</h1>
             <p className="text-xs text-slate-400 mt-0.5">{user.email}</p>
             <span className="inline-block mt-2 text-[10px] font-extrabold bg-emerald-900/60 text-emerald-300 px-2.5 py-0.5 rounded-full border border-emerald-700">
-              VERIFIED Dhagaro CUSTOMER
+              Dhagaro customer
             </span>
           </div>
         </div>
@@ -51,7 +51,7 @@ export default function ProfilePage({ currentUser }) {
               <label className="text-xs font-bold text-slate-500">Mobile Number (+91)</label>
               <div className="flex items-center space-x-2 p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs font-bold text-slate-800">
                 <Phone className="w-4 h-4 text-brand-navy" />
-                <span>+91 {user.phone || '9876543210'}</span>
+                <span>{user.phone ? `+91 ${user.phone}` : 'Not added'}</span>
               </div>
             </div>
 

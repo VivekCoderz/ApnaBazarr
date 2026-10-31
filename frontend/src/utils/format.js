@@ -19,3 +19,11 @@ export function displayName(name) {
 export function discountPercent(p) {
   return p.originalPrice > p.price ? Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100) : 0;
 }
+
+// Cloudinary delivery transform: smaller, modern-format images for the spot they fill
+// (a 1200px JPEG of ~100 KB becomes a ~30 KB WebP at card size). Other URLs pass through.
+export function cloudinaryImage(url, width, extra = 'c_limit') {
+  if (!url || typeof url !== 'string' || !url.includes('res.cloudinary.com') || !url.includes('/upload/')) return url;
+  if (/\/upload\/[^/]*(w_|f_auto|q_auto)/.test(url)) return url; // already transformed
+  return url.replace('/upload/', `/upload/f_auto,q_auto,${extra},w_${width}/`);
+}

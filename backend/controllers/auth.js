@@ -4,15 +4,41 @@ const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
+// Emails are compared case-insensitively ("Ravi@Gmail.com" is the same account as
+// "ravi@gmail.com"). Older accounts may be stored with capitals, so look up both ways.
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const normaliseEmail = (email) => (typeof email === 'string' ? email.trim() : '');
+const findUserByEmail = async (email) =>
+  (await User.findOne({ email })) ||
+  (await User.findOne({ email: new RegExp(`^${escapeRegex(email)}$`, 'i') }));
+
+// Logged-in user id from the session cookie / bearer token, or null
+const sessionUserId = (req) => {
+  const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
+  if (!token) return null;
+  try {
+    return jwt.verify(token, JWT_SECRET).id || null;
+  } catch {
+    return null;
+  }
+};
+
 module.exports.signup = async (req, res) => {
   try {
-    const { name, email, phone, password } = req.body;
+    const { name, phone, password } = req.body;
+    const email = normaliseEmail(req.body.email).toLowerCase();
 
-    if (!name || !email || !password) {
+    if (typeof name !== 'string' || !name.trim() || !email || typeof password !== 'string' || !password) {
       return res.status(400).json({ success: false, message: 'Please provide name, email, and password.' });
     }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ success: false, message: 'Please enter a valid email address.' });
+    }
+    if (password.length < 6) {
+      return res.status(400).json({ success: false, message: 'Password must be at least 6 characters.' });
+    }
 
-    const existingUser = await User.findOne({ email });
+    const existingUser = await findUserByEmail(email);
     if (existingUser) {
       return res.status(400).json({ success: false, message: 'An account with this email already exists.' });
     }
@@ -21,9 +47,9 @@ module.exports.signup = async (req, res) => {
     const passwordHash = await bcrypt.hash(password, salt);
 
     const newUser = await User.create({
-      name,
+      name: name.trim(),
       email,
-      phone: phone || '',
+      phone: typeof phone === 'string' ? phone.trim() : '',
       password: passwordHash
     });
 
@@ -58,13 +84,14 @@ module.exports.signup = async (req, res) => {
 
 module.exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const email = normaliseEmail(req.body.email);
+    const { password } = req.body;
 
-    if (!email || !password) {
+    if (!email || typeof password !== 'string' || !password) {
       return res.status(400).json({ success: false, message: 'Please enter email and password.' });
     }
 
-    const user = await User.findOne({ email });
+    const user = await findUserByEmail(email);
     if (!user) {
       return res.status(400).json({ success: false, message: 'Invalid email' });
     }
@@ -141,17 +168,18 @@ module.exports.getme = async (req, res) => {
 
 module.exports.updateCart = async (req, res) => {
   try {
-    const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
-    if (!token) return res.status(401).json({ success: false, message: 'Not authenticated' });
+    const userId = sessionUserId(req);
+    if (!userId) return res.status(401).json({ success: false, message: 'Not authenticated' });
 
-    const decoded = jwt.verify(token, JWT_SECRET);
     const { cart } = req.body;
+    if (!Array.isArray(cart)) return res.status(400).json({ success: false, message: 'Invalid cart.' });
 
     const user = await User.findByIdAndUpdate(
-      decoded.id,
-      { cart },
-      { new: true }
+      userId,
+      { cart: cart.slice(0, 100) },
+      { new: true, runValidators: true }
     ).select('-password');
+    if (!user) return res.status(401).json({ success: false, message: 'Not authenticated' });
 
     return res.json({ success: true, cart: user.cart });
   } catch (error) {
@@ -162,17 +190,18 @@ module.exports.updateCart = async (req, res) => {
 
 module.exports.updateWishlist = async (req, res) => {
   try {
-    const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
-    if (!token) return res.status(401).json({ success: false, message: 'Not authenticated' });
+    const userId = sessionUserId(req);
+    if (!userId) return res.status(401).json({ success: false, message: 'Not authenticated' });
 
-    const decoded = jwt.verify(token, JWT_SECRET);
     const { wishlist } = req.body;
+    if (!Array.isArray(wishlist)) return res.status(400).json({ success: false, message: 'Invalid wishlist.' });
 
     const user = await User.findByIdAndUpdate(
-      decoded.id,
-      { wishlist },
-      { new: true }
+      userId,
+      { wishlist: wishlist.slice(0, 100) },
+      { new: true, runValidators: true }
     ).select('-password');
+    if (!user) return res.status(401).json({ success: false, message: 'Not authenticated' });
 
     return res.json({ success: true, wishlist: user.wishlist });
   } catch (error) {
@@ -183,17 +212,18 @@ module.exports.updateWishlist = async (req, res) => {
 
 module.exports.updateRecentlyViewed = async (req, res) => {
   try {
-    const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
-    if (!token) return res.status(401).json({ success: false, message: 'Not authenticated' });
+    const userId = sessionUserId(req);
+    if (!userId) return res.status(401).json({ success: false, message: 'Not authenticated' });
 
-    const decoded = jwt.verify(token, JWT_SECRET);
     const { recentlyViewed } = req.body;
+    if (!Array.isArray(recentlyViewed)) return res.status(400).json({ success: false, message: 'Invalid recently viewed.' });
 
     const user = await User.findByIdAndUpdate(
-      decoded.id,
-      { recentlyViewed },
-      { new: true }
+      userId,
+      { recentlyViewed: recentlyViewed.slice(0, 100) },
+      { new: true, runValidators: true }
     ).select('-password');
+    if (!user) return res.status(401).json({ success: false, message: 'Not authenticated' });
 
     return res.json({ success: true, recentlyViewed: user.recentlyViewed });
   } catch (error) {
@@ -210,16 +240,20 @@ module.exports.registerSeller = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Please provide shop name, shop address, and contact number.' });
     }
 
+    if (req.user.role === 'admin') {
+      return res.status(400).json({ success: false, message: 'The admin account cannot register as a seller.' });
+    }
+    const alreadySeller = req.user.role === 'seller' && req.user.sellerProfile?.status;
     const updatedUser = await User.findByIdAndUpdate(
       req.user._id,
       {
-        role: 'seller',
-        sellerProfile: {
-          shopName,
-          shopDescription: shopDescription || '',
-          shopAddress,
-          phone,
-          status: 'approved'
+        $set: {
+          role: 'seller',
+          'sellerProfile.shopName': shopName,
+          'sellerProfile.shopDescription': shopDescription || '',
+          'sellerProfile.shopAddress': shopAddress,
+          'sellerProfile.phone': phone,
+          'sellerProfile.status': alreadySeller ? req.user.sellerProfile.status : 'approved'
         }
       },
       { new: true }
@@ -327,25 +361,36 @@ module.exports.updateSellerProfile = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Forbidden. Seller access required.' });
     }
 
-    const { shopName, shopDescription, shopAddress, phone, isOpen, shopBanner } = req.body;
+    const { shopName, shopDescription, shopAddress, phone, isOpen, shopBanner, shopLogo, pickupPincode, returnPolicy, deliveryInformation, bankDetails } = req.body;
 
     if (!shopName || !shopAddress || !phone) {
       return res.status(400).json({ success: false, message: 'Shop name, address, and phone number are required.' });
     }
 
+    // $set individual fields: the approval status stays as the admin set it, and
+    // bank details / logo / policies sent by the dashboard are saved (they were dropped before)
+    const str = (v) => (typeof v === 'string' ? v : '');
+    const set = {
+      'sellerProfile.shopName': str(shopName),
+      'sellerProfile.shopDescription': str(shopDescription),
+      'sellerProfile.shopAddress': str(shopAddress),
+      'sellerProfile.phone': str(phone),
+      'sellerProfile.isOpen': isOpen !== undefined ? Boolean(isOpen) : true,
+      'sellerProfile.shopBanner': str(shopBanner)
+    };
+    if (shopLogo !== undefined) set['sellerProfile.shopLogo'] = str(shopLogo);
+    if (pickupPincode !== undefined) set['sellerProfile.pickupPincode'] = str(pickupPincode);
+    if (returnPolicy !== undefined) set['sellerProfile.returnPolicy'] = str(returnPolicy);
+    if (deliveryInformation !== undefined) set['sellerProfile.deliveryInformation'] = str(deliveryInformation);
+    if (bankDetails && typeof bankDetails === 'object') {
+      ['accountName', 'accountNumber', 'ifscCode', 'bankName'].forEach(k => {
+        if (bankDetails[k] !== undefined) set[`sellerProfile.bankDetails.${k}`] = str(bankDetails[k]);
+      });
+    }
+
     const updatedUser = await User.findByIdAndUpdate(
       req.user._id,
-      {
-        sellerProfile: {
-          shopName,
-          shopDescription: shopDescription || '',
-          shopAddress,
-          phone,
-          status: 'approved',
-          isOpen: isOpen !== undefined ? isOpen : true,
-          shopBanner: shopBanner || ''
-        }
-      },
+      { $set: set },
       { new: true }
     ).select('-password');
 

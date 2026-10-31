@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { IndianRupee, Share2, Copy, Check, Wallet, Package, TrendingUp, Clock, Loader2, AlertCircle, Users, Truck, Sparkles } from 'lucide-react';
 import { whatsappShareUrl, productShareLink } from '../utils/referral';
+import { cloudinaryImage } from '../utils/format';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -21,6 +22,7 @@ export default function ResellerPage({ currentUser, products = [], onAuthSuccess
       const res = await fetch(`${BASE_URL}/reseller/me`, { credentials: 'include' });
       const result = await res.json();
       if (result.success) setDashboard(result);
+      else setErrorMsg(result.message || 'Could not load your dashboard. Please log in again.');
     } catch {
       setErrorMsg('Could not load your dashboard. Please try again in a moment.');
     }
@@ -70,7 +72,7 @@ export default function ResellerPage({ currentUser, products = [], onAuthSuccess
         <div className="bg-slate-900 text-white px-4 py-14">
           <div className="max-w-4xl mx-auto text-center space-y-4">
             <span className="inline-block bg-emerald-500/20 text-emerald-300 px-3.5 py-1.5 rounded-full text-xs font-black tracking-wider">
-              ApnaBazarr Reseller Program
+              Dhagaro Reseller Program
             </span>
             <h1 className="text-3xl md:text-5xl font-black tracking-tight leading-tight">
               Earn from <span className="text-emerald-400">home</span>
@@ -185,6 +187,12 @@ export default function ResellerPage({ currentUser, products = [], onAuthSuccess
           </div>
         </div>
 
+        {errorMsg && !dashboard && (
+          <p className="text-sm text-red-700 font-semibold bg-red-50 border border-red-200 rounded-xl px-3 py-2 flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0" /> {errorMsg}
+          </p>
+        )}
+
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
             { icon: Package, label: 'Orders', value: stats.orders },
@@ -211,7 +219,7 @@ export default function ResellerPage({ currentUser, products = [], onAuthSuccess
               {shareableProducts.map(product => (
                 <div key={product.id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden flex flex-col">
                   <Link to={`/product/${product.id}`}>
-                    <img src={product.image} alt={product.name} className="w-full aspect-square object-cover" loading="lazy" />
+                    <img src={cloudinaryImage(product.image, 400, 'c_fill,ar_1:1')} alt={product.name} width="400" height="400" className="w-full aspect-square object-cover" loading="lazy" />
                   </Link>
                   <div className="p-3 flex-1 flex flex-col gap-2">
                     <p className="text-xs font-bold text-slate-800 line-clamp-2">{product.name}</p>

@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Plus, Minus, Trash2, ShoppingBag, ArrowRight, ArrowLeft, Truck } from 'lucide-react';
 import { useShippingQuote } from '../utils/shipping';
-import { formatPrice } from '../utils/format';
+import { formatPrice, cloudinaryImage } from '../utils/format';
 import { FREE_DELIVERY_ABOVE } from '../config/store';
 
 const MIN_ORDER = 100;
@@ -50,7 +50,7 @@ export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem }) 
 
                   {/* Top Row: Image, Info & Delete Button */}
                   <div className="flex items-start space-x-3 w-full">
-                    <img src={item.image} alt={item.name} className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-xl bg-slate-50 border border-slate-100 shrink-0" />
+                    <img src={cloudinaryImage(item.image, 160)} alt={item.name} width="80" height="80" loading="lazy" className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-xl bg-slate-50 border border-slate-100 shrink-0" />
 
                     <div className="flex-1 min-w-0">
                       <h4 className="text-sm font-semibold text-slate-900 line-clamp-2 leading-snug">{item.name}</h4>

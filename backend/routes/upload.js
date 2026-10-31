@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const cloudinary = require('../config/cloudinary');
+const auth = require('../middlewares/auth');
 const {
   uploadProductImage,
   uploadProductVideo,
@@ -152,8 +153,11 @@ router.post('/review-video', uploadReviewVideo.single('file'), (req, res) => {
  * DELETE /api/upload/:publicId
  * Delete an asset from Cloudinary by publicId
  */
-router.delete('/:publicId', async (req, res) => {
+router.delete('/:publicId', auth, async (req, res) => {
   try {
+    if (req.user.role !== 'admin' && req.user.role !== 'seller') {
+      return res.status(403).json({ success: false, error: 'Forbidden.' });
+    }
     const { publicId } = req.params;
     const result = await cloudinary.uploader.destroy(publicId);
     res.json({ success: true, result });

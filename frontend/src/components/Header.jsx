@@ -1,8 +1,44 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Search, Heart, ShoppingBag, User, Menu, Package, Settings, LogOut, ChevronDown, X, LogIn, ShieldCheck, MessageCircle } from 'lucide-react';
-import { formatPrice } from '../utils/format';
+import { formatPrice, cloudinaryImage } from '../utils/format';
 import { categoryLabel, categoryHref, NAV_CATEGORIES, whatsappUrl, PHONE_DISPLAY } from '../config/store';
+
+// Typewriter search hint. Its own component so the 25-50 ms ticks re-render only this
+// <span>, not the whole header (that kept the main thread busy on every page).
+// Shows a static word for reduced-motion users and pauses while the tab is hidden.
+const TYPEWRITER_WORDS = ['suits', 'co-ord sets', 'bedsheets', 'blankets'];
+
+function TypewriterWord() {
+  const reduceMotion = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  const [textIndex, setTextIndex] = useState(0);
+  const [charIndex, setCharIndex] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [resumeTick, setResumeTick] = useState(0);
+
+  useEffect(() => {
+    if (reduceMotion) return undefined;
+    const full = TYPEWRITER_WORDS[textIndex];
+    let delay;
+    let step;
+    if (!isDeleting && charIndex < full.length) { delay = 60; step = () => setCharIndex(c => c + 1); }
+    else if (isDeleting && charIndex > 0) { delay = 30; step = () => setCharIndex(c => c - 1); }
+    else if (!isDeleting) { delay = 1500; step = () => setIsDeleting(true); }
+    else { delay = 200; step = () => { setIsDeleting(false); setTextIndex(i => (i + 1) % TYPEWRITER_WORDS.length); }; }
+    if (document.hidden) return undefined; // resumed by the visibility listener below
+    const timer = setTimeout(step, delay);
+    return () => clearTimeout(timer);
+  }, [charIndex, isDeleting, textIndex, reduceMotion, resumeTick]);
+
+  useEffect(() => {
+    const onVisible = () => { if (!document.hidden) setResumeTick(t => t + 1); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, []);
+
+  const word = TYPEWRITER_WORDS[textIndex];
+  return <span className="font-semibold text-brand-navy">{reduceMotion ? word : word.substring(0, charIndex)}</span>;
+}
 
 export default function Header({
   cartCount,
@@ -68,48 +104,11 @@ export default function Header({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Typewriter placeholder animation loop
-  const placeholderTexts = [
-    "suits",
-    "co-ord sets",
-    "bedsheets",
-    "blankets"
-  ];
-  const [placeholder, setPlaceholder] = useState('');
-  const [textIndex, setTextIndex] = useState(0);
-  const [charIndex, setCharIndex] = useState(0);
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  useEffect(() => {
-    let timer;
-    const currentFullText = placeholderTexts[textIndex];
-    
-    if (!isDeleting && charIndex < currentFullText.length) {
-      timer = setTimeout(() => {
-        setPlaceholder(currentFullText.substring(0, charIndex + 1));
-        setCharIndex(prev => prev + 1);
-      }, 50);
-    } else if (isDeleting && charIndex > 0) {
-      timer = setTimeout(() => {
-        setPlaceholder(currentFullText.substring(0, charIndex - 1));
-        setCharIndex(prev => prev - 1);
-      }, 25);
-    } else if (!isDeleting && charIndex === currentFullText.length) {
-      timer = setTimeout(() => {
-        setIsDeleting(true);
-      }, 1500);
-    } else if (isDeleting && charIndex === 0) {
-      setIsDeleting(false);
-      setTextIndex(prev => (prev + 1) % placeholderTexts.length);
-    }
-    return () => clearTimeout(timer);
-  }, [charIndex, isDeleting, textIndex]);
-
   const searchResults = searchQuery.trim() === ''
     ? []
     : products.filter(p =>
         p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (p.category || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
         (p.gender && p.gender.toLowerCase().includes(searchQuery.toLowerCase()))
       ).slice(0, 5);
 
@@ -148,7 +147,7 @@ export default function Header({
             }}
             className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left transition-colors hover:bg-brand-cream"
           >
-            <img src={item.image} alt="" className="h-11 w-11 rounded-lg bg-slate-100 object-cover" />
+            <img src={cloudinaryImage(item.image, 96)} alt="" width="44" height="44" loading="lazy" className="h-11 w-11 rounded-lg bg-slate-100 object-cover" />
             <span className="min-w-0 flex-1">
               <span className="block truncate text-sm font-semibold text-ink">{item.name}</span>
               <span className="text-xs text-slate-500">{categoryLabel(item.category)}</span>
@@ -190,7 +189,7 @@ export default function Header({
       {!searchQuery && !focused && (
         <div className="pointer-events-none absolute left-11 top-1/2 flex -translate-y-1/2 select-none items-center gap-1 text-sm text-slate-500" aria-hidden="true">
           <span>Search for</span>
-          <span className="font-semibold text-brand-navy">{placeholder}</span>
+          <TypewriterWord />
           <span className="animate-pulse font-light text-brand-navy">|</span>
         </div>
       )}
@@ -211,7 +210,7 @@ export default function Header({
   const iconBtn = 'relative flex h-11 w-11 items-center justify-center rounded-full text-brand-navy transition-colors hover:bg-brand-cream';
 
   return (
-    <header className={`sticky top-0 z-40 border-b border-line bg-white/95 backdrop-blur transition-transform duration-300 ease-in-out ${hideHeaderTop ? '-translate-y-16' : 'translate-y-0'}`}>
+    <header className={`sticky top-0 z-40 border-b border-line bg-white md:bg-white/95 md:backdrop-blur transition-transform duration-300 ease-in-out ${hideHeaderTop ? '-translate-y-16' : 'translate-y-0'}`}>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between gap-4 lg:h-[72px]">
 

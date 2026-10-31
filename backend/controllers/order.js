@@ -1,6 +1,7 @@
 const Order = require('../models/Order');
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
+const mongoose = require('mongoose');
 
 const razorpayKeyId = process.env.RAZORPAY_KEY_ID;
 const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET;
@@ -15,8 +16,43 @@ const { resolveResellerForOrder } = require('./reseller');
 const { orderShippingCharge: calcOrderShipping } = require('../utils/shipping');
 const { codLimitError } = require('../utils/cod');
 
-function calculateShipping(pickupPincode, deliveryPincode, weight, length, width, height) {
-  return 0; // Free shipping
+const MAX_QTY_PER_LINE = 50;
+const ADDRESS_FIELDS = ['fullName', 'phone', 'pincode', 'flatNo', 'area', 'city', 'state'];
+
+// Whole-number quantity between 1 and MAX_QTY_PER_LINE, or null (negative, fractional
+// or huge quantities would let a buyer lower the server-calculated total)
+function cleanQuantity(raw) {
+  const qty = Number(raw);
+  return Number.isInteger(qty) && qty >= 1 && qty <= MAX_QTY_PER_LINE ? qty : null;
+}
+
+// Returns an error message when the delivery address is incomplete, otherwise null
+function addressError(address) {
+  if (!address || typeof address !== 'object') return 'Please enter your delivery address.';
+  const missing = ADDRESS_FIELDS.filter(f => typeof address[f] !== 'string' || !address[f].trim());
+  if (missing.length) return 'Please fill in your full delivery address (name, phone, pincode, house no., area, city, state).';
+  if (!/^\d{6}$/.test(address.pincode.trim())) return 'Pincode must be 6 digits.';
+  return null;
+}
+
+// Only the known address fields are stored, as plain strings
+function cleanAddress(address) {
+  const out = { addressType: typeof address.addressType === 'string' ? address.addressType : 'Home' };
+  ADDRESS_FIELDS.forEach(f => { out[f] = String(address[f]).trim(); });
+  return out;
+}
+
+// e.g. AB-2026-K7Q2M9: year + 6 random chars, checked against existing orders
+// (4 random digits gave only 9,000 IDs; a clash failed the order after payment)
+async function newOrderId(prefix = 'AB') {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  for (let attempt = 0; attempt < 5; attempt++) {
+    let rand = '';
+    for (let i = 0; i < 6; i++) rand += chars[crypto.randomInt(chars.length)];
+    const id = `${prefix}-${new Date().getFullYear()}-${rand}`;
+    if (!(await Order.exists({ orderId: id }))) return id;
+  }
+  return `${prefix}-${Date.now()}`;
 }
 
 async function processOrderItems(items, deliveryPincode) {
@@ -27,13 +63,17 @@ async function processOrderItems(items, deliveryPincode) {
   let subtotal = 0;
   const dbProducts = [];
 
-  for (const item of items) {
-    const prodId = item.productId || item.id;
+  for (const rawItem of items) {
+    if (!rawItem || typeof rawItem !== 'object') continue;
+    const prodId = rawItem.productId || rawItem.id;
+    const quantity = cleanQuantity(rawItem.quantity);
+    if (!quantity || !mongoose.isValidObjectId(prodId)) continue;
     const dbProduct = await Product.findById(prodId).populate('seller');
     // Hidden (isActive: false) products can no longer be ordered
     if (dbProduct && dbProduct.isActive !== false) {
+      const item = { ...rawItem, quantity };
       dbProducts.push({ item, dbProduct });
-      subtotal += dbProduct.price * item.quantity;
+      subtotal += dbProduct.price * quantity;
     }
   }
 
@@ -57,10 +97,10 @@ async function processOrderItems(items, deliveryPincode) {
       price: dbProduct.price,
       quantity: item.quantity,
       image: dbProduct.image,
-      customText: item.customText || '',
-      customImage: item.customImage || '',
-      size: item.selectedSize || item.size || '',
-      color: item.selectedColor || item.color || '',
+      customText: String(item.customText || '').slice(0, 200),
+      customImage: String(item.customImage || '').slice(0, 500),
+      size: String(item.selectedSize || item.size || '').slice(0, 50),
+      color: String(item.selectedColor || item.color || '').slice(0, 50),
       sellerId,
       commissionPercent,
       commissionAmount,
@@ -77,12 +117,12 @@ module.exports.createOrder = async (req, res) => {
   try {
     const { userEmail, items, shippingAddress, paymentMethod, totalAmount, resellerCode } = req.body;
 
-    if (!items || items.length === 0 || !shippingAddress || !totalAmount) {
+    if (!Array.isArray(items) || items.length === 0 || !shippingAddress) {
       return res.status(400).json({ success: false, message: 'Invalid order details provided.' });
     }
-
-    if (totalAmount < 100) {
-      return res.status(400).json({ success: false, message: 'Minimum order amount of ₹100 is required.' });
+    const addrError = addressError(shippingAddress);
+    if (addrError) {
+      return res.status(400).json({ success: false, message: addrError });
     }
 
     // This endpoint only creates Cash on Delivery orders. Online payments are saved
@@ -90,9 +130,6 @@ module.exports.createOrder = async (req, res) => {
     if (paymentMethod && paymentMethod !== 'COD') {
       return res.status(400).json({ success: false, message: 'Please use online payment (Razorpay) for this order.' });
     }
-
-    const randomNum = Math.floor(1000 + Math.random() * 9000);
-    const orderId = `AB-2026-${randomNum}`;
 
     // Estimated delivery in 3 to 5 business days
     const deliveryDate = new Date();
@@ -112,21 +149,26 @@ module.exports.createOrder = async (req, res) => {
     const totalShipping = formattedItems.reduce((acc, item) => acc + item.shippingCharges, 0);
     const calculatedTotal = totalItemCost + totalShipping;
 
+    // Minimum order is checked on the server-calculated total, never the browser's
+    if (calculatedTotal < 100) {
+      return res.status(400).json({ success: false, message: 'Minimum order amount of ₹100 is required.' });
+    }
+
     // COD is open to everyone, up to a per-order limit (checked on the server-calculated total)
     const codError = codLimitError(calculatedTotal);
     if (codError) {
       return res.status(400).json({ success: false, message: codError });
     }
 
-    const buyerEmail = userEmail || 'guest@apnabazarr.com';
+    const buyerEmail = (typeof userEmail === 'string' && userEmail.trim()) ? userEmail.trim() : 'guest@apnabazarr.com';
     const resellerFields = await resolveResellerForOrder(resellerCode, buyerEmail, formattedItems);
 
     const newOrder = await Order.create({
-      orderId,
+      orderId: await newOrderId(),
       userEmail: buyerEmail,
       items: formattedItems,
       ...resellerFields,
-      shippingAddress,
+      shippingAddress: cleanAddress(shippingAddress),
       paymentMethod: 'COD',
       paymentStatus: 'Pending COD',
       orderStatus: 'Order Placed',
@@ -240,10 +282,9 @@ module.exports.verifyRazorpayPayment = async (req, res) => {
     if (hash !== razorpay_signature) {
       return res.status(400).json({ success: false, message: 'Payment signature verification failed.' });
     }
-
-    // Payment verified successfully! Save the order to DB
-    const randomNum = Math.floor(1000 + Math.random() * 9000);
-    const orderId = `AB-2026-${randomNum}`;
+    if (!Array.isArray(items) || items.length === 0 || addressError(shippingAddress)) {
+      return res.status(400).json({ success: false, message: `Your payment was received but the order details were incomplete. Please WhatsApp us at +91 93068 10726 with payment ID ${razorpay_payment_id}.` });
+    }
 
     const deliveryDate = new Date();
     deliveryDate.setDate(deliveryDate.getDate() + 4);
@@ -269,15 +310,15 @@ module.exports.verifyRazorpayPayment = async (req, res) => {
       return res.status(409).json({ success: false, message: 'This payment has already been used for an order.' });
     }
 
-    const buyerEmail = email || 'guest@apnabazarr.com';
+    const buyerEmail = (typeof email === 'string' && email.trim()) ? email.trim() : 'guest@apnabazarr.com';
     const resellerFields = await resolveResellerForOrder(resellerCode, buyerEmail, formattedItems);
 
     const newOrder = await Order.create({
-      orderId,
+      orderId: await newOrderId(),
       userEmail: buyerEmail,
       items: formattedItems,
       ...resellerFields,
-      shippingAddress,
+      shippingAddress: cleanAddress(shippingAddress),
       paymentMethod: 'Online (Razorpay)',
       paymentStatus: 'Completed',
       orderStatus: 'Order Placed',
@@ -303,8 +344,9 @@ exports.updateOrderStatus = async (req, res) => {
     const { orderId } = req.params;
     const { status } = req.body;
 
-    if (!status) {
-      return res.status(400).json({ success: false, message: 'Status is required.' });
+    const ORDER_STATUSES = ['Order Placed', 'Processing', 'Packed', 'Shipped', 'Out for Delivery', 'Delivered'];
+    if (!ORDER_STATUSES.includes(status)) {
+      return res.status(400).json({ success: false, message: 'Please choose a valid order status.' });
     }
 
     if (req.user.role !== 'admin') {
@@ -400,23 +442,28 @@ module.exports.createOfflineOrder = async (req, res) => {
   try {
     const { items, shippingAddress, packagingCost, shippingCost, packagingCharge, shippingCharge, paymentMethod, userEmail } = req.body;
 
-    if (!items || items.length === 0 || !shippingAddress) {
+    // Only sellers (for their own products) and the admin record offline sales
+    if (req.user.role !== 'admin' && req.user.role !== 'seller') {
+      return res.status(403).json({ success: false, message: 'Only sellers and the admin can record offline orders.' });
+    }
+    if (!Array.isArray(items) || items.length === 0 || !shippingAddress) {
       return res.status(400).json({ success: false, message: 'Invalid offline order details provided.' });
     }
 
-    const randomNum = Math.floor(10000 + Math.random() * 90000);
-    const orderId = `AB-OFFLINE-${randomNum}`;
+    const orderId = await newOrderId('AB-OFFLINE');
 
     const formattedItems = [];
     let calculatedTotal = 0;
 
     for (const item of items) {
+      if (!item || !mongoose.isValidObjectId(item.productId)) continue;
       const dbProduct = await Product.findById(item.productId);
       if (!dbProduct) continue;
+      if (req.user.role !== 'admin' && String(dbProduct.seller) !== String(req.user._id)) continue;
 
       const sellerId = dbProduct.seller || req.user._id;
-      const price = Number(item.price) || dbProduct.price;
-      const qty = Number(item.quantity) || 1;
+      const price = Number(item.price) > 0 ? Number(item.price) : dbProduct.price;
+      const qty = cleanQuantity(item.quantity) || 1;
 
       formattedItems.push({
         productId: String(dbProduct._id),
@@ -435,6 +482,10 @@ module.exports.createOfflineOrder = async (req, res) => {
         itemStatus: 'Delivered'
       });
       calculatedTotal += price * qty;
+    }
+
+    if (formattedItems.length === 0) {
+      return res.status(400).json({ success: false, message: 'None of the selected products could be found in your catalogue.' });
     }
 
     const customerPackaging = Number(packagingCharge) || 0;

@@ -9,6 +9,7 @@ import { formatPrice, displayName, discountPercent } from '../utils/format';
 import Container from './ui/Container';
 import Button from './ui/Button';
 import Badge from './ui/Badge';
+import TextileScene from './HomeTextiles3D';
 
 // Slide transition kept short so the 2-second autoplay still feels calm
 const DURATION = 450;
@@ -134,7 +135,8 @@ const RESELLER_ROWS = [
   { icon: Wallet, label: 'Earn commission', note: 'Paid to your UPI' }
 ];
 
-function SidePanel({ slide, eager, loading }) {
+function SidePanel({ slide, eager, loading, current }) {
+  if (slide.kind === 'scene') return <TextileScene scene={slide.scene} active={current} />;
   if (slide.layout === 'split') {
     if (slide.image) return <PhotoCollage slide={slide} eager={eager} />;
     return loading ? <PhotoSkeleton /> : <OfferPanel />;
@@ -179,7 +181,7 @@ function SlideText({ slide, theme, isFirst }) {
   );
 }
 
-function Slide({ slide, isFirst, hidden, label, loading }) {
+function Slide({ slide, isFirst, hidden, current, label, loading }) {
   const theme = THEMES[slide.theme] || THEMES.navy;
   const shell = (children, extra = '') => (
     <div
@@ -227,7 +229,7 @@ function Slide({ slide, isFirst, hidden, label, loading }) {
           <SlideText slide={slide} theme={theme} isFirst={isFirst} />
         </div>
         <div className={`${split ? 'order-first' : ''} flex min-h-0 items-center justify-center lg:order-last lg:h-[360px] lg:justify-end`}>
-          <SidePanel slide={slide} eager={isFirst} loading={loading} />
+          <SidePanel slide={slide} eager={isFirst} loading={loading} current={current} />
         </div>
       </Container>
     </>,
@@ -396,6 +398,7 @@ export default function HeroBanner({ products = [], loading = false }) {
               slide={slide}
               isFirst={!clone && index === 0}
               hidden={clone || index !== active}
+              current={clone ? (key === 'clone-first' ? active === 0 : active === count - 1) : index === active}
               label={clone ? undefined : `${index + 1} of ${count}: ${slide.headline}`}
               loading={loading}
             />
