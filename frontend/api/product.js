@@ -12,6 +12,15 @@ const previewImage = (url) =>
     ? url.replace('/upload/', '/upload/w_600,h_600,c_fill,q_auto,f_jpg/')
     : url;
 
+// The product page's main photo, exactly as ProductDetailPage requests it
+// (cloudinaryImage(url, 900) in src/utils/format.js), so the browser can start downloading
+// it with the HTML instead of after the JS and the catalogue have loaded.
+const pageImage = (url) => {
+  if (!url || typeof url !== 'string' || !url.includes('res.cloudinary.com') || !url.includes('/upload/')) return null;
+  if (/\/upload\/[^/]*(w_|f_auto|q_auto)/.test(url)) return url;
+  return url.replace('/upload/', '/upload/f_auto,q_auto,c_limit,w_900/');
+};
+
 async function fetchProduct(id) {
   try {
     const res = await fetch(`${BACKEND_URL}/products/${encodeURIComponent(id)}`, {
@@ -43,6 +52,7 @@ export default async function handler(req, res) {
       : `Only ₹${product.price}. Straight from Panipat to your home. Cash on delivery available.`;
   const url = `${origin}/product/${product.id}`;
   const image = previewImage(product.image);
+  const heroImage = pageImage(product.images && product.images.length > 0 ? product.images[0] : product.image);
 
   const tags = `
     <title>${escapeHtml(title)}</title>
@@ -58,7 +68,8 @@ export default async function handler(req, res) {
     <meta property="product:price:amount" content="${escapeHtml(product.price)}" />
     <meta property="product:price:currency" content="INR" />
     <meta name="twitter:card" content="summary_large_image" />
-    <link rel="canonical" href="${escapeHtml(url)}" />`;
+    <link rel="canonical" href="${escapeHtml(url)}" />${heroImage ? `
+    <link rel="preload" as="image" href="${escapeHtml(heroImage)}" fetchpriority="high" />` : ''}`;
 
   // Drop the shell's generic title/description/og tags and put the product ones in
   const html = shell

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Star, ShoppingBag, Heart, Shield, Truck, Check } from 'lucide-react';
+import { X, Star, ShoppingBag, Shield, Truck, Check } from 'lucide-react';
+import HeartIcon from './ui/HeartIcon';
 import { formatPrice, displayName, cloudinaryImage } from '../utils/format';
 
 // Hooks live in the inner component (keyed by product) so the early return never
@@ -212,7 +213,7 @@ function QuickViewContent({ product, onClose, onAddToCart, onToggleWishlist, isW
                   title="Wishlist"
                   aria-label={isWishlisted ? 'Remove from wishlist' : 'Save to wishlist'}
                 >
-                  <Heart className={`w-5 h-5 ${isWishlisted ? 'fill-current' : ''}`} />
+                  <HeartIcon filled={isWishlisted} className="w-5 h-5" />
                 </button>
               </div>
 

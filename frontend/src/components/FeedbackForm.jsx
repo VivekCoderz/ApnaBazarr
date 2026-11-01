@@ -7,9 +7,11 @@ const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 async function uploadToCloudinary(file, endpoint) {
   const formData = new FormData();
   formData.append('file', file);
+  // Feedback uploads need the logged-in session cookie
   const res = await fetch(`${BASE_URL}/api/upload/${endpoint}`, {
     method: 'POST',
     body: formData,
+    credentials: 'include',
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'Upload failed');
@@ -39,7 +41,7 @@ export default function FeedbackForm({ onSubmitFeedback, currentUser }) {
       const url = await uploadToCloudinary(file, 'feedback-photo');
       setPhotoUrl(url);
     } catch (err) {
-      setError('Photo upload failed. Please try again.');
+      setError(err.message || 'Photo upload failed. Please try again.');
     } finally {
       setUploadingPhoto(false);
     }
@@ -55,7 +57,7 @@ export default function FeedbackForm({ onSubmitFeedback, currentUser }) {
       const url = await uploadToCloudinary(file, 'feedback-video');
       setVideoUrl(url);
     } catch (err) {
-      setError('Video upload failed. Please try again.');
+      setError(err.message || 'Video upload failed. Please try again.');
     } finally {
       setUploadingVideo(false);
     }

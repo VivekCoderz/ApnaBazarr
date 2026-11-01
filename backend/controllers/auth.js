@@ -3,6 +3,30 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = process.env.JWT_SECRET;
+const crypto = require('crypto');
+
+// Session cookie: httpOnly (JS can't read it), Secure, and SameSite=None because the
+// shop (vercel.app) and the API (onrender.com) are different sites. Lifetime matches
+// the JWT expiry so the browser drops it when the token stops working.
+const SESSION_DAYS = 7;
+const SESSION_COOKIE = {
+  httpOnly: true,
+  secure: true,
+  sameSite: 'none',
+  path: '/',
+  maxAge: SESSION_DAYS * 24 * 60 * 60 * 1000
+};
+const LOGIN_FAILED = 'Invalid email or password.';
+// Compared against when the email is unknown, so a wrong email takes as long as a
+// wrong password (timing would otherwise reveal which emails have accounts)
+const DUMMY_HASH = '$2b$10$CwTycUXWue0Thq9StjUM0uJ8.Ao/vF3gkEDGq3V2xwUt9FQ2h2CSu';
+
+// Constant-time string comparison for the admin password
+const safeEqual = (a, b) => {
+  const ha = crypto.createHash('sha256').update(String(a)).digest();
+  const hb = crypto.createHash('sha256').update(String(b)).digest();
+  return crypto.timingSafeEqual(ha, hb);
+};
 
 // Emails are compared case-insensitively ("Ravi@Gmail.com" is the same account as
 // "ravi@gmail.com"). Older accounts may be stored with capitals, so look up both ways.
@@ -53,14 +77,9 @@ module.exports.signup = async (req, res) => {
       password: passwordHash
     });
 
-    const token = jwt.sign({ id: newUser._id, email: newUser.email }, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ id: newUser._id, email: newUser.email }, JWT_SECRET, { expiresIn: `${SESSION_DAYS}d` });
 
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      path: '/'
-    });
+    res.cookie('token', token, SESSION_COOKIE);
     return res.status(201).json({
       success: true,
       message: 'Signup successful!',
@@ -91,24 +110,17 @@ module.exports.login = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Please enter email and password.' });
     }
 
+    // Same message (and roughly the same time) for an unknown email and a wrong
+    // password, so the login form can't be used to find out who has an account
     const user = await findUserByEmail(email);
-    if (!user) {
-      return res.status(400).json({ success: false, message: 'Invalid email' });
+    const isMatch = await bcrypt.compare(password, user?.password || DUMMY_HASH);
+    if (!user || !isMatch) {
+      return res.status(400).json({ success: false, message: LOGIN_FAILED });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ success: false, message: 'Invalid password.' });
-    }
+    const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, { expiresIn: `${SESSION_DAYS}d` });
 
-    const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
-
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      path: '/'
-    });
+    res.cookie('token', token, SESSION_COOKIE);
     return res.json({
       success: true,
       message: 'Login successful!',
@@ -446,10 +458,13 @@ module.exports.adminLogin = async (req, res) => {
     return res.status(500).json({ success: false, message: 'Admin login is not configured on the server.' });
   }
 
-  if (!email || !password || email.toLowerCase() !== adminEmail.toLowerCase() || password !== adminPassword) {
+  if (typeof email !== 'string' || typeof password !== 'string' || !email || !password
+      || !safeEqual(email.trim().toLowerCase(), adminEmail.toLowerCase()) || !safeEqual(password, adminPassword)) {
     return res.status(401).json({ success: false, message: 'Invalid Admin Email or Password!' });
   }
 
+  // 7 days to match the admin panel's apna_admin_token cookie (the panel has no
+  // "session expired" handling, so a shorter token would break it mid-week)
   const token = jwt.sign({ admin: true, email: adminEmail }, JWT_SECRET, { expiresIn: '7d' });
   res.json({ success: true, admin: { email: adminEmail, role: 'admin', token } });
 };

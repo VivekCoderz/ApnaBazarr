@@ -2,11 +2,12 @@ const router = require("express").Router();
 const authController = require("../controllers/auth.js");
 
 const auth = require("../middlewares/auth.js");
+const { limiters } = require("../middlewares/security.js");
 
-router.post("/signup", authController.signup);
-router.post("/login", authController.login);
+router.post("/signup", limiters.signup, authController.signup);
+router.post("/login", limiters.login, authController.login);
 router.post("/logout", authController.logout);
-router.post("/admin/login", authController.adminLogin);
+router.post("/admin/login", limiters.adminLogin, authController.adminLogin);
 router.get("/me", authController.getme);
 router.post("/cart", authController.updateCart);
 router.post("/wishlist", authController.updateWishlist);

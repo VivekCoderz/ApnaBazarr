@@ -17,7 +17,8 @@ exports.verifyCodCode = async (req, res) => {
     const isValid = (code.trim().toUpperCase() === setting.value.trim().toUpperCase());
     res.json({ success: true, isValid });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    console.error('Settings error:', err);
+    res.status(500).json({ success: false, message: 'Something went wrong. Please try again.' });
   }
 };
 
@@ -44,7 +45,8 @@ exports.getSettings = async (req, res) => {
       } 
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    console.error('Settings error:', err);
+    res.status(500).json({ success: false, message: 'Something went wrong. Please try again.' });
   }
 };
 
@@ -101,6 +103,7 @@ exports.updateSettings = async (req, res) => {
       } 
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    console.error('Settings error:', err);
+    res.status(500).json({ success: false, message: 'Something went wrong. Please try again.' });
   }
 };

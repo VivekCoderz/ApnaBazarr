@@ -211,15 +211,37 @@ const SCENES = { bed: BedScene, cushions: CushionScene, towels: TowelScene, curt
 
 const prefersReduced = () => typeof window !== 'undefined' && Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
 
+// Run after the browser is idle (first paint done), with a fallback for Safari
+const whenIdle = (cb, timeout = 1200) => {
+  if (typeof window.requestIdleCallback === 'function') {
+    const h = window.requestIdleCallback(cb, { timeout });
+    return () => window.cancelIdleCallback(h);
+  }
+  const t = setTimeout(cb, 200);
+  return () => clearTimeout(t);
+};
+
 // One CSS-3D textile scene for a hero slide (bed, cushions, towels or curtains).
 // The scene plays while its slide is the active one and the hero is on screen, and resets
 // (instantly, after it has slid out) so it replays next time. Pure CSS transforms; no 3D library.
-export default function TextileScene({ scene, active }) {
+//
+// Performance: every 3D face is its own GPU layer, so the carousel only builds the scenes
+// of the current and neighbouring slides (`mount`), and builds them once the browser is
+// idle, after the first paint. Until then the panel shows the plain stage background.
+export default function TextileScene({ scene, active, mount = true }) {
   const ref = useRef(null);
   const [reduced] = useState(prefersReduced);
   const [inView, setInView] = useState(true);
   const [on, setOn] = useState(reduced);
   const [loadLater, setLoadLater] = useState(false);
+  const [built, setBuilt] = useState(false);
+
+  useEffect(() => {
+    if (mount) return whenIdle(() => setBuilt(true));
+    // Keep it while the slide is still sliding out, then free the layers
+    const t = setTimeout(() => setBuilt(false), 700);
+    return () => clearTimeout(t);
+  }, [mount]);
 
   // Hero on/off screen (observe the carousel, not the slide: slides are clipped sideways)
   useEffect(() => {
@@ -238,7 +260,7 @@ export default function TextileScene({ scene, active }) {
   }, []);
   const load = active || loadLater;
 
-  const playing = active && inView;
+  const playing = active && inView && built;
   useEffect(() => {
     if (reduced) return undefined;
     if (playing) {
@@ -256,9 +278,11 @@ export default function TextileScene({ scene, active }) {
   return (
     <div ref={ref} className="relative h-full w-full overflow-hidden rounded-lg shadow-lift lg:w-[540px]">
       <div className={`tx-stage tx-${scene} ${on ? 'is-on' : ''}`} aria-hidden="true">
-        <div className="tx-scale">
-          <Scene load={load} />
-        </div>
+        {built && (
+          <div className="tx-scale">
+            <Scene load={load} />
+          </div>
+        )}
       </div>
       <span className="pointer-events-none absolute bottom-2 right-2 rounded bg-white/80 px-1.5 py-0.5 text-[10px] leading-none text-slate-600">
         Illustration. Fabrics shown are for styling only.

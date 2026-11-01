@@ -9,6 +9,16 @@ const User = require('../models/User');
 const auth = require('../middlewares/auth');
 const { shippingPreview } = require('../utils/shipping');
 
+// 500s never carry internal error text (DB/stack details) to the browser. Mongoose
+// validation/cast errors are about the submitted form, so those stay readable (400).
+function sendError(res, err) {
+  if (err && (err.name === 'ValidationError' || err.name === 'CastError')) {
+    return res.status(400).json({ success: false, message: err.message });
+  }
+  console.error('Products route error:', err);
+  return res.status(500).json({ success: false, message: 'Something went wrong. Please try again.' });
+}
+
 // Products hidden by the admin have isActive: false. Products saved before the
 // field existed have no value and count as active.
 const ACTIVE_FILTER = { isActive: { $ne: false } };
@@ -128,7 +138,7 @@ router.get('/', async (req, res) => {
 
     res.json({ success: true, count: formatted.length, data: formatted });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    sendError(res, err);
   }
 });
 
@@ -171,7 +181,7 @@ router.get('/seller/my-products', auth, async (req, res) => {
     
     res.json({ success: true, count: formatted.length, data: formatted });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    sendError(res, err);
   }
 });
 
@@ -241,7 +251,7 @@ router.get('/:id', async (req, res) => {
     };
     res.json({ success: true, data: formatted });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    sendError(res, err);
   }
 });
 
@@ -290,7 +300,7 @@ router.post('/', auth, async (req, res) => {
     };
     res.status(201).json({ success: true, data: formatted });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    sendError(res, err);
   }
 });
 
@@ -343,7 +353,7 @@ router.put('/:id', auth, async (req, res) => {
     };
     res.json({ success: true, data: formatted });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    sendError(res, err);
   }
 });
 
@@ -365,7 +375,7 @@ router.delete('/:id', auth, async (req, res) => {
     await Product.findByIdAndDelete(req.params.id);
     res.json({ success: true, message: 'Product successfully deleted from MongoDB' });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    sendError(res, err);
   }
 });
 

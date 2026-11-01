@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ChevronDown, MessageCircle, Factory, PackageCheck, ClipboardCheck, ShoppingBag, Home as HomeIcon,
   UserPlus, Share2, Wallet, Phone, Mail, ArrowRight
@@ -8,7 +8,8 @@ import TrustStrip from '../components/TrustStrip';
 import CategoryShowcase from '../components/CategoryShowcase';
 import AlmirahShowcase from '../components/AlmirahShowcase';
 import WaitlistBand from '../components/WaitlistBand';
-import ProductSpotlight, { ProductSpotlightSkeleton } from '../components/ProductSpotlight';
+import ProductSpotlight from '../components/ProductSpotlight';
+import { ProductGridSkeleton } from '../components/ProductSkeleton';
 import RecentlyViewed from '../components/RecentlyViewed';
 import ProductCard from '../components/ProductCard';
 import Container, { Section } from '../components/ui/Container';
@@ -25,6 +26,21 @@ const MIN_FULL_CATALOGUE = 8;
 const MIN_FOR_GRID = 4;
 
 const GRID_CLASS = 'grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 lg:grid-cols-4';
+
+// True on tablet/desktop widths. The 3D almirah is hidden on phones anyway; not building
+// it there saves ~100 DOM nodes and its GPU layers on cheap devices.
+function useMinWidth(px) {
+  const query = `(min-width: ${px}px)`;
+  const [match, setMatch] = useState(() => typeof window !== 'undefined' && Boolean(window.matchMedia?.(query).matches));
+  useEffect(() => {
+    const mq = window.matchMedia?.(query);
+    if (!mq) return undefined;
+    const onChange = () => setMatch(mq.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, [query]);
+  return match;
+}
 
 // Website plan §3.8, in English (return answer per the founder's return policy)
 const FAQS = [
@@ -84,7 +100,8 @@ function ProductsSection({ products, loading, onAddToCart, onQuickView, onToggle
     return (
       <Section tone="cream" aria-label="Loading products">
         <SectionHeader eyebrow="Featured" title={gridTitle} />
-        <ProductSpotlightSkeleton />
+        {/* Grid-shaped (the usual result), so the page below moves less when products arrive */}
+        <ProductGridSkeleton count={4} className={GRID_CLASS} />
       </Section>
     );
   }
@@ -160,6 +177,7 @@ export default function HomePage({
   wishlistItems = [],
   cartItems = []
 }) {
+  const isTabletUp = useMinWidth(768);
   return (
     <div>
       <HeroBanner products={products} loading={loading} />
@@ -193,9 +211,7 @@ export default function HomePage({
       </Section>
 
       {/* 3D open-almirah showcase (tablet/desktop; phones already get the 3D hero) */}
-      <div className="hidden md:block">
-        <AlmirahShowcase />
-      </div>
+      {isTabletUp && <AlmirahShowcase />}
 
 
       {/* Recently viewed: only when there is something worth showing */}

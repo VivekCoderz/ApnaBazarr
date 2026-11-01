@@ -62,14 +62,60 @@ const reviewVideoStorage = new CloudinaryStorage({
   },
 });
 
-const uploadProductImage = multer({ storage: productImageStorage });
-const uploadProductVideo = multer({ storage: productVideoStorage });
-const uploadReviewPhoto = multer({ storage: reviewPhotoStorage });
-const uploadReviewVideo = multer({ storage: reviewVideoStorage });
-const uploadFeedbackPhoto = multer({ storage: feedbackPhotoStorage });
-const uploadFeedbackVideo = multer({ storage: feedbackVideoStorage });
+const MB = 1024 * 1024;
+const IMAGE_TYPES = {
+  'image/jpeg': ['.jpg', '.jpeg', '.jfif'],
+  'image/png': ['.png'],
+  'image/webp': ['.webp'],
+  'image/gif': ['.gif'],
+};
+const VIDEO_TYPES = {
+  'video/mp4': ['.mp4', '.m4v'],
+  'video/webm': ['.webm'],
+  'video/quicktime': ['.mov'],
+  'video/x-msvideo': ['.avi'],
+};
+
+// Accepts a file only when both its declared type and its file extension are in the
+// allowed list (SVG, HTML, PDF etc. are refused). Cloudinary's allowed_formats then
+// checks the real file contents on its side.
+function typeFilter(allowed, kind) {
+  return (req, file, cb) => {
+    const exts = allowed[String(file.mimetype).toLowerCase()];
+    const name = String(file.originalname || '').toLowerCase();
+    // Phones sometimes send camera photos without an extension; the type check still applies
+    const extOk = exts && (!name.includes('.') || exts.some(ext => name.endsWith(ext)));
+    if (!exts || !extOk) {
+      const err = new multer.MulterError('LIMIT_UNEXPECTED_FILE', 'file');
+      err.message = kind === 'video' ? 'Only MP4, WebM or MOV videos can be uploaded.' : 'Only JPG, PNG or WebP photos can be uploaded.';
+      return cb(err);
+    }
+    cb(null, true);
+  };
+}
+
+const imageOnly = (allowGif) => {
+  const allowed = { ...IMAGE_TYPES };
+  if (!allowGif) delete allowed['image/gif'];
+  return typeFilter(allowed, 'image');
+};
+
+// One file per request, no extra text fields beyond a couple of small ones
+const limitsFor = (fileSize) => ({ fileSize, files: 1, fields: 5, fieldSize: 1024, parts: 7 });
+
+const IMAGE_MAX = 5 * MB;
+const VIDEO_MAX = 50 * MB;
+
+const uploadProductImage = multer({ storage: productImageStorage, fileFilter: imageOnly(true), limits: limitsFor(IMAGE_MAX) });
+const uploadProductVideo = multer({ storage: productVideoStorage, fileFilter: typeFilter(VIDEO_TYPES, 'video'), limits: limitsFor(VIDEO_MAX) });
+const uploadReviewPhoto = multer({ storage: reviewPhotoStorage, fileFilter: imageOnly(false), limits: limitsFor(IMAGE_MAX) });
+const uploadReviewVideo = multer({ storage: reviewVideoStorage, fileFilter: typeFilter(VIDEO_TYPES, 'video'), limits: limitsFor(VIDEO_MAX) });
+const uploadFeedbackPhoto = multer({ storage: feedbackPhotoStorage, fileFilter: imageOnly(false), limits: limitsFor(IMAGE_MAX) });
+const uploadFeedbackVideo = multer({ storage: feedbackVideoStorage, fileFilter: typeFilter(VIDEO_TYPES, 'video'), limits: limitsFor(VIDEO_MAX) });
 
 module.exports = {
+  IMAGE_MAX,
+  VIDEO_MAX,
   uploadProductImage,
   uploadProductVideo,
   uploadReviewPhoto,

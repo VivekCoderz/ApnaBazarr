@@ -40,6 +40,7 @@ function PageFallback() {
   );
 }
 import { captureReferral } from './utils/referral';
+import { prefersReducedMotion } from './components/ui/motion';
 
 import { Check, ShieldCheck } from 'lucide-react';
 
@@ -165,6 +166,18 @@ function AppContent() {
     // Wait a frame so the new page has rendered before restoring the position
     const frame = requestAnimationFrame(() => window.scrollTo({ top: saved || 0, left: 0, behavior: 'instant' }));
     return () => cancelAnimationFrame(frame);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
+
+  // New page eases in (opacity only, on the GPU; it never delays the navigation).
+  // Skipped on the first load and on back/forward, where the old spot should just reappear.
+  const mainRef = useRef(null);
+  const firstPath = useRef(true);
+  useEffect(() => {
+    if (firstPath.current) { firstPath.current = false; return; }
+    const el = mainRef.current;
+    if (!el || navigationType === 'POP' || prefersReducedMotion() || typeof el.animate !== 'function') return;
+    el.animate([{ opacity: 0.4 }, { opacity: 1 }], { duration: 200, easing: 'ease-out' });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
@@ -447,13 +460,17 @@ function AppContent() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [quickViewProduct, setQuickViewProduct] = useState(null);
   const [toastMessage, setToastMessage] = useState('');
+  const [toastAction, setToastAction] = useState(null); // optional { label, to }
+  const [toastId, setToastId] = useState(0); // replays the entry animation for each toast
   const toastTimer = useRef(null);
 
   // One timer at a time: a new toast is not cut short by the previous toast's timer
-  const showToast = (msg) => {
+  const showToast = (msg, action = null) => {
     setToastMessage(msg);
+    setToastAction(action);
+    setToastId(n => n + 1);
     clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(() => setToastMessage(''), 3500);
+    toastTimer.current = setTimeout(() => setToastMessage(''), action ? 4500 : 3500);
   };
   useEffect(() => () => clearTimeout(toastTimer.current), []);
 
@@ -512,7 +529,7 @@ function AppContent() {
         }];
       }
     });
-    showToast('Added to cart');
+    showToast('Added to cart', pathname === '/cart' ? null : { label: 'View cart', to: '/cart' });
   };
 
   const handleUpdateQuantity = (id, newQty, customText = '', customImage = '', selectedSize = '', selectedColor = '') => {
@@ -774,13 +791,29 @@ function AppContent() {
   return (
     <div className="min-h-screen flex flex-col bg-white text-slate-800 antialiased selection:bg-brand-navy selection:text-white">
       
-      {/* Toast Notification */}
-      {toastMessage && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[60] max-w-[90vw] bg-slate-900 text-white text-sm font-semibold px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-2 animate-fade-in border border-slate-700">
-          <Check className="w-4 h-4 text-emerald-400" />
-          <span>{toastMessage}</span>
-        </div>
-      )}
+      {/* Toast Notification. The live region stays mounted so screen readers announce
+          each message; position: fixed, so it never pushes the page around. */}
+      <div role="status" aria-live="polite" aria-atomic="true">
+        {toastMessage && (
+          <div
+            key={toastId}
+            className="toast-in fixed top-4 left-1/2 z-[60] flex max-w-[92vw] items-center gap-3 rounded-xl border border-slate-700 bg-slate-900 py-2 pl-4 pr-2 text-sm font-semibold text-white shadow-2xl"
+            style={{ transform: 'translateX(-50%)' }}
+          >
+            <Check className="h-4 w-4 shrink-0 text-emerald-400" aria-hidden="true" />
+            <span className="py-1.5">{toastMessage}</span>
+            {toastAction && (
+              <Link
+                to={toastAction.to}
+                onClick={() => setToastMessage('')}
+                className="ml-1 inline-flex min-h-9 shrink-0 items-center rounded-lg bg-white/10 px-3 text-sm font-semibold text-white transition-colors hover:bg-white/20 motion-safe:active:scale-95"
+              >
+                {toastAction.label}
+              </Link>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Top Ribbon */}
 
@@ -803,7 +836,7 @@ function AppContent() {
       )}
 
       {/* Multi-Page Routes */}
-      <main className="flex-1">
+      <main ref={mainRef} className="flex-1">
         <Suspense fallback={<PageFallback />}>
         <Routes>
           <Route

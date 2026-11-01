@@ -15,6 +15,23 @@ const Setting = require('../models/Setting');
 const { resolveResellerForOrder } = require('./reseller');
 const { orderShippingCharge: calcOrderShipping } = require('../utils/shipping');
 const { codLimitError } = require('../utils/cod');
+const { optionalUser } = require('../middlewares/auth');
+
+const GUEST_EMAIL = 'guest@apnabazarr.com';
+
+// Who the order belongs to. A logged-in customer's order is always filed under their
+// own account email (whatever the form says). Anyone else is a guest: the email they
+// typed is kept so we can contact them, but the order is flagged isGuest and is never
+// listed in, or readable from, an account just because the email matches. Otherwise
+// anyone could place orders under someone else's email and fill their order history.
+async function orderOwner(req, typedEmail) {
+  const viewer = await optionalUser(req);
+  if (viewer && viewer.role !== 'admin' && viewer.email) {
+    return { userEmail: viewer.email, isGuest: false };
+  }
+  const email = (typeof typedEmail === 'string' && typedEmail.trim()) ? typedEmail.trim().slice(0, 200) : GUEST_EMAIL;
+  return { userEmail: email, isGuest: true };
+}
 
 const MAX_QTY_PER_LINE = 50;
 const ADDRESS_FIELDS = ['fullName', 'phone', 'pincode', 'flatNo', 'area', 'city', 'state'];
@@ -160,12 +177,12 @@ module.exports.createOrder = async (req, res) => {
       return res.status(400).json({ success: false, message: codError });
     }
 
-    const buyerEmail = (typeof userEmail === 'string' && userEmail.trim()) ? userEmail.trim() : 'guest@apnabazarr.com';
-    const resellerFields = await resolveResellerForOrder(resellerCode, buyerEmail, formattedItems);
+    const owner = await orderOwner(req, userEmail);
+    const resellerFields = await resolveResellerForOrder(resellerCode, owner.userEmail, formattedItems);
 
     const newOrder = await Order.create({
       orderId: await newOrderId(),
-      userEmail: buyerEmail,
+      ...owner,
       items: formattedItems,
       ...resellerFields,
       shippingAddress: cleanAddress(shippingAddress),
@@ -195,7 +212,8 @@ module.exports.getOrders = async (req, res) => {
     if (req.user.role === 'admin') {
       queryFilter = email ? { userEmail: email } : {};
     } else {
-      queryFilter = { userEmail: req.user.email };
+      // Guest orders typed with this email are not the account's orders (see orderOwner)
+      queryFilter = { userEmail: req.user.email, isGuest: { $ne: true } };
     }
     const orders = await Order.find(queryFilter).sort({ createdAt: -1 });
 
@@ -211,7 +229,7 @@ module.exports.getOrders = async (req, res) => {
 module.exports.getOrderById = async (req, res) => {
   try {
     const order = await Order.findOne({ orderId: req.params.orderId });
-    const isOwner = order && req.user?.email && order.userEmail === req.user.email;
+    const isOwner = order && !order.isGuest && req.user?.email && order.userEmail === req.user.email;
     if (!order || (req.user?.role !== 'admin' && !isOwner)) {
       return res.status(404).json({ success: false, message: 'Order not found.' });
     }
@@ -310,12 +328,12 @@ module.exports.verifyRazorpayPayment = async (req, res) => {
       return res.status(409).json({ success: false, message: 'This payment has already been used for an order.' });
     }
 
-    const buyerEmail = (typeof email === 'string' && email.trim()) ? email.trim() : 'guest@apnabazarr.com';
-    const resellerFields = await resolveResellerForOrder(resellerCode, buyerEmail, formattedItems);
+    const owner = await orderOwner(req, email);
+    const resellerFields = await resolveResellerForOrder(resellerCode, owner.userEmail, formattedItems);
 
     const newOrder = await Order.create({
       orderId: await newOrderId(),
-      userEmail: buyerEmail,
+      ...owner,
       items: formattedItems,
       ...resellerFields,
       shippingAddress: cleanAddress(shippingAddress),
@@ -494,7 +512,9 @@ module.exports.createOfflineOrder = async (req, res) => {
 
     const newOrder = await Order.create({
       orderId,
-      userEmail: userEmail || 'offline@apnabazarr.com',
+      userEmail: (typeof userEmail === 'string' && userEmail.trim()) ? userEmail.trim().slice(0, 200) : 'offline@apnabazarr.com',
+      // A seller typing a customer's email must not put orders into that customer's account
+      isGuest: req.user.role !== 'admin',
       items: formattedItems,
       shippingAddress,
       paymentMethod: paymentMethod || 'Offline Cash',

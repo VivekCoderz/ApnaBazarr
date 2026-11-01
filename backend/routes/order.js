@@ -1,9 +1,10 @@
 const router = require('express').Router();
 const orderController = require('../controllers/order');
 const auth = require('../middlewares/auth');
+const { limiters } = require('../middlewares/security');
 
-router.post('/', orderController.createOrder);
-router.post('/razorpay', orderController.createRazorpayOrder);
+router.post('/', limiters.order, orderController.createOrder);
+router.post('/razorpay', limiters.order, orderController.createRazorpayOrder);
 router.post('/verify', orderController.verifyRazorpayPayment);
 router.post('/calculate-shipping', orderController.getShippingCalculation);
 router.get('/', auth, orderController.getOrders);

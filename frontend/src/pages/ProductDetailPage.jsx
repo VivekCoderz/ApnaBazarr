@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Star, ShoppingBag, Heart, Truck, RotateCcw, Upload, CheckCircle, Sparkles, Video, Loader2, ThumbsUp, ThumbsDown, CornerDownRight, MessageSquare, Banknote, Package, MessageCircle, ChevronRight, ChevronDown, Share2 } from 'lucide-react';
+import { Star, ShoppingBag, Truck, RotateCcw, Upload, CheckCircle, Sparkles, Video, Loader2, ThumbsUp, ThumbsDown, CornerDownRight, MessageSquare, Banknote, Package, MessageCircle, ChevronRight, ChevronDown, Share2 } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
 import { whatsappShareUrl } from '../utils/referral';
 import { useShippingQuote } from '../utils/shipping';
@@ -11,6 +11,7 @@ import { buttonClass } from '../components/ui/buttonClass';
 import Badge from '../components/ui/Badge';
 import SectionHeader from '../components/ui/SectionHeader';
 import CategoryGlyph from '../components/ui/CategoryGlyph';
+import HeartIcon from '../components/ui/HeartIcon';
 
 // Default text the admin form fills in; not worth showing as a description
 const GENERIC_DESCRIPTION = /^high quality product from Dhagaro\.?$/i;
@@ -20,7 +21,8 @@ const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 async function uploadToCloudinary(file, endpoint) {
   const formData = new FormData();
   formData.append('file', file);
-  const res = await fetch(`${BASE_URL}/api/upload/${endpoint}`, { method: 'POST', body: formData });
+  // credentials: the session cookie lets the server tie video uploads to an account
+  const res = await fetch(`${BASE_URL}/api/upload/${endpoint}`, { method: 'POST', body: formData, credentials: 'include' });
   const contentType = res.headers.get("content-type");
   if (contentType && contentType.includes("application/json")) {
     const data = await res.json();
@@ -60,6 +62,10 @@ export default function ProductDetailPage({
   const [customImageVal, setCustomImageVal] = useState('');
   const [uploadingCustomImage, setUploadingCustomImage] = useState(false);
   const [customizationError, setCustomizationError] = useState('');
+  // Brief "Added" confirmation on the add-to-cart buttons (the toast offers "View cart")
+  const [justAdded, setJustAdded] = useState(false);
+  const justAddedTimer = useRef(null);
+  useEffect(() => () => clearTimeout(justAddedTimer.current), []);
 
   // Reset choices when another product is opened (e.g. from "related products"): the page
   // component is reused, so a stale photo index / quantity / personalisation would carry over.
@@ -115,6 +121,9 @@ export default function ProductDetailPage({
       selectedSize: selectedSize,
       selectedColor: selectedColor
     });
+    setJustAdded(true);
+    clearTimeout(justAddedTimer.current);
+    justAddedTimer.current = setTimeout(() => setJustAdded(false), 1600);
     return true;
   };
 
@@ -124,10 +133,10 @@ export default function ProductDetailPage({
       return;
     }
     try {
+      // The server takes the voter from the session cookie, not from the request body
       const res = await fetch(`${BASE_URL}/reviews/${reviewId}/like`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: currentUser.email })
+        credentials: 'include'
       });
       const data = await res.json();
       if (data.success) {
@@ -146,8 +155,7 @@ export default function ProductDetailPage({
     try {
       const res = await fetch(`${BASE_URL}/reviews/${reviewId}/dislike`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: currentUser.email })
+        credentials: 'include'
       });
       const data = await res.json();
       if (data.success) {
@@ -170,11 +178,9 @@ export default function ProductDetailPage({
       const res = await fetch(`${BASE_URL}/reviews/${reviewId}/comment`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userName: currentUser.name,
-          userEmail: currentUser.email,
-          text: text.trim()
-        })
+        credentials: 'include',
+        // Reply name comes from the logged-in account on the server
+        body: JSON.stringify({ text: text.trim() })
       });
       const data = await res.json();
       if (data.success) {
@@ -209,7 +215,8 @@ export default function ProductDetailPage({
     let cancelled = false;
     setReviewsLoading(true);
     setReviews([]);
-    fetch(`${BASE_URL}/reviews?productId=${encodeURIComponent(String(productId))}`)
+    // credentials: lets the server mark which reviews this visitor already liked
+    fetch(`${BASE_URL}/reviews?productId=${encodeURIComponent(String(productId))}`, { credentials: 'include' })
       .then(r => r.json())
       .then(data => { if (!cancelled && data.success) setReviews(data.reviews); })
       .catch(() => {})
@@ -226,7 +233,7 @@ export default function ProductDetailPage({
     try {
       const url = await uploadToCloudinary(file, 'review-photo');
       setReviewPhotoUrl(url);
-    } catch { setReviewError('Photo upload failed.'); }
+    } catch (err) { setReviewError(err.message || 'Photo upload failed.'); }
     finally { setUploadingPhoto(false); }
   };
 
@@ -239,7 +246,7 @@ export default function ProductDetailPage({
     try {
       const url = await uploadToCloudinary(file, 'review-video');
       setReviewVideoUrl(url);
-    } catch { setReviewError('Video upload failed.'); }
+    } catch (err) { setReviewError(err.message || 'Video upload failed.'); }
     finally { setUploadingVideo(false); }
   };
 
@@ -253,14 +260,15 @@ export default function ProductDetailPage({
     setReviewSubmitting(true);
     setReviewError('');
     try {
+      // The reviewer's account (if any) is read from the session cookie on the server
       const res = await fetch(`${BASE_URL}/reviews`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           productId: String(product.id),
           productName: product.name,
           userName: reviewerName,
-          userEmail: currentUser?.email || '',
           rating: reviewRating,
           comment: reviewComment,
           photoUrl: reviewPhotoUrl,
@@ -291,10 +299,14 @@ export default function ProductDetailPage({
   };
 
   // Products still loading (server waking up): placeholder instead of "not available"
+  // Same wrappers, breadcrumb height and photo box as the real page below, so nothing moves
+  // when the product arrives (the old skeleton shifted the page: CLS 0.40 on phones)
   if (!product && loading) {
     return (
-      <div className="min-h-screen bg-white py-8" role="status" aria-label="Loading product">
-        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-4 sm:px-6 lg:grid-cols-12 lg:gap-14 lg:px-8 animate-pulse">
+      <div className="min-h-screen bg-white" role="status" aria-label="Loading product">
+        <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-8 lg:px-8">
+        <div className="flex h-5 items-center" aria-hidden="true"><div className="h-3.5 w-48 rounded bg-slate-200 motion-safe:animate-pulse" /></div>
+        <div className="mt-4 grid grid-cols-1 items-start gap-8 motion-safe:animate-pulse sm:mt-6 lg:grid-cols-12 lg:gap-14">
           <div className="aspect-[4/5] rounded-lg bg-slate-200 sm:aspect-square lg:col-span-6" />
           <div className="space-y-4 lg:col-span-6">
             <div className="h-4 w-24 rounded bg-slate-200" />
@@ -304,6 +316,7 @@ export default function ProductDetailPage({
             <div className="h-12 rounded-md bg-slate-200" />
             <div className="grid grid-cols-2 gap-3">{[0, 1, 2, 3].map(i => <div key={i} className="h-16 rounded-lg bg-slate-200" />)}</div>
           </div>
+        </div>
         </div>
         <span className="sr-only">Loading product…</span>
       </div>
@@ -450,13 +463,13 @@ export default function ProductDetailPage({
               {off > 0 && <Badge tone="sale" className="absolute left-4 top-4">{off}% off</Badge>}
               <button
                 onClick={() => onToggleWishlist(product)}
-                className={`absolute right-3 top-3 flex h-11 w-11 items-center justify-center rounded-full shadow-card transition-colors ${
+                className={`absolute right-3 top-3 flex h-11 w-11 items-center justify-center rounded-full shadow-card transition-[color,background-color,transform] duration-150 motion-safe:active:scale-90 ${
                   isWishlisted ? 'bg-[#B91C1C] text-white' : 'bg-white/95 text-slate-700 hover:text-[#B91C1C]'
                 }`}
                 aria-label={isWishlisted ? 'Remove from wishlist' : 'Save to wishlist'}
                 aria-pressed={isWishlisted}
               >
-                <Heart className={`h-5 w-5 ${isWishlisted ? 'fill-current' : ''}`} />
+                <HeartIcon filled={isWishlisted} className="h-5 w-5" />
               </button>
             </div>
 
@@ -468,7 +481,7 @@ export default function ProductDetailPage({
                     onClick={() => setActiveImageIndex(idx)}
                     aria-label={`Show photo ${idx + 1}`}
                     aria-current={activeImageIndex === idx ? 'true' : undefined}
-                    className={`h-20 w-20 shrink-0 overflow-hidden rounded-lg border-2 transition-all ${
+                    className={`h-20 w-20 shrink-0 overflow-hidden rounded-lg border-2 transition-[border-color,opacity] motion-safe:active:scale-95 ${
                       activeImageIndex === idx ? 'border-brand-navy' : 'border-transparent opacity-70 hover:opacity-100'
                     }`}
                   >
@@ -574,9 +587,9 @@ export default function ProductDetailPage({
             {/* Quantity + stock */}
             <div className="flex flex-wrap items-center gap-4">
               <div className="flex items-center rounded-md border border-slate-300" role="group" aria-label="Quantity">
-                <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="flex h-11 w-11 items-center justify-center rounded-md text-lg font-semibold text-ink hover:bg-brand-cream" aria-label="Decrease quantity">−</button>
-                <span className="w-8 text-center text-sm font-semibold text-ink" aria-live="polite">{quantity}</span>
-                <button onClick={() => setQuantity(Math.min(10, quantity + 1))} className="flex h-11 w-11 items-center justify-center rounded-md text-lg font-semibold text-ink hover:bg-brand-cream" aria-label="Increase quantity">+</button>
+                <button onClick={() => setQuantity(Math.max(1, quantity - 1))} disabled={quantity <= 1} className="flex h-11 w-11 items-center justify-center rounded-md text-lg font-semibold text-ink transition-colors hover:bg-brand-cream active:bg-blue-100 disabled:cursor-not-allowed disabled:text-slate-300 disabled:hover:bg-transparent" aria-label="Decrease quantity">−</button>
+                <span className="w-8 text-center text-sm font-semibold tabular-nums text-ink" aria-live="polite">{quantity}</span>
+                <button onClick={() => setQuantity(Math.min(10, quantity + 1))} disabled={quantity >= 10} className="flex h-11 w-11 items-center justify-center rounded-md text-lg font-semibold text-ink transition-colors hover:bg-brand-cream active:bg-blue-100 disabled:cursor-not-allowed disabled:text-slate-300 disabled:hover:bg-transparent" aria-label="Increase quantity">+</button>
               </div>
               <span className={`inline-flex items-center gap-1.5 text-sm font-semibold ${isOutOfStock ? 'text-[#B91C1C]' : 'text-emerald-700'}`}>
                 <span className={`h-2 w-2 rounded-full ${isOutOfStock ? 'bg-[#B91C1C]' : 'bg-emerald-600'}`} aria-hidden="true" />
@@ -664,8 +677,10 @@ export default function ProductDetailPage({
                 {isOutOfStock ? unavailableLabel(product) : 'Buy Now · Cash on Delivery'}
               </Button>
               {!isOutOfStock && (
-                <Button size="lg" variant="secondary" onClick={() => handleAddToCartWithCustomization()} className="flex-1">
-                  <ShoppingBag className="h-5 w-5" aria-hidden="true" /> Add to Cart
+                <Button size="lg" variant="secondary" onClick={() => handleAddToCartWithCustomization()} className={`flex-1 ${justAdded ? '!border-emerald-700 !bg-emerald-50 !text-emerald-800' : ''}`}>
+                  {justAdded
+                    ? <><CheckCircle className="h-5 w-5" aria-hidden="true" /> Added to cart</>
+                    : <><ShoppingBag className="h-5 w-5" aria-hidden="true" /> Add to Cart</>}
                 </Button>
               )}
             </div>
@@ -785,21 +800,21 @@ export default function ProductDetailPage({
                       onClick={() => handleLikeReview(rev._id)}
                       aria-label="Helpful"
                       className={`flex min-h-10 items-center gap-1.5 rounded-md px-3 font-semibold transition-colors hover:bg-brand-cream ${
-                        currentUser && rev.likes?.includes(currentUser.email) ? 'text-brand-navy' : 'text-slate-500'
+                        currentUser && rev.likedByMe ? 'text-brand-navy' : 'text-slate-500'
                       }`}
                     >
                       <ThumbsUp className="h-4 w-4" />
-                      <span>{rev.likes?.length || 0}</span>
+                      <span>{rev.likesCount || 0}</span>
                     </button>
                     <button
                       onClick={() => handleDislikeReview(rev._id)}
                       aria-label="Not helpful"
                       className={`flex min-h-10 items-center gap-1.5 rounded-md px-3 font-semibold transition-colors hover:bg-brand-cream ${
-                        currentUser && rev.dislikes?.includes(currentUser.email) ? 'text-[#B91C1C]' : 'text-slate-500'
+                        currentUser && rev.dislikedByMe ? 'text-[#B91C1C]' : 'text-slate-500'
                       }`}
                     >
                       <ThumbsDown className="h-4 w-4" />
-                      <span>{rev.dislikes?.length || 0}</span>
+                      <span>{rev.dislikesCount || 0}</span>
                     </button>
                     <button
                       onClick={() => setExpandedReplies(prev => ({ ...prev, [rev._id]: !prev[rev._id] }))}
@@ -901,13 +916,20 @@ export default function ProductDetailPage({
                     <label className={buttonClass('secondary', 'sm', 'cursor-pointer w-full')}>
                       {uploadingPhoto ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
                       <span>{uploadingPhoto ? 'Uploading…' : reviewPhotoUrl ? 'Photo added' : 'Add photo'}</span>
-                      <input type="file" accept="image/*" onChange={handleReviewPhotoUpload} className="hidden" disabled={uploadingPhoto} />
+                      <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleReviewPhotoUpload} className="hidden" disabled={uploadingPhoto} />
                     </label>
-                    <label className={buttonClass('secondary', 'sm', 'cursor-pointer w-full')}>
-                      {uploadingVideo ? <Loader2 className="h-4 w-4 animate-spin" /> : <Video className="h-4 w-4" />}
-                      <span>{uploadingVideo ? 'Uploading…' : reviewVideoUrl ? 'Video added' : 'Add video'}</span>
-                      <input type="file" accept="video/*" onChange={handleReviewVideoUpload} className="hidden" disabled={uploadingVideo} />
-                    </label>
+                    {/* Video uploads need an account (the server refuses them from guests) */}
+                    {currentUser ? (
+                      <label className={buttonClass('secondary', 'sm', 'cursor-pointer w-full')}>
+                        {uploadingVideo ? <Loader2 className="h-4 w-4 animate-spin" /> : <Video className="h-4 w-4" />}
+                        <span>{uploadingVideo ? 'Uploading…' : reviewVideoUrl ? 'Video added' : 'Add video'}</span>
+                        <input type="file" accept="video/mp4,video/webm,video/quicktime" onChange={handleReviewVideoUpload} className="hidden" disabled={uploadingVideo} />
+                      </label>
+                    ) : (
+                      <span className="flex items-center justify-center gap-1.5 rounded-md border border-dashed border-line px-2 text-center text-xs text-slate-500">
+                        <Video className="h-4 w-4 shrink-0" aria-hidden="true" /> Log in to add a video
+                      </span>
+                    )}
                   </div>
                   {(reviewPhotoUrl || reviewVideoUrl) && (
                     <div className="flex items-center gap-2">
@@ -950,7 +972,7 @@ export default function ProductDetailPage({
       </div>
 
       {/* Mobile sticky buy bar */}
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white px-4 py-3 shadow-[0_-8px_24px_-12px_rgba(11,42,85,0.25)] lg:hidden">
+      <div className="buy-bar-in fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-8px_24px_-12px_rgba(11,42,85,0.25)] lg:hidden">
         <div className="mx-auto flex max-w-xl items-center gap-3">
           <div className="min-w-0 flex-1">
             <p className="text-xl font-semibold leading-none text-brand-cta">{formatPrice(product.price)}</p>
@@ -962,10 +984,12 @@ export default function ProductDetailPage({
             <button
               type="button"
               onClick={() => handleAddToCartWithCustomization()}
-              aria-label="Add to cart"
-              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-brand-navy text-brand-navy"
+              aria-label={justAdded ? 'Added to cart' : 'Add to cart'}
+              className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border transition-[color,background-color,border-color,transform] duration-150 motion-safe:active:scale-95 ${
+                justAdded ? 'border-emerald-700 bg-emerald-50 text-emerald-800' : 'border-brand-navy text-brand-navy active:bg-brand-cream'
+              }`}
             >
-              <ShoppingBag className="h-5 w-5" />
+              {justAdded ? <CheckCircle className="h-5 w-5" aria-hidden="true" /> : <ShoppingBag className="h-5 w-5" aria-hidden="true" />}
             </button>
           )}
           <Button size="lg" disabled={isOutOfStock} onClick={() => !isOutOfStock && handleBuyNow()} className="shrink-0">

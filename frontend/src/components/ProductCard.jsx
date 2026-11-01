@@ -1,16 +1,21 @@
 import { Link } from 'react-router-dom';
-import { Star, Heart } from 'lucide-react';
-import { formatPrice, displayName, discountPercent, isComingSoon, unavailableLabel } from '../utils/format';
+import { Star } from 'lucide-react';
+import { formatPrice, displayName, discountPercent, isComingSoon, unavailableLabel, localImage } from '../utils/format';
 import { FREE_DELIVERY_ABOVE, DELIVERY_CHARGE, categoryLabel } from '../config/store';
 import Badge from './ui/Badge';
+import HeartIcon from './ui/HeartIcon';
 
-// Cloudinary resize for card images (4:5)
+// Cloudinary resize for card images (4:5); local placeholder photos use their 480px WebP
 const cardImage = (url) =>
-  url && url.includes('res.cloudinary.com') && url.includes('/upload/')
+  localImage(url, 480) || (url && url.includes('res.cloudinary.com') && url.includes('/upload/')
     ? url.replace('/upload/', '/upload/w_480,h_600,c_fill,q_auto,f_auto/')
-    : url;
+    : url);
 
-export default function ProductCard({ product, onToggleWishlist, isWishlisted, compact = false }) {
+// Fade a photo in once it has loaded (CSS: img[data-fade]); no re-render needed
+export const markLoaded = (e) => { e.currentTarget.dataset.loaded = ''; };
+
+// priority: first row of a grid. Loads eagerly (it is often the LCP image) and skips the fade.
+export default function ProductCard({ product, onToggleWishlist, isWishlisted, compact = false, priority = false }) {
   const isOutOfStock = product.inStock === false || product.stock <= 0;
   const isClosed = product.seller && product.seller.isOpen === false;
   // Stars only for real reviews (rating is null when there are none)
@@ -28,7 +33,12 @@ export default function ProductCard({ product, onToggleWishlist, isWishlisted, c
           <img
             src={cardImage(product.image)}
             alt={name}
-            loading="lazy"
+            loading={priority ? 'eager' : 'lazy'}
+            fetchPriority={priority ? 'high' : undefined}
+            decoding="async"
+            data-fade={priority ? undefined : ''}
+            onLoad={priority ? undefined : markLoaded}
+            onError={priority ? undefined : markLoaded}
             width="480"
             height="600"
             className={`h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 ${isOutOfStock && !isComingSoon(product) ? 'opacity-60' : ''}`}
@@ -89,14 +99,14 @@ export default function ProductCard({ product, onToggleWishlist, isWishlisted, c
         <button
           type="button"
           onClick={() => onToggleWishlist(product)}
-          className={`absolute right-2 top-2 z-10 flex h-10 w-10 items-center justify-center rounded-full shadow-card transition-colors ${
+          className={`absolute right-2 top-2 z-10 flex h-10 w-10 items-center justify-center rounded-full shadow-card transition-[color,background-color,transform] duration-150 motion-safe:active:scale-90 ${
             isWishlisted ? 'bg-[#B91C1C] text-white' : 'bg-white/95 text-slate-600 hover:text-[#B91C1C]'
           }`}
           aria-label={isWishlisted ? 'Remove from wishlist' : 'Save to wishlist'}
           aria-pressed={Boolean(isWishlisted)}
           title="Save to wishlist"
         >
-          <Heart className={`h-[18px] w-[18px] ${isWishlisted ? 'fill-current' : ''}`} />
+          <HeartIcon filled={isWishlisted} className="h-[18px] w-[18px]" />
         </button>
       )}
     </div>

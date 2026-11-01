@@ -37,6 +37,9 @@ const shippingAddressSchema = new mongoose.Schema({
 const orderSchema = new mongoose.Schema({
   orderId: { type: String, required: true, unique: true },
   userEmail: { type: String, required: true },
+  // true when placed without being logged in: userEmail is then only contact info typed
+  // at checkout and the order is not shown in any account with that email
+  isGuest: { type: Boolean, default: false },
   items: [orderItemSchema],
   shippingAddress: shippingAddressSchema,
   paymentMethod: { type: String, required: true },

@@ -17,5 +17,6 @@ const SIZES = {
   lg: 'min-h-12 px-6 text-[15px]'
 };
 
+// Pressed state: a slight press-in on tap (not for disabled buttons or reduced motion)
 export const buttonClass = (variant = 'primary', size = 'md', extra = '') =>
-  `inline-flex items-center justify-center gap-2 rounded-lg font-semibold leading-none transition-colors duration-150 disabled:opacity-60 disabled:cursor-not-allowed ${SIZES[size]} ${VARIANTS[variant]} ${extra}`;
+  `inline-flex items-center justify-center gap-2 rounded-lg font-semibold leading-none select-none transition-[color,background-color,border-color,transform] duration-150 motion-safe:active:scale-[0.97] disabled:opacity-60 disabled:cursor-not-allowed ${SIZES[size]} ${VARIANTS[variant]} ${extra}`;

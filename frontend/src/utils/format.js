@@ -26,7 +26,20 @@ export function discountPercent(p) {
 export const isComingSoon = (product) => /coming soon/i.test(product?.badge || '');
 export const unavailableLabel = (product) => (isComingSoon(product) ? 'Coming soon' : 'Out of stock');
 
+// Photos stored in public/products (e.g. "https://dhagaro.vercel.app/products/bedsheet.jpg")
+// also exist as resized WebP files: name-480.webp and name-960.webp (bedsheet.jpg is 216 KB,
+// its 480px WebP 35 KB). Only these names have variants; any other URL is left alone.
+const LOCAL_VARIANTS = new Set(['bedsheet', 'curtains', 'cushion-covers', 'towels']);
+export function localImage(url, width) {
+  if (!url || typeof url !== 'string') return null;
+  const m = url.match(/^(?:https:\/\/dhagaro\.vercel\.app)?\/products\/([a-z0-9-]+)\.jpg$/);
+  if (!m || !LOCAL_VARIANTS.has(m[1])) return null;
+  return `/products/${m[1]}-${width <= 480 ? 480 : 960}.webp`;
+}
+
 export function cloudinaryImage(url, width, extra = 'c_limit') {
+  const local = localImage(url, width);
+  if (local) return local;
   if (!url || typeof url !== 'string' || !url.includes('res.cloudinary.com') || !url.includes('/upload/')) return url;
   if (/\/upload\/[^/]*(w_|f_auto|q_auto)/.test(url)) return url; // already transformed
   return url.replace('/upload/', `/upload/f_auto,q_auto,${extra},w_${width}/`);

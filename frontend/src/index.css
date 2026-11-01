@@ -1,5 +1,25 @@
 @import "tailwindcss";
 
+/* Inter, self-hosted. Variable font (weights 400–700 in one file), Latin subset.
+   inter-symbols carries only ₹, so the rupee sign no longer downloads
+   Google's 83 KB latin-ext file. */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('./assets/fonts/inter-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('./assets/fonts/inter-symbols.woff2') format('woff2');
+  unicode-range: U+20B9;
+}
+
 /* Brand kit (business plan/03-brand-kit.md, Option A "Navy Bharosa").
    The old blue/amber/emerald utility classes are remapped here so the whole
    site follows the brand: blue → navy, amber → bazaar orange, emerald → COD green. */
@@ -168,6 +188,37 @@ summary { list-style: none; }
 /* Product page: mobile sticky buy bar must not cover the footer */
 @media (max-width: 1023px) {
   body.has-buy-bar { padding-bottom: 76px; }
+}
+
+/* ── Interaction feedback ─────────────────────────────────────────────── */
+
+/* Product photos fade in over their grey box once loaded, instead of popping in
+   line by line (onLoad sets data-loaded; see markLoaded in ProductCard.jsx) */
+img[data-fade] {
+  opacity: 0;
+  transition: opacity 0.35s ease-out;
+}
+img[data-fade][data-loaded] { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  img[data-fade] { transition: none; }
+}
+
+/* Mobile sticky buy bar: slides up once when the product page opens */
+@keyframes buyBarIn {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.buy-bar-in { animation: buyBarIn 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+
+/* Toast: drops in from the top */
+@keyframes toastIn {
+  from { opacity: 0; transform: translate(-50%, -8px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+.toast-in { animation: toastIn 0.22s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .buy-bar-in, .toast-in { animation: none; }
 }
 
 /* ── Homepage: 3D almirah showcase (AlmirahShowcase.jsx) ─────────────────

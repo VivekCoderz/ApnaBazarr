@@ -12,9 +12,13 @@ const getToken = () => getCookie('apna_admin_token');
 async function uploadToCloudinary(file, endpoint) {
   const formData = new FormData();
   formData.append('file', file);
+  // Product uploads are admin/seller-only on the server: send the admin token
+  const token = getToken();
   const res = await fetch(`${BASE_URL}/api/upload/${endpoint}`, {
     method: 'POST',
     body: formData,
+    credentials: 'include',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
   const contentType = res.headers.get("content-type");
   if (contentType && contentType.includes("application/json")) {
@@ -285,7 +289,8 @@ function AdminDashboardContent({ isOpen, onClose, products, orders, onAddProduct
       .finally(() => setFeedbacksLoading(false));
     // Load all reviews
     setReviewsLoading(true);
-    fetch(`${BASE_URL}/reviews`)
+    // Reviewer emails are only returned to the admin, so send the admin token
+    fetch(`${BASE_URL}/reviews`, adminInit)
       .then(r => r.json())
       .then(d => { if (d.success) setAllReviews(d.reviews || []); })
       .catch(() => {})

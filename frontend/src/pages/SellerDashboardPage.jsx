@@ -14,9 +14,11 @@ const STANDARD_CATEGORIES = ["Clothing", "Footwear", "Accessories", "Electronics
 async function uploadToCloudinary(file, endpoint) {
   const formData = new FormData();
   formData.append('file', file);
+  // Product uploads need the seller's session cookie
   const res = await fetch(`${BASE_URL}/api/upload/${endpoint}`, {
     method: 'POST',
     body: formData,
+    credentials: 'include',
   });
   const contentType = res.headers.get("content-type");
   if (contentType && contentType.includes("application/json")) {

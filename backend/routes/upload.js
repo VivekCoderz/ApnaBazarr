@@ -1,8 +1,12 @@
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
 const cloudinary = require('../config/cloudinary');
 const auth = require('../middlewares/auth');
+const { limiters } = require('../middlewares/security');
 const {
+  IMAGE_MAX,
+  VIDEO_MAX,
   uploadProductImage,
   uploadProductVideo,
   uploadReviewPhoto,
@@ -11,143 +15,91 @@ const {
   uploadFeedbackVideo,
 } = require('../middlewares/cloudinaryUpload');
 
-/**
- * POST /api/upload/product-image
- * Upload a product image to Cloudinary
- */
-router.post('/product-image', uploadProductImage.single('file'), (req, res) => {
-  try {
-    if (!req.file) return res.status(400).json({ error: 'No image file provided' });
+// Who may upload what:
+//   product-image / product-video  -> logged-in sellers and the admin only
+//   feedback-photo / feedback-video, review-video -> any logged-in account
+//   review-photo / custom-image     -> anyone (guests write reviews and personalise
+//                                      products), but images only, 5 MB, rate-limited per IP
+// Every endpoint: one file, strict type list, size cap, per-IP rate limit.
 
-    res.json({
-      success: true,
-      url: req.file.path,
-      publicId: req.file.filename,
-      folder: 'apna-bazarr/products',
-      format: req.file.mimetype,
-    });
-  } catch (err) {
-    console.error('Product image upload error:', err);
-    res.status(500).json({ error: 'Image upload failed', details: err.message });
+const sellerOrAdmin = (req, res, next) => {
+  if (req.user?.role !== 'admin' && req.user?.role !== 'seller') {
+    return res.status(403).json({ success: false, error: 'Only sellers and the admin can upload product media.' });
   }
-});
+  next();
+};
 
-/**
- * POST /api/upload/product-video
- * Upload a product video to Cloudinary
- */
-router.post('/product-video', uploadProductVideo.single('file'), (req, res) => {
-  try {
-    if (!req.file) return res.status(400).json({ error: 'No video file provided' });
-
-    res.json({
-      success: true,
-      url: req.file.path,
-      publicId: req.file.filename,
-      folder: 'apna-bazarr/product-videos',
-      format: req.file.mimetype,
-    });
-  } catch (err) {
-    console.error('Product video upload error:', err);
-    res.status(500).json({ error: 'Video upload failed', details: err.message });
+// Refuse an obviously oversized request before any of it is streamed to Cloudinary
+const maxRequestSize = (fileLimit) => (req, res, next) => {
+  const length = Number(req.headers['content-length']);
+  if (length && length > fileLimit + 64 * 1024) {
+    return res.status(413).json({ success: false, error: `File is too large. Maximum size is ${Math.round(fileLimit / (1024 * 1024))} MB.` });
   }
-});
+  next();
+};
 
-/**
- * POST /api/upload/review-photo
- * Upload a customer review photo to Cloudinary
- */
-router.post('/review-photo', uploadReviewPhoto.single('file'), (req, res) => {
-  try {
-    if (!req.file) return res.status(400).json({ error: 'No photo file provided' });
+// Runs multer and turns its errors (wrong type, too big, Cloudinary refusing the file)
+// into a short JSON message without internal details
+const receive = (uploader, fileLimit) => (req, res, next) => {
+  uploader.single('file')(req, res, (err) => {
+    if (!err) return next();
+    if (err instanceof multer.MulterError) {
+      const message = err.code === 'LIMIT_FILE_SIZE'
+        ? `File is too large. Maximum size is ${Math.round(fileLimit / (1024 * 1024))} MB.`
+        : (err.code === 'LIMIT_UNEXPECTED_FILE' && err.message && !err.message.startsWith('Unexpected')) ? err.message
+        : 'Upload rejected. Please send one photo or video file.';
+      return res.status(400).json({ success: false, error: message });
+    }
+    console.error('Upload error:', err);
+    // Cloudinary answers 400 when the file's real contents aren't an allowed format
+    if (Number(err.http_code) === 400) {
+      return res.status(400).json({ success: false, error: 'This file could not be read. Please use a JPG, PNG or WebP photo (or MP4/WebM/MOV video).' });
+    }
+    return res.status(502).json({ success: false, error: 'Upload failed. Please try again in a minute.' });
+  });
+};
 
-    res.json({
-      success: true,
-      url: req.file.path,
-      publicId: req.file.filename,
-      folder: 'apna-bazarr/reviews',
-    });
-  } catch (err) {
-    console.error('Review photo upload error:', err);
-    res.status(500).json({ error: 'Photo upload failed', details: err.message });
-  }
-});
+const image = (uploader) => [limiters.imageUpload, maxRequestSize(IMAGE_MAX), receive(uploader, IMAGE_MAX)];
+const video = (uploader) => [limiters.videoUpload, maxRequestSize(VIDEO_MAX), receive(uploader, VIDEO_MAX)];
 
-/**
- * POST /api/upload/custom-image
- * Upload a user custom customization image to Cloudinary
- */
-router.post('/custom-image', uploadReviewPhoto.single('file'), (req, res) => {
-  try {
-    if (!req.file) return res.status(400).json({ error: 'No customization image file provided' });
-    res.json({
-      success: true,
-      url: req.file.path,
-      publicId: req.file.filename,
-      folder: 'apna-bazarr/reviews',
-    });
-  } catch (err) {
-    console.error('Custom image upload error:', err);
-    res.status(500).json({ error: 'Custom image upload failed', details: err.message });
-  }
-});
+const sendResult = (folder, missingMessage) => (req, res) => {
+  if (!req.file) return res.status(400).json({ success: false, error: missingMessage });
+  res.json({
+    success: true,
+    url: req.file.path,
+    publicId: req.file.filename,
+    folder,
+    format: req.file.mimetype,
+  });
+};
 
-/**
- * POST /api/upload/feedback-photo
- * Upload a customer feedback photo to Cloudinary
- */
-router.post('/feedback-photo', uploadFeedbackPhoto.single('file'), (req, res) => {
-  try {
-    if (!req.file) return res.status(400).json({ error: 'No photo file provided' });
-    res.json({
-      success: true,
-      url: req.file.path,
-      publicId: req.file.filename,
-      folder: 'apna-bazarr/feedbacks',
-    });
-  } catch (err) {
-    console.error('Feedback photo upload error:', err);
-    res.status(500).json({ error: 'Photo upload failed', details: err.message });
-  }
-});
+/** POST /api/upload/product-image — seller/admin product photo */
+router.post('/product-image', auth, sellerOrAdmin, ...image(uploadProductImage),
+  sendResult('apna-bazarr/products', 'No image file provided'));
 
-/**
- * POST /api/upload/feedback-video
- * Upload a customer feedback video to Cloudinary
- */
-router.post('/feedback-video', uploadFeedbackVideo.single('file'), (req, res) => {
-  try {
-    if (!req.file) return res.status(400).json({ error: 'No video file provided' });
-    res.json({
-      success: true,
-      url: req.file.path,
-      publicId: req.file.filename,
-      folder: 'apna-bazarr/feedback-videos',
-    });
-  } catch (err) {
-    console.error('Feedback video upload error:', err);
-    res.status(500).json({ error: 'Video upload failed', details: err.message });
-  }
-});
+/** POST /api/upload/product-video — seller/admin product video */
+router.post('/product-video', auth, sellerOrAdmin, ...video(uploadProductVideo),
+  sendResult('apna-bazarr/product-videos', 'No video file provided'));
 
-/**
- * POST /api/upload/review-video
- * Upload a customer review video to Cloudinary
- */
-router.post('/review-video', uploadReviewVideo.single('file'), (req, res) => {
-  try {
-    if (!req.file) return res.status(400).json({ error: 'No video file provided' });
-    res.json({
-      success: true,
-      url: req.file.path,
-      publicId: req.file.filename,
-      folder: 'apna-bazarr/review-videos',
-    });
-  } catch (err) {
-    console.error('Review video upload error:', err);
-    res.status(500).json({ error: 'Video upload failed', details: err.message });
-  }
-});
+/** POST /api/upload/review-photo — review photo (guests allowed) */
+router.post('/review-photo', ...image(uploadReviewPhoto),
+  sendResult('apna-bazarr/reviews', 'No photo file provided'));
+
+/** POST /api/upload/custom-image — customer's personalisation photo (guests allowed) */
+router.post('/custom-image', ...image(uploadReviewPhoto),
+  sendResult('apna-bazarr/reviews', 'No customization image file provided'));
+
+/** POST /api/upload/feedback-photo — feedback form (requires login, as the form does) */
+router.post('/feedback-photo', auth, ...image(uploadFeedbackPhoto),
+  sendResult('apna-bazarr/feedbacks', 'No photo file provided'));
+
+/** POST /api/upload/feedback-video — feedback form (requires login) */
+router.post('/feedback-video', auth, ...video(uploadFeedbackVideo),
+  sendResult('apna-bazarr/feedback-videos', 'No video file provided'));
+
+/** POST /api/upload/review-video — review video (requires login: videos are large) */
+router.post('/review-video', auth, ...video(uploadReviewVideo),
+  sendResult('apna-bazarr/review-videos', 'No video file provided'));
 
 /**
  * DELETE /api/upload/:publicId
@@ -163,7 +115,7 @@ router.delete('/:publicId', auth, async (req, res) => {
     res.json({ success: true, result });
   } catch (err) {
     console.error('Cloudinary delete error:', err);
-    res.status(500).json({ error: 'Delete failed', details: err.message });
+    res.status(500).json({ success: false, error: 'Delete failed' });
   }
 });
 

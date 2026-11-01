@@ -1,16 +1,17 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Banknote, Truck, Heart, ArrowRight, PackageCheck } from 'lucide-react';
-import { formatPrice, displayName, discountPercent, unavailableLabel } from '../utils/format';
+import { Banknote, Truck, ArrowRight, PackageCheck } from 'lucide-react';
+import HeartIcon from './ui/HeartIcon';
+import { formatPrice, displayName, discountPercent, unavailableLabel, localImage } from '../utils/format';
 import { FREE_DELIVERY_ABOVE, DELIVERY_CHARGE, categoryLabel } from '../config/store';
 import Button from './ui/Button';
 import Badge from './ui/Badge';
 
 // Cloudinary resize for large spotlight images
 const sized = (url, w) =>
-  url && url.includes('res.cloudinary.com') && url.includes('/upload/')
+  localImage(url, w) || (url && url.includes('res.cloudinary.com') && url.includes('/upload/')
     ? url.replace('/upload/', `/upload/w_${w},c_limit,q_auto,f_auto/`)
-    : url;
+    : url);
 
 // Large "featured" layout used on the homepage when only 1–3 products are live,
 // so a single product looks intentional instead of a lonely small card.
@@ -116,11 +117,11 @@ export default function ProductSpotlight({ product, onAddToCart, onToggleWishlis
               onClick={() => onToggleWishlist(product)}
               aria-label={isWishlisted ? 'Remove from wishlist' : 'Save to wishlist'}
               aria-pressed={isWishlisted}
-              className={`hidden h-12 w-12 shrink-0 items-center justify-center rounded-lg border transition-colors sm:inline-flex ${
+              className={`hidden h-12 w-12 shrink-0 items-center justify-center rounded-lg border transition-[color,background-color,border-color,transform] duration-150 motion-safe:active:scale-95 sm:inline-flex ${
                 isWishlisted ? 'border-[#B91C1C] bg-[#B91C1C] text-white' : 'border-slate-300 text-slate-600 hover:border-[#B91C1C] hover:text-[#B91C1C]'
               }`}
             >
-              <Heart className={`h-5 w-5 ${isWishlisted ? 'fill-current' : ''}`} />
+              <HeartIcon filled={isWishlisted} className="h-5 w-5" />
             </button>
           )}
         </div>

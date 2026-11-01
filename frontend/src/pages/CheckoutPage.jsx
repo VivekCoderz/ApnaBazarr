@@ -202,6 +202,8 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
               const verifyRes = await fetch(`${BASE_URL}/orders/verify`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                // Session cookie files the paid order under the logged-in account
+                credentials: 'include',
                 body: JSON.stringify({
                   razorpay_order_id: response.razorpay_order_id,
                   razorpay_payment_id: response.razorpay_payment_id,

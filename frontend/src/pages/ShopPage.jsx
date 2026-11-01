@@ -233,10 +233,11 @@ export default function ShopPage({ products, loading = false, onAddToCart, onQui
           />
         ) : (
           <div className={GRID_CLASS}>
-            {filtered.map((product) => (
+            {filtered.map((product, i) => (
               <ProductCard
                 key={product.id}
                 product={product}
+                priority={i < 2}
                 onAddToCart={onAddToCart}
                 onQuickView={onQuickView}
                 onToggleWishlist={onToggleWishlist}

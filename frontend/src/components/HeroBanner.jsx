@@ -5,7 +5,7 @@ import {
   Layers, BedDouble, Sofa, UserPlus, Share2, Wallet
 } from 'lucide-react';
 import { getHeroSlides, AUTOPLAY_MS } from '../config/campaign';
-import { formatPrice, displayName, discountPercent } from '../utils/format';
+import { formatPrice, displayName, discountPercent, localImage } from '../utils/format';
 import Container from './ui/Container';
 import Button from './ui/Button';
 import Badge from './ui/Badge';
@@ -28,9 +28,9 @@ const THEMES = {
 
 // Cloudinary transform helper (crop + auto format/quality)
 const cdn = (url, t) =>
-  url && url.includes('res.cloudinary.com') && url.includes('/upload/')
+  localImage(url, 960) || (url && url.includes('res.cloudinary.com') && url.includes('/upload/')
     ? url.replace('/upload/', `/upload/${t}/`)
-    : url;
+    : url);
 
 /* ── Right-hand panels ─────────────────────────────────────────────── */
 
@@ -135,8 +135,8 @@ const RESELLER_ROWS = [
   { icon: Wallet, label: 'Earn commission', note: 'Paid to your UPI' }
 ];
 
-function SidePanel({ slide, eager, loading, current }) {
-  if (slide.kind === 'scene') return <TextileScene scene={slide.scene} active={current} />;
+function SidePanel({ slide, eager, loading, current, near }) {
+  if (slide.kind === 'scene') return <TextileScene scene={slide.scene} active={current} mount={near} />;
   if (slide.layout === 'split') {
     if (slide.image) return <PhotoCollage slide={slide} eager={eager} />;
     return loading ? <PhotoSkeleton /> : <OfferPanel />;
@@ -181,7 +181,7 @@ function SlideText({ slide, theme, isFirst }) {
   );
 }
 
-function Slide({ slide, isFirst, hidden, current, label, loading }) {
+function Slide({ slide, isFirst, hidden, current, near, label, loading }) {
   const theme = THEMES[slide.theme] || THEMES.navy;
   const shell = (children, extra = '') => (
     <div
@@ -229,7 +229,7 @@ function Slide({ slide, isFirst, hidden, current, label, loading }) {
           <SlideText slide={slide} theme={theme} isFirst={isFirst} />
         </div>
         <div className={`${split ? 'order-first' : ''} flex min-h-0 items-center justify-center lg:order-last lg:h-[360px] lg:justify-end`}>
-          <SidePanel slide={slide} eager={isFirst} loading={loading} current={current} />
+          <SidePanel slide={slide} eager={isFirst} loading={loading} current={current} near={near} />
         </div>
       </Container>
     </>,
@@ -312,6 +312,13 @@ export default function HeroBanner({ products = [], loading = false }) {
     return () => clearTimeout(t);
   }, [playing, next, pos]);
 
+  // A few seconds after a slide lands, prepare the next slide's 3D scene
+  const [warmPos, setWarmPos] = useState(null);
+  useEffect(() => {
+    const t = setTimeout(() => setWarmPos(pos), Math.min(3000, AUTOPLAY_MS - 1500));
+    return () => clearTimeout(t);
+  }, [pos]);
+
   // Touch / mouse drag
   const onPointerDown = (e) => {
     if (count < 2 || (e.pointerType === 'mouse' && e.button !== 0)) return;
@@ -392,13 +399,17 @@ export default function HeroBanner({ products = [], loading = false }) {
             transition: animate && !dragging ? `transform ${DURATION}ms cubic-bezier(0.22, 0.61, 0.36, 1)` : 'none'
           }}
         >
-          {track.map(({ slide, key, clone, index }) => (
+          {track.map(({ slide, key, clone, index }, trackPos) => (
             <Slide
               key={key}
               slide={slide}
               isFirst={!clone && index === 0}
               hidden={clone || index !== active}
               current={clone ? (key === 'clone-first' ? active === 0 : active === count - 1) : index === active}
+              // Heavy 3D scenes are built only for the visible slide, the real twin of a
+              // clone (the loop jumps to it unanimated) and, once the current scene has
+              // played, the next slide (so autoplay slides in a ready scene)
+              near={trackPos === offset || (!clone && index === active) || (warmPos === pos && trackPos === offset + 1)}
               label={clone ? undefined : `${index + 1} of ${count}: ${slide.headline}`}
               loading={loading}
             />
@@ -423,7 +434,8 @@ export default function HeroBanner({ products = [], loading = false }) {
                   aria-current={i === active ? 'true' : undefined}
                   className="flex h-11 w-7 items-center justify-center sm:h-10"
                 >
-                  <span className={`block h-1 rounded-sm transition-all duration-300 ${i === active ? 'w-6 bg-brand-navy' : 'w-3 bg-slate-300 hover:bg-slate-400'}`} />
+                  {/* transform (not width) so the indicator animates on the GPU */}
+                  <span className={`block h-1 w-6 rounded-sm transition-transform duration-300 motion-reduce:transition-none ${i === active ? 'bg-brand-navy' : 'scale-x-50 bg-slate-300 hover:bg-slate-400'}`} />
                 </button>
               ))}
               <button type="button" onClick={next} aria-label="Next slide" className="hidden h-10 w-10 items-center justify-center rounded text-brand-navy hover:bg-brand-cream sm:flex">
