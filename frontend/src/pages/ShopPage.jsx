@@ -120,6 +120,8 @@ export default function ShopPage({ products, loading = false, onAddToCart, onQui
   // 'newest': the API already returns products newest first (and has no createdAt field),
   // so the server order is kept; sorting on the missing date did nothing
   else if (sortBy === 'newest') filtered.sort((a, b) => products.indexOf(a) - products.indexOf(b));
+  // 'featured': items you can order now come before out-of-stock / coming-soon ones
+  else filtered.sort((a, b) => Number(a.inStock === false || a.stock <= 0) - Number(b.inStock === false || b.stock <= 0));
 
   const tiles = categoryTiles(products);
   const categoryIsEmpty = selectedCategory !== 'All' && !products.some(p => p.category === selectedCategory);
