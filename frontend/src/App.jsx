@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback, useMemo, useRef, lazy, Suspens
 import { BrowserRouter, Routes, Route, Link, useNavigate, useLocation, useNavigationType } from 'react-router-dom';
 
 import Header from './components/Header';
-import TopBar from './components/TopBar';
 import MobileDrawer from './components/MobileDrawer';
 import QuickViewModal from './components/QuickViewModal';
 import AuthModal from './components/AuthModal';
@@ -784,7 +783,6 @@ function AppContent() {
       )}
 
       {/* Top Ribbon */}
-      {!isNoNavRoute && <TopBar />}
 
       {!isNoNavRoute && (
         <Header
