@@ -171,6 +171,16 @@ export default function HomePage({
         </Container>
       </div>
 
+      <ProductsSection
+        products={products}
+        loading={loading}
+        onAddToCart={onAddToCart}
+        onQuickView={onQuickView}
+        onToggleWishlist={onToggleWishlist}
+        wishlistItems={wishlistItems}
+        cartItems={cartItems}
+      />
+
       {/* Shop by category: photo tiles for live categories, "Coming soon" tiles for the rest */}
       <Section aria-labelledby="home-categories-title" id="categories">
         <SectionHeader
@@ -182,18 +192,11 @@ export default function HomePage({
         <CategoryShowcase products={products} loading={loading} />
       </Section>
 
-      {/* 3D open-almirah showcase: doors swing open on scroll */}
-      <AlmirahShowcase />
+      {/* 3D open-almirah showcase (tablet/desktop; phones already get the 3D hero) */}
+      <div className="hidden md:block">
+        <AlmirahShowcase />
+      </div>
 
-      <ProductsSection
-        products={products}
-        loading={loading}
-        onAddToCart={onAddToCart}
-        onQuickView={onQuickView}
-        onToggleWishlist={onToggleWishlist}
-        wishlistItems={wishlistItems}
-        cartItems={cartItems}
-      />
 
       {/* Recently viewed: only when there is something worth showing */}
       {recentlyViewed.length >= 2 && (
@@ -266,7 +269,7 @@ export default function HomePage({
 
       {/* While the catalogue is small, turn visitors into a WhatsApp waitlist */}
       {!loading && products.length < MIN_FULL_CATALOGUE && (
-        <Section className="!pb-0">
+        <Section className="!pb-0 hidden md:block">
           <WaitlistBand />
         </Section>
       )}

@@ -12,7 +12,7 @@ import { displayName, formatPrice } from '../utils/format';
 
 // Hero carousel: time each slide stays before auto-advancing (founder: 2 seconds).
 // Autoplay pauses on hover/focus, when the tab is hidden, and is off for reduced motion.
-export const AUTOPLAY_MS = 2000;
+export const AUTOPLAY_MS = 5000;
 
 // ── Hero carousel slides ────────────────────────────────────────────────
 // Professional, photo-led banners (no clipart). Slide kinds:
@@ -130,9 +130,6 @@ export const CAMPAIGNS = [
         subline: 'Suit sets and co-ord sets from Panipat. Pay cash on delivery.',
         cta: { label: 'Shop the Diwali collection', tag: 'diwali' }
       },
-      SLIDE_OFFER,
-      SLIDE_WAITLIST,
-      SLIDE_RESELLER
     ]
   },
   {
@@ -161,9 +158,6 @@ export const CAMPAIGNS = [
         subline: 'Mink blankets, dohars and bedsheets. Weight and size clearly listed.',
         cta: { label: 'Shop blankets', category: 'Kambal & Dohar' }
       },
-      SLIDE_OFFER,
-      SLIDE_WAITLIST,
-      SLIDE_RESELLER
     ]
   }
 ];
@@ -192,9 +186,6 @@ const DEFAULT_CAMPAIGN = {
       subline: 'Bedsheets, blankets and suit sets, straight from Panipat. Pay cash on delivery.',
       cta: { label: 'Shop all products', to: '/shop' }
     },
-    SLIDE_OFFER,
-    SLIDE_WAITLIST,
-    SLIDE_RESELLER
   ]
 };
 
@@ -331,11 +322,8 @@ export function getHeroSlides(products = [], now = getNow()) {
         return;
       }
       out.push({ ...slide, layout: 'split', image: picks[0].image, product: picks[0], cta: ctaFor(slide.cta) });
-      // Other live products get their own banner; a single product also gets a full-bleed crop.
-      // These are shown after the next slide so photo and text banners alternate.
-      extra = picks.length > 1
-        ? picks.slice(1).map(p => ({ id: `product-${p.id}`, kind: 'product', theme: 'light', layout: 'split', image: p.image, product: p, ...productCopy(p), cta: productCta(p) }))
-        : [{ id: `product-${picks[0].id}-wide`, kind: 'product', theme: 'navy', layout: 'fullbleed', image: picks[0].image, product: picks[0], ...productCopy(picks[0]), cta: productCta(picks[0]) }];
+      // Other live products get their own banner, shown after the next slide
+      extra = picks.slice(1).map(p => ({ id: `product-${p.id}`, kind: 'product', theme: 'light', layout: 'split', image: p.image, product: p, ...productCopy(p), cta: productCta(p) }));
     });
   if (extra.length) out.push(...extra);
   return out;
