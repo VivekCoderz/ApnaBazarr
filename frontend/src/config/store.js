@@ -25,6 +25,8 @@ export const CATEGORIES = [
   { name: 'Bedsheet', label: 'Bedsheets' },
   { name: 'Cushion & Sofa Cover', label: 'Cushion & Sofa Covers' },
   { name: 'Mats & Table Runner', label: 'Mats & Table Runners' },
+  { name: 'Towels', label: 'Towels' },
+  { name: 'Curtains', label: 'Curtains' },
   { name: 'Suit Sets', label: 'Suit Sets' },
   { name: 'Co-ord Sets', label: 'Co-ord Sets' },
   { name: "Women's Wear", label: "Women's Wear" }

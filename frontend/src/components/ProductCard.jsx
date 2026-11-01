@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Star, Heart } from 'lucide-react';
-import { formatPrice, displayName, discountPercent } from '../utils/format';
+import { formatPrice, displayName, discountPercent, isComingSoon, unavailableLabel } from '../utils/format';
 import { FREE_DELIVERY_ABOVE, DELIVERY_CHARGE, categoryLabel } from '../config/store';
 import Badge from './ui/Badge';
 
@@ -16,7 +16,7 @@ export default function ProductCard({ product, onToggleWishlist, isWishlisted, c
   // Stars only for real reviews (rating is null when there are none)
   const hasReviews = product.reviewsCount > 0 && product.rating != null;
   const off = discountPercent(product);
-  const isNew = /new/i.test(product.badge || '');
+  const isNew = /new/i.test(product.badge || '') && !isComingSoon(product);
   const href = `/product/${product.id}`;
   const name = displayName(product.name);
 
@@ -31,11 +31,11 @@ export default function ProductCard({ product, onToggleWishlist, isWishlisted, c
             loading="lazy"
             width="480"
             height="600"
-            className={`h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 ${isOutOfStock ? 'opacity-60' : ''}`}
+            className={`h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 ${isOutOfStock && !isComingSoon(product) ? 'opacity-60' : ''}`}
           />
           <span className="absolute left-2.5 top-2.5 flex flex-col items-start gap-1">
             {isOutOfStock ? (
-              <Badge tone="muted">Out of stock</Badge>
+              <Badge tone={isComingSoon(product) ? 'new' : 'muted'}>{unavailableLabel(product)}</Badge>
             ) : isClosed ? (
               <Badge tone="muted">Shop closed</Badge>
             ) : (

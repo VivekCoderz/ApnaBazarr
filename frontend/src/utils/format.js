@@ -22,6 +22,10 @@ export function discountPercent(p) {
 
 // Cloudinary delivery transform: smaller, modern-format images for the spot they fill
 // (a 1200px JPEG of ~100 KB becomes a ~30 KB WebP at card size). Other URLs pass through.
+// Products added ahead of stock carry the badge "Coming soon": shown, but not orderable
+export const isComingSoon = (product) => /coming soon/i.test(product?.badge || '');
+export const unavailableLabel = (product) => (isComingSoon(product) ? 'Coming soon' : 'Out of stock');
+
 export function cloudinaryImage(url, width, extra = 'c_limit') {
   if (!url || typeof url !== 'string' || !url.includes('res.cloudinary.com') || !url.includes('/upload/')) return url;
   if (/\/upload\/[^/]*(w_|f_auto|q_auto)/.test(url)) return url; // already transformed

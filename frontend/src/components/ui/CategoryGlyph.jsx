@@ -1,4 +1,4 @@
-import { Layers, BedDouble, Sofa, RectangleHorizontal, Shirt, ShoppingBag } from 'lucide-react';
+import { Layers, BedDouble, Sofa, RectangleHorizontal, Shirt, ShoppingBag, Bath, PanelsTopLeft } from 'lucide-react';
 
 // Simple monochrome line icon per category (used where there is no product photo yet)
 const ICONS = {
@@ -6,6 +6,8 @@ const ICONS = {
   Bedsheet: BedDouble,
   'Cushion & Sofa Cover': Sofa,
   'Mats & Table Runner': RectangleHorizontal,
+  Towels: Bath,
+  Curtains: PanelsTopLeft,
   'Suit Sets': Shirt,
   'Co-ord Sets': Shirt,
   "Women's Wear": Shirt

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Banknote, Truck, Heart, ArrowRight, PackageCheck } from 'lucide-react';
-import { formatPrice, displayName, discountPercent } from '../utils/format';
+import { formatPrice, displayName, discountPercent, unavailableLabel } from '../utils/format';
 import { FREE_DELIVERY_ABOVE, DELIVERY_CHARGE, categoryLabel } from '../config/store';
 import Button from './ui/Button';
 import Badge from './ui/Badge';
@@ -105,7 +105,7 @@ export default function ProductSpotlight({ product, onAddToCart, onToggleWishlis
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <Button size="lg" onClick={buyNow} disabled={isOutOfStock} className="sm:min-w-[220px]">
-            {isOutOfStock ? 'Out of stock' : 'Buy Now · Cash on Delivery'}
+            {isOutOfStock ? unavailableLabel(product) : 'Buy Now · Cash on Delivery'}
           </Button>
           <Button to={href} variant="secondary" size="lg">
             View details <ArrowRight className="h-4 w-4" aria-hidden="true" />

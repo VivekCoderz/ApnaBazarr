@@ -4,7 +4,7 @@ import { Star, ShoppingBag, Heart, Truck, RotateCcw, Upload, CheckCircle, Sparkl
 import ProductCard from '../components/ProductCard';
 import { whatsappShareUrl } from '../utils/referral';
 import { useShippingQuote } from '../utils/shipping';
-import { formatPrice, displayName, cloudinaryImage } from '../utils/format';
+import { formatPrice, displayName, cloudinaryImage, unavailableLabel } from '../utils/format';
 import { FREE_DELIVERY_ABOVE, DELIVERY_CHARGE, COD_MAX_AMOUNT, RETURN_POLICY_LINE, whatsappUrl, categoryLabel } from '../config/store';
 import Button from '../components/ui/Button';
 import { buttonClass } from '../components/ui/buttonClass';
@@ -580,7 +580,7 @@ export default function ProductDetailPage({
               </div>
               <span className={`inline-flex items-center gap-1.5 text-sm font-semibold ${isOutOfStock ? 'text-[#B91C1C]' : 'text-emerald-700'}`}>
                 <span className={`h-2 w-2 rounded-full ${isOutOfStock ? 'bg-[#B91C1C]' : 'bg-emerald-600'}`} aria-hidden="true" />
-                {isOutOfStock ? 'Out of stock' : 'In stock, ships in 2 days'}
+                {isOutOfStock ? unavailableLabel(product) : 'In stock, ships in 2 days'}
               </span>
             </div>
 
@@ -661,7 +661,7 @@ export default function ProductDetailPage({
             {/* Actions */}
             <div className="flex flex-col gap-3 sm:flex-row">
               <Button size="lg" disabled={isOutOfStock} onClick={() => !isOutOfStock && handleBuyNow()} className="flex-1">
-                {isOutOfStock ? 'Out of stock' : 'Buy Now · Cash on Delivery'}
+                {isOutOfStock ? unavailableLabel(product) : 'Buy Now · Cash on Delivery'}
               </Button>
               {!isOutOfStock && (
                 <Button size="lg" variant="secondary" onClick={() => handleAddToCartWithCustomization()} className="flex-1">
@@ -969,7 +969,7 @@ export default function ProductDetailPage({
             </button>
           )}
           <Button size="lg" disabled={isOutOfStock} onClick={() => !isOutOfStock && handleBuyNow()} className="shrink-0">
-            {isOutOfStock ? 'Out of stock' : 'Buy Now'}
+            {isOutOfStock ? unavailableLabel(product) : 'Buy Now'}
           </Button>
         </div>
       </div>
