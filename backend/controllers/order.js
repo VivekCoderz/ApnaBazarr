@@ -72,6 +72,20 @@ async function newOrderId(prefix = 'AB') {
   return `${prefix}-${Date.now()}`;
 }
 
+// Names of cart items that cannot be bought right now (out of stock / "Coming soon").
+// Checked before a COD order or a Razorpay payment is created; /verify is not blocked,
+// so a customer who has already paid always gets their order saved.
+async function unavailableItems(items) {
+  const names = [];
+  for (const rawItem of items) {
+    const prodId = rawItem && (rawItem.productId || rawItem.id);
+    if (!mongoose.isValidObjectId(prodId)) continue;
+    const p = await Product.findById(prodId).select('name inStock stock isActive');
+    if (p && p.isActive !== false && (p.inStock === false || p.stock <= 0)) names.push(p.name);
+  }
+  return names;
+}
+
 async function processOrderItems(items, deliveryPincode) {
   let commissionSetting = await Setting.findOne({ key: 'commission_percentage' });
   const commissionPercent = commissionSetting ? Number(commissionSetting.value) : 10;
@@ -157,6 +171,10 @@ module.exports.createOrder = async (req, res) => {
       day: 'numeric'
     });
 
+    const soldOut = await unavailableItems(items);
+    if (soldOut.length) {
+      return res.status(400).json({ success: false, message: `Not available right now: ${soldOut.join(', ')}. Please remove it from your cart.` });
+    }
     const formattedItems = await processOrderItems(items, shippingAddress.pincode);
     if (formattedItems.length === 0) {
       return res.status(400).json({ success: false, message: 'The items in your cart are no longer available. Please check your cart.' });
@@ -245,6 +263,10 @@ module.exports.createRazorpayOrder = async (req, res) => {
     const { items } = req.body;
     if (!Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ success: false, message: 'Your cart is empty.' });
+    }
+    const soldOut = await unavailableItems(items);
+    if (soldOut.length) {
+      return res.status(400).json({ success: false, message: `Not available right now: ${soldOut.join(', ')}. Please remove it from your cart.` });
     }
     const formattedItems = await processOrderItems(items);
     if (formattedItems.length === 0) {
