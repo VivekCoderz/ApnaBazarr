@@ -73,7 +73,7 @@ export const CORE_CATEGORIES = ['Kambal & Dohar', 'Bedsheet', 'Cushion & Sofa Co
 // Desktop header nav: the main categories (plus the reseller link)
 export const NAV_CATEGORIES = ['Kambal & Dohar', 'Bedsheet', 'Suit Sets', 'Co-ord Sets'];
 
-export const EMAIL = 'appnabaazar@gmail.com';
+export const EMAIL = 'dhagaro.in@gmail.com';
 
 export function notifyMeUrl(label) {
   return whatsappUrl(`Hi Dhagaro, please notify me when ${label} are available.`);

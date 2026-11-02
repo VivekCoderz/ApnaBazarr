@@ -115,7 +115,7 @@ export default function PolicyPage({ type }) {
                 </div>
                 <div className="flex items-center space-x-3 text-xs sm:text-sm font-semibold text-slate-700">
                   <Mail className="w-5 h-5 text-brand-navy" />
-                  <a href="mailto:appnabaazar@gmail.com" className="hover:underline">appnabaazar@gmail.com</a>
+                  <a href="mailto:dhagaro.in@gmail.com" className="hover:underline">dhagaro.in@gmail.com</a>
                 </div>
                 <div className="flex items-center space-x-3 text-xs sm:text-sm font-semibold text-slate-700">
                   <MapPin className="w-5 h-5 text-brand-navy" />

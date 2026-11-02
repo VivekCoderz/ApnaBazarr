@@ -122,9 +122,9 @@ export default function MobileDrawer({ isOpen, onClose, cartCount, wishlistCount
 
         {/* Mobile Footer Contact */}
         <div className="p-4 border-t bg-slate-50 text-xs text-slate-500 space-y-2">
-          <a href="mailto:appnabaazar@gmail.com" className="flex items-center space-x-2 hover:text-slate-900 transition-colors">
+          <a href="mailto:dhagaro.in@gmail.com" className="flex items-center space-x-2 hover:text-slate-900 transition-colors">
             <Mail className="w-4 h-4 text-brand-navy" />
-            <span>appnabaazar@gmail.com</span>
+            <span>dhagaro.in@gmail.com</span>
           </a>
           <a href="tel:+919306810726" className="flex items-center space-x-2 hover:text-slate-900 transition-colors">
             <Phone className="w-4 h-4 text-brand-navy" />
