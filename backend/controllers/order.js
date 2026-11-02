@@ -1,4 +1,5 @@
 const Order = require('../models/Order');
+const { notifyNewOrder } = require('../utils/notify');
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const mongoose = require('mongoose');
@@ -211,6 +212,7 @@ module.exports.createOrder = async (req, res) => {
       totalAmount: calculatedTotal,
       estimatedDelivery: estimatedDeliveryStr
     });
+    notifyNewOrder(newOrder);
 
     res.status(201).json({
       success: true,
@@ -382,6 +384,7 @@ module.exports.verifyRazorpayPayment = async (req, res) => {
       paymentId: razorpay_payment_id,
       razorpayOrderId: razorpay_order_id
     });
+    notifyNewOrder(newOrder);
 
     return res.status(201).json({
       success: true,
