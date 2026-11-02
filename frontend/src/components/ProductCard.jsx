@@ -69,6 +69,9 @@ export default function ProductCard({ product, onToggleWishlist, isWishlisted, c
           <span className="line-clamp-2 text-sm font-semibold leading-snug text-ink group-hover:text-brand-navy sm:text-[15px]">
             {name}
           </span>
+          {product.colors?.length > 1 && (
+            <span className="text-xs text-slate-500">{product.colors.length} colours available</span>
+          )}
 
           {!compact && hasReviews && (
             <span className="flex items-center gap-1">

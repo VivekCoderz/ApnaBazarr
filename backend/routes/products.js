@@ -47,7 +47,7 @@ async function isAdminRequest(req) {
 // rating, reviewsCount, timestamps) is ignored so a seller cannot reassign a product
 // to another shop or fake its rating.
 const WRITABLE_FIELDS = ['name', 'category', 'gender', 'price', 'originalPrice', 'costPrice', 'discount', 'badge', 'stock',
-  'image', 'description', 'tags', 'isCustomizable', 'customizationType', 'customizationPrompt', 'sizes', 'colors', 'images',
+  'image', 'description', 'tags', 'isCustomizable', 'customizationType', 'customizationPrompt', 'sizes', 'colors', 'colorImages', 'images',
   'inStock', 'isActive', 'weight', 'length', 'width', 'height'];
 
 function pickWritable(body = {}) {
@@ -115,6 +115,7 @@ router.get('/', async (req, res) => {
         tags: p.tags,
         sizes: p.sizes,
         colors: p.colors,
+        colorImages: p.colorImages || [],
         images: p.images && p.images.length > 0 ? p.images : [p.image],
         inStock: p.inStock,
         isActive: p.isActive !== false,
@@ -171,6 +172,7 @@ router.get('/seller/my-products', auth, async (req, res) => {
       tags: p.tags,
       sizes: p.sizes,
       colors: p.colors,
+      colorImages: p.colorImages || [],
       images: p.images && p.images.length > 0 ? p.images : [p.image],
       inStock: p.inStock,
       isActive: p.isActive !== false,
@@ -233,6 +235,7 @@ router.get('/:id', async (req, res) => {
       tags: product.tags,
       sizes: product.sizes,
       colors: product.colors,
+      colorImages: product.colorImages || [],
       images: product.images && product.images.length > 0 ? product.images : [product.image],
       inStock: product.inStock,
       isActive: product.isActive !== false,
@@ -261,7 +264,7 @@ router.post('/', auth, async (req, res) => {
     if (req.user.role !== 'seller' && req.user.role !== 'admin') {
       return res.status(403).json({ success: false, message: 'Forbidden. Only sellers and admins can add products.' });
     }
-    const { name, category, gender, price, originalPrice, costPrice, discount, badge, stock, image, description, tags, isCustomizable, customizationType, customizationPrompt, sizes, colors, images, isActive } = req.body;
+    const { name, category, gender, price, originalPrice, costPrice, discount, badge, stock, image, description, tags, isCustomizable, customizationType, customizationPrompt, sizes, colors, colorImages, images, isActive } = req.body;
     const badPrice = priceError({ price }, true);
     if (badPrice) {
       return res.status(400).json({ success: false, message: badPrice });
@@ -269,7 +272,7 @@ router.post('/', auth, async (req, res) => {
     const newProduct = await Product.create({
       name, category, gender, price, originalPrice, costPrice, discount, badge, stock, image, description, tags, inStock: true,
       isActive: isActive !== false,
-      isCustomizable, customizationType, customizationPrompt, sizes, colors, images,
+      isCustomizable, customizationType, customizationPrompt, sizes, colors, colorImages, images,
       seller: req.user.role === 'seller' ? req.user._id : undefined
     });
     const formatted = {
@@ -290,6 +293,7 @@ router.post('/', auth, async (req, res) => {
       tags: newProduct.tags,
       sizes: newProduct.sizes,
       colors: newProduct.colors,
+      colorImages: newProduct.colorImages || [],
       images: newProduct.images && newProduct.images.length > 0 ? newProduct.images : [newProduct.image],
       inStock: newProduct.inStock,
       isActive: newProduct.isActive !== false,
@@ -343,6 +347,7 @@ router.put('/:id', auth, async (req, res) => {
       tags: updated.tags,
       sizes: updated.sizes,
       colors: updated.colors,
+      colorImages: updated.colorImages || [],
       images: updated.images && updated.images.length > 0 ? updated.images : [updated.image],
       inStock: updated.inStock,
       isActive: updated.isActive !== false,

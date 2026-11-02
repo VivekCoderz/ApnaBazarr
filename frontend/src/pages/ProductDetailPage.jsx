@@ -372,7 +372,11 @@ export default function ProductDetailPage({
     .filter(p => p.id !== product.id && (p.category === product.category || p.gender === product.gender))
     .slice(0, 4);
 
-  const imagesList = product.images && product.images.length > 0 ? product.images : [product.image];
+  // Colour variants with their own photos: the gallery follows the selected colour
+  const colorVariant = (product.colorImages || []).find(v => v.color?.toLowerCase() === String(selectedColor).toLowerCase());
+  const imagesList = colorVariant?.images?.length
+    ? colorVariant.images
+    : product.images && product.images.length > 0 ? product.images : [product.image];
   // Rating only from real reviews; nothing is shown when there are none
   const reviewCount = reviewsLoading ? (product.reviewsCount || 0) : reviews.length;
   const averageRating = !reviewsLoading && reviews.length > 0
@@ -582,6 +586,24 @@ export default function ProductDetailPage({
                 </legend>
                 <div className="flex flex-wrap gap-3">
                   {product.colors.map((color) => {
+                    const photo = (product.colorImages || []).find(v => v.color?.toLowerCase() === color.toLowerCase())?.images?.[0];
+                    if (photo) {
+                      const isSelected = selectedColor.toLowerCase() === color.toLowerCase();
+                      return (
+                        <button
+                          key={color}
+                          type="button"
+                          onClick={() => { setSelectedColor(color); setActiveImageIndex(0); }}
+                          aria-pressed={isSelected}
+                          className={`flex w-20 flex-col items-center gap-1 rounded-lg border-2 p-1 text-xs font-medium transition-colors ${
+                            isSelected ? 'border-brand-navy text-ink' : 'border-slate-200 text-slate-600 hover:border-slate-400'
+                          }`}
+                        >
+                          <img src={cloudinaryImage(photo, 160)} alt="" width="72" height="90" className="aspect-[4/5] w-full rounded object-cover" loading="lazy" />
+                          <span className="line-clamp-2 text-center leading-tight">{color}</span>
+                        </button>
+                      );
+                    }
                     const isHex = color.startsWith('#');
                     const normalizedColor = isHex ? color : color.toLowerCase();
                     const isSelected = selectedColor.toLowerCase() === color.toLowerCase();
