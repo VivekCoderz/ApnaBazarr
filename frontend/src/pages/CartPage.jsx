@@ -1,21 +1,36 @@
-import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Minus, Trash2, ShoppingBag, ArrowRight, ArrowLeft, Truck } from 'lucide-react';
+import { Plus, Minus, Trash2, ShoppingBag, ArrowRight, ArrowLeft } from 'lucide-react';
 import { useShippingQuote } from '../utils/shipping';
-import { formatPrice, cloudinaryImage } from '../utils/format';
-import { FREE_DELIVERY_ABOVE } from '../config/store';
+import { formatPrice, cloudinaryImage, displayName, isOrderable } from '../utils/format';
+import { categoryLabel, onlineDiscountFor } from '../config/store';
+import FreeDeliveryProgress from '../components/FreeDeliveryProgress';
 
 const MIN_ORDER = 100;
+const MAX_SUGGESTIONS = 3;
 
-export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem }) {
+// "Complete the set": up to 3 orderable products not already in the cart, other
+// categories first. Products that need personalisation are left out (they can't be
+// added with one tap). Coming-soon / out-of-stock products never appear here.
+function cartSuggestions(products, cartItems) {
+  const inCart = new Set(cartItems.map(item => String(item.id)));
+  const cartCategories = new Set(cartItems.map(item => item.category));
+  return products
+    .filter(p => isOrderable(p) && !inCart.has(String(p.id)) && !p.isCustomizable && p.image)
+    .map((p, index) => ({ p, index, sameCategory: cartCategories.has(p.category) }))
+    .sort((a, b) => Number(a.sameCategory) - Number(b.sameCategory) || a.index - b.index)
+    .slice(0, MAX_SUGGESTIONS)
+    .map(({ p }) => p);
+}
+
+export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem, products = [], onAddToCart }) {
   const navigate = useNavigate();
+  const suggestions = onAddToCart ? cartSuggestions(products, cartItems) : [];
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
   // Shipping is quoted by the server (same rule it charges at checkout)
   const { shipping, loading: shippingLoading } = useShippingQuote(cartItems);
   const total = subtotal + (shipping || 0);
   const belowMinimum = !shippingLoading && total < MIN_ORDER;
-  const neededForFree = Math.max(0, FREE_DELIVERY_ABOVE - subtotal);
 
   return (
     <div className="py-6 sm:py-10 bg-slate-50 min-h-screen">
@@ -121,6 +136,38 @@ export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem }) 
 
                 </div>
               ))}
+
+              {/* Complete the set: hidden when nothing orderable is left to suggest */}
+              {suggestions.length > 0 && (
+                <section aria-labelledby="cart-suggestions" className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+                  <h2 id="cart-suggestions" className="text-base font-bold text-brand-navy">Complete the set</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">Frequently bought together</p>
+                  <ul className={`mt-3 grid grid-cols-1 gap-3 ${suggestions.length > 1 ? 'sm:grid-cols-2' : 'sm:max-w-md'}`}>
+                    {suggestions.map(p => (
+                      <li key={p.id} className="flex items-center gap-3 rounded-xl border border-slate-100 p-2.5">
+                        <Link to={`/product/${p.id}`} className="shrink-0">
+                          <img src={cloudinaryImage(p.image, 128)} alt="" width="56" height="56" loading="lazy" className="w-14 h-14 object-cover rounded-lg bg-slate-50" />
+                        </Link>
+                        <div className="min-w-0 flex-1">
+                          <Link to={`/product/${p.id}`} className="block text-sm font-semibold text-slate-900 line-clamp-2 leading-snug hover:underline">
+                            {displayName(p.name)}
+                          </Link>
+                          <p className="text-xs text-slate-500 truncate">{categoryLabel(p.category)}</p>
+                          <p className="text-sm font-bold text-slate-900">{formatPrice(p.price)}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => onAddToCart(p, 1)}
+                          aria-label={`Add ${displayName(p.name)} to cart`}
+                          className="shrink-0 inline-flex min-h-10 items-center gap-1 rounded-lg border border-brand-navy px-3 text-sm font-semibold text-brand-navy hover:bg-brand-cream motion-safe:active:scale-95 transition-transform"
+                        >
+                          <Plus className="w-4 h-4" aria-hidden="true" /> Add
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
             </div>
 
             {/* Summary Sidebar */}
@@ -128,14 +175,7 @@ export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem }) 
               <h3 className="font-bold text-base text-slate-900 border-b border-slate-100 pb-3">Order Summary</h3>
 
               {/* Free-delivery progress */}
-              <div className={`flex items-start gap-2 p-3 rounded-xl text-sm font-semibold ${neededForFree > 0 ? 'bg-brand-peach text-brand-navy' : 'bg-emerald-50 text-emerald-700'}`}>
-                <Truck className="w-4 h-4 mt-0.5 shrink-0" />
-                <span>
-                  {neededForFree > 0
-                    ? `Add ${formatPrice(neededForFree)} more for free delivery`
-                    : 'You get free delivery'}
-                </span>
-              </div>
+              <FreeDeliveryProgress subtotal={subtotal} />
 
               <div className="space-y-2 text-sm text-slate-600">
                 <div className="flex justify-between">
@@ -172,7 +212,10 @@ export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem }) 
                 <span>Checkout</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
-              <p className="text-xs text-slate-500 text-center">Cash on delivery available · No login needed</p>
+              <p className="text-xs text-slate-500 text-center">
+                Cash on delivery available · No login needed
+                {onlineDiscountFor(total) > 0 && <><br />Pay online (UPI/card) & save {formatPrice(onlineDiscountFor(total))}</>}
+              </p>
             </div>
 
           </div>

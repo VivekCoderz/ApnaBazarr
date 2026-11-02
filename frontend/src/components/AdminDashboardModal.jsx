@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { X, TrendingUp, Package, ShoppingBag, Plus, Trash2, CheckCircle, ShieldCheck, Tag, MessageSquare, Star, Video, Upload, Loader2, Settings, Store, RefreshCw, Eye, ChevronDown } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import WhatsAppIcon from './ui/WhatsAppIcon';
+import { orderWhatsappLinks } from '../utils/orderWhatsapp';
+import { X, TrendingUp, Package, ShoppingBag, Plus, Trash2, CheckCircle, ShieldCheck, Tag, MessageSquare, Star, Upload, Loader2, Settings, Store, RefreshCw, Eye, ChevronDown } from 'lucide-react';
 
 const getCookie = (name) => {
   const value = `; ${document.cookie}`;
@@ -32,6 +34,26 @@ async function uploadToCloudinary(file, endpoint) {
 }
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+// "Confirm on WhatsApp" / "Send shipped update" buttons for one order (admin only)
+function OrderWhatsappActions({ order }) {
+  const links = orderWhatsappLinks(order);
+  if (!links) {
+    return <p className="text-[11px] font-semibold text-slate-500">No valid mobile number on this order for WhatsApp.</p>;
+  }
+  const btn = 'inline-flex min-h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-bold transition-colors';
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <a href={links.confirm} target="_blank" rel="noopener noreferrer" className={`${btn} bg-[#25D366] text-[#0B2A55] hover:bg-[#1ebe5b]`}>
+        <WhatsAppIcon className="h-4 w-4" /> Confirm on WhatsApp
+      </a>
+      <a href={links.shipped} target="_blank" rel="noopener noreferrer" className={`${btn} border border-[#0B2A55] text-[#0B2A55] bg-white hover:bg-slate-100`}>
+        <WhatsAppIcon className="h-4 w-4" /> Send shipped update
+      </a>
+      <span className="text-[11px] text-slate-500">+{links.phone}</span>
+    </div>
+  );
+}
 
 // Hooks live in the inner component so the early return never changes the hook order
 export default function AdminDashboardModal(props) {
@@ -1410,6 +1432,8 @@ function AdminDashboardContent({ isOpen, onClose, products, orders, onAddProduct
                         <span>{ord.shippingAddress.fullName} ({ord.shippingAddress.phone}) — {ord.shippingAddress.flatNo}, {ord.shippingAddress.city}, {ord.shippingAddress.state} - {ord.shippingAddress.pincode}</span>
                       </div>
 
+                      <OrderWhatsappActions order={ord} />
+
                       {/* Detailed Order Items Breakdown */}
                       <div className="pl-3 border-l-2 border-slate-300 space-y-2 mt-2">
                         {ord.items.map((item, itemIdx) => (
@@ -1451,7 +1475,12 @@ function AdminDashboardContent({ isOpen, onClose, products, orders, onAddProduct
 
                       <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-200/60 mt-2">
                         <span className="text-slate-500 font-bold">Grand total count: {ord.items.reduce((acc, it) => acc + it.quantity, 0)} unit(s)</span>
-                        <span className="font-black text-brand-navy text-sm">Amount Paid: ₹{ord.totalAmount.toFixed(2)}</span>
+                        <span className="text-right">
+                          {ord.onlineDiscount > 0 && (
+                            <span className="block text-[11px] font-semibold text-emerald-700">Online payment discount −₹{ord.onlineDiscount}</span>
+                          )}
+                          <span className="font-black text-brand-navy text-sm">{ord.paymentMethod === 'COD' ? 'To collect (COD)' : 'Amount Paid'}: ₹{ord.totalAmount.toFixed(2)}</span>
+                        </span>
                       </div>
                     </div>
                   ))}

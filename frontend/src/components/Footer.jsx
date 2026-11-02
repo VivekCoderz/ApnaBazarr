@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin, MessageCircle, Banknote } from 'lucide-react';
-import { whatsappUrl, CATEGORIES, PHONE_DISPLAY, EMAIL, COD_MAX_AMOUNT, categoryHref } from '../config/store';
+import { whatsappUrl, CATEGORIES, PHONE_DISPLAY, EMAIL, COD_MAX_AMOUNT, categoryHref, SOCIAL_LINKS } from '../config/store';
+import SocialIcon from './ui/SocialIcon';
 import { formatPrice } from '../utils/format';
 import Button from './ui/Button';
 
@@ -36,6 +37,22 @@ export default function Footer({ products = [] }) {
             <Button href={whatsappUrl('Hello Dhagaro, I have a question.')} variant="whatsapp" size="sm">
               <MessageCircle className="h-4 w-4" aria-hidden="true" /> Chat on WhatsApp
             </Button>
+            <ul className="flex items-center gap-2" aria-label="Dhagaro on social media">
+              {SOCIAL_LINKS.map(link => (
+                <li key={link.name}>
+                  <a
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Dhagaro on ${link.name} (opens in a new tab)`}
+                    title={link.name}
+                    className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 text-white/80 transition-colors hover:border-white/60 hover:bg-white/10 hover:text-white"
+                  >
+                    <SocialIcon name={link.name} className="h-[18px] w-[18px]" />
+                  </a>
+                </li>
+              ))}
+            </ul>
           </div>
 
           {/* Shop */}

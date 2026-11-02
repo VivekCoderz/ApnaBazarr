@@ -1,6 +1,10 @@
 {
+  "functions": {
+    "api/google-feed.js": { "maxDuration": 60 }
+  },
   "rewrites": [
     { "source": "/product/:id", "destination": "/api/product?id=:id" },
+    { "source": "/feed.xml", "destination": "/api/google-feed" },
     { "source": "/((?!api/).*)", "destination": "/" }
   ],
   "headers": [

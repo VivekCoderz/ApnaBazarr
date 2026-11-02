@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef, lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Link, useNavigate, useLocation, useNavigationType } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, Navigate, useNavigate, useLocation, useNavigationType } from 'react-router-dom';
+import { SELLER_MARKETPLACE_ENABLED } from './config/store';
 
 import Header from './components/Header';
 import MobileDrawer from './components/MobileDrawer';
@@ -897,6 +898,8 @@ function AppContent() {
                 cartItems={cartItems}
                 onUpdateQuantity={handleUpdateQuantity}
                 onRemoveItem={handleRemoveFromCart}
+                products={products}
+                onAddToCart={handleAddToCart}
               />
             }
           />
@@ -956,12 +959,16 @@ function AppContent() {
 
           <Route
             path="/register-seller"
-            element={<RegisterSellerPage currentUser={currentUser} authReady={authReady} onAuthSuccess={handleAuthSuccess} onOpenAuth={() => setIsAuthOpen(true)} />}
+            element={SELLER_MARKETPLACE_ENABLED
+              ? <RegisterSellerPage currentUser={currentUser} authReady={authReady} onAuthSuccess={handleAuthSuccess} onOpenAuth={() => setIsAuthOpen(true)} />
+              : <Navigate to="/" replace />}
           />
 
           <Route
             path="/seller"
-            element={<SellerDashboardPage currentUser={currentUser} authReady={authReady} onLogout={handleLogout} onAuthSuccess={handleAuthSuccess} />}
+            element={SELLER_MARKETPLACE_ENABLED
+              ? <SellerDashboardPage currentUser={currentUser} authReady={authReady} onLogout={handleLogout} onAuthSuccess={handleAuthSuccess} />
+              : <Navigate to="/" replace />}
           />
 
           <Route

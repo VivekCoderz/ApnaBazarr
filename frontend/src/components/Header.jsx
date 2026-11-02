@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Search, Heart, ShoppingBag, User, Menu, Package, Settings, LogOut, ChevronDown, X, LogIn, ShieldCheck, MessageCircle } from 'lucide-react';
 import { formatPrice, cloudinaryImage, displayName } from '../utils/format';
 import { pop } from './ui/motion';
-import { categoryLabel, categoryHref, NAV_CATEGORIES, whatsappUrl, PHONE_DISPLAY } from '../config/store';
+import { categoryLabel, categoryHref, NAV_CATEGORIES, whatsappUrl, PHONE_DISPLAY, SELLER_MARKETPLACE_ENABLED } from '../config/store';
 
 // Typewriter search hint. Its own component so the ticks re-render only this <span>,
 // not the whole header. Each tick still costs a style/paint/composite pass on the whole
@@ -428,7 +428,7 @@ export default function Header({
                           <span>Switch to Admin Panel</span>
                         </Link>
                       )}
-                      {currentUser?.role === 'seller' ? (
+                      {SELLER_MARKETPLACE_ENABLED && currentUser?.role === 'seller' ? (
                         <Link to="/seller" onClick={() => setShowProfileMenu(false)} className="flex items-center gap-2.5 px-4 py-2.5 font-semibold text-emerald-800 hover:bg-emerald-50">
                           <ShieldCheck className="h-4 w-4" />
                           <span>Seller Dashboard</span>

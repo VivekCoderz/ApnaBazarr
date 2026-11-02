@@ -5,7 +5,8 @@ import { ArrowRight, ArrowLeft, Check, Banknote, CreditCard, Loader2, MessageCir
 import { getReferral } from '../utils/referral';
 import { useShippingQuote } from '../utils/shipping';
 import { formatPrice } from '../utils/format';
-import { COD_MAX_AMOUNT, whatsappUrl } from '../config/store';
+import { COD_MAX_AMOUNT, whatsappUrl, onlineDiscountFor } from '../config/store';
+import FreeDeliveryProgress from '../components/FreeDeliveryProgress';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const MIN_ORDER = 100;
@@ -84,6 +85,9 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
   const total = subtotal + shipping;
   const codAllowed = total <= COD_MAX_AMOUNT;
   const effectiveMethod = !codAllowed && paymentMethod === 'COD' ? 'UPI' : paymentMethod;
+  // "Pay online & save": shown here, but the server applies it and sets the amount charged
+  const onlineSaving = onlineDiscountFor(total);
+  const payable = effectiveMethod === 'UPI' ? total - onlineSaving : total;
 
   React.useEffect(() => {
     if (cartItems.length > 0 && !quoteLoading && total < MIN_ORDER) {
@@ -211,7 +215,7 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
                   email: buyerEmail,
                   items: orderItems(),
                   shippingAddress: shippingAddress(),
-                  totalAmount: total,
+                  totalAmount: payable,
                   resellerCode: getReferral()
                 }),
               });
@@ -370,10 +374,17 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
                   <span className="text-slate-600">Delivery</span>
                   <span className={`font-semibold ${shipping === 0 ? 'text-emerald-700' : 'text-slate-800'}`}>{shipping === 0 ? 'FREE' : formatPrice(shipping)}</span>
                 </div>
+                {effectiveMethod === 'UPI' && onlineSaving > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">Online payment discount</span>
+                    <span className="font-semibold text-emerald-700">−{formatPrice(onlineSaving)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between font-bold border-t border-slate-200 pt-2 text-base">
                   <span className="text-slate-900">Total</span>
-                  <span className="font-heading text-lg text-brand-cta">{formatPrice(total)}</span>
+                  <span className="font-heading text-lg text-brand-cta">{formatPrice(payable)}</span>
                 </div>
+                <FreeDeliveryProgress subtotal={subtotal} compact />
               </div>
 
               <div className="space-y-3" role="radiogroup" aria-label="Payment method">
@@ -385,10 +396,17 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
                   className={`w-full text-left p-4 rounded-xl border-2 cursor-pointer transition-all flex items-center gap-3 ${effectiveMethod === 'UPI' ? 'border-brand-navy bg-blue-50/50' : 'border-slate-200'}`}
                 >
                   <CreditCard className="w-5 h-5 text-brand-navy shrink-0" />
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <h4 className="text-base font-semibold text-slate-800">Online Payment (UPI / Card)</h4>
-                    <p className="text-sm text-slate-500">Fastest confirmation</p>
+                    <p className="text-sm text-slate-500">
+                      {onlineSaving > 0 ? `Pay online & save ${formatPrice(onlineSaving)} · Fastest confirmation` : 'Fastest confirmation'}
+                    </p>
                   </div>
+                  {onlineSaving > 0 && (
+                    <span className="shrink-0 rounded bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-700 ring-1 ring-emerald-200">
+                      Save {formatPrice(onlineSaving)}
+                    </span>
+                  )}
                 </button>
 
                 <button
@@ -434,7 +452,7 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
                   ) : effectiveMethod === 'COD' ? (
                     <span>Place Order · {formatPrice(total)} COD</span>
                   ) : (
-                    <span>Pay {formatPrice(total)}</span>
+                    <span>Pay {formatPrice(payable)}</span>
                   )}
                 </button>
               </div>
@@ -452,6 +470,9 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
               <p className="text-base text-slate-700">It will be dispatched within 2 days.</p>
 
               <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-sm text-left space-y-1 max-w-md mx-auto">
+                {placedOrder.onlineDiscount > 0 && (
+                  <div className="flex justify-between"><span className="text-slate-500">Online payment discount</span><span className="font-semibold text-emerald-700">−{formatPrice(placedOrder.onlineDiscount)}</span></div>
+                )}
                 <div className="flex justify-between"><span className="text-slate-500">Total</span><span className="font-semibold">{formatPrice(placedOrder.totalAmount)}</span></div>
                 <div className="flex justify-between"><span className="text-slate-500">Payment</span><span className="font-semibold">{placedOrder.paymentMethod === 'COD' ? 'Cash on Delivery' : 'Online (paid)'}</span></div>
                 <div className="flex justify-between gap-3"><span className="text-slate-500 shrink-0">Address</span><span className="font-semibold text-right">{placedOrder.shippingAddress?.city}, {placedOrder.shippingAddress?.pincode}</span></div>

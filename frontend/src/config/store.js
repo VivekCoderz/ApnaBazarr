@@ -9,11 +9,41 @@ export const WHATSAPP_NUMBER = '919306810726';
 export const PHONE_DISPLAY = '+91 93068 10726';
 
 // Pre-filled WhatsApp chat link. Keep messages to plain text: emojis outside the
-// basic range turn into "�" on WhatsApp Web.
-export function whatsappUrl(message = '') {
-  const base = `https://wa.me/${WHATSAPP_NUMBER}`;
-  return message ? `${base}?text=${encodeURIComponent(message)}` : base;
+// basic range (4-byte characters) turn into "�" on WhatsApp Web, so product names go
+// through displayName() first. api.whatsapp.com/send keeps the text intact where wa.me's
+// redirect sometimes mangles it.
+export function whatsappChatUrl(phone, message = '') {
+  // encodeURIComponent (spaces as %20, not "+") like whatsappShareUrl in utils/referral.js
+  const base = `https://api.whatsapp.com/send?phone=${encodeURIComponent(phone)}`;
+  return message ? `${base}&text=${encodeURIComponent(message)}` : base;
 }
+
+export function whatsappUrl(message = '') {
+  return whatsappChatUrl(WHATSAPP_NUMBER, message);
+}
+
+// Indian mobile number in WhatsApp format (91XXXXXXXXXX), or '' when it doesn't look like one.
+// Accepts "+91 98765 43210", "098765 43210", "9876543210", "91-9876543210".
+export function normalizeIndianPhone(raw) {
+  let digits = String(raw || '').replace(/\D/g, '');
+  if (digits.length === 13 && digits.startsWith('091')) digits = digits.slice(1);
+  if (digits.length === 11 && digits.startsWith('0')) digits = digits.slice(1);
+  if (digits.length === 12 && digits.startsWith('91')) digits = digits.slice(2);
+  return /^[6-9]\d{9}$/.test(digits) ? `91${digits}` : '';
+}
+
+// Online (UPI/card via Razorpay) payment discount. Display only: the server applies the
+// same rule (backend/utils/payment.js ONLINE_PAYMENT_DISCOUNT) and decides the amount charged.
+export const ONLINE_PAYMENT_DISCOUNT = 25;
+export const onlineDiscountFor = (orderTotal) => (Number(orderTotal) > ONLINE_PAYMENT_DISCOUNT ? ONLINE_PAYMENT_DISCOUNT : 0);
+
+export const SITE_URL = 'https://dhagaro.vercel.app';
+
+export const SOCIAL_LINKS = [
+  { name: 'Instagram', href: 'https://www.instagram.com/dhagaro.in/' },
+  { name: 'Facebook', href: 'https://www.facebook.com/dhagaro' },
+  { name: 'LinkedIn', href: 'https://www.linkedin.com/company/dhagaro/' }
+];
 
 export const RETURN_POLICY_LINE =
   'Damaged, wrong item or wrong size? Return or exchange within 7 days and we arrange a free pickup. If you change your mind, we offer an exchange.';
@@ -66,3 +96,7 @@ export function categoryTiles(products = []) {
     .map(c => ({ ...c, count: counts[c.name] || 0 }))
     .sort((a, b) => (b.count > 0) - (a.count > 0));
 }
+
+// Third-party seller marketplace is switched off for now: Dhagaro sources and checks every
+// product itself. The seller pages stay in the code; set to true to bring them back.
+export const SELLER_MARKETPLACE_ENABLED = false;

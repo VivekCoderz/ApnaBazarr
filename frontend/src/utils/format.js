@@ -25,6 +25,9 @@ export function discountPercent(p) {
 // Products added ahead of stock carry the badge "Coming soon": shown, but not orderable
 export const isComingSoon = (product) => /coming soon/i.test(product?.badge || '');
 export const unavailableLabel = (product) => (isComingSoon(product) ? 'Coming soon' : 'Out of stock');
+// Can be added to the cart / ordered right now (same rule as the server's unavailableItems)
+export const isOrderable = (product) =>
+  Boolean(product) && product.inStock !== false && !(product.stock <= 0) && !isComingSoon(product);
 
 // Photos stored in public/products (e.g. "https://dhagaro.vercel.app/products/bedsheet.jpg")
 // also exist as resized WebP files: name-480.webp and name-960.webp (bedsheet.jpg is 216 KB,

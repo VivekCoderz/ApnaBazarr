@@ -1,17 +1,35 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { Star, ShoppingBag, Truck, RotateCcw, Upload, CheckCircle, Sparkles, Video, Loader2, ThumbsUp, ThumbsDown, CornerDownRight, MessageSquare, Banknote, Package, MessageCircle, ChevronRight, ChevronDown, Share2 } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
 import { whatsappShareUrl } from '../utils/referral';
 import { useShippingQuote } from '../utils/shipping';
 import { formatPrice, displayName, cloudinaryImage, unavailableLabel } from '../utils/format';
-import { FREE_DELIVERY_ABOVE, DELIVERY_CHARGE, COD_MAX_AMOUNT, RETURN_POLICY_LINE, whatsappUrl, categoryLabel } from '../config/store';
+import { FREE_DELIVERY_ABOVE, DELIVERY_CHARGE, COD_MAX_AMOUNT, RETURN_POLICY_LINE, whatsappUrl, categoryLabel, SITE_URL } from '../config/store';
+import WhatsAppIcon from '../components/ui/WhatsAppIcon';
 import Button from '../components/ui/Button';
 import { buttonClass } from '../components/ui/buttonClass';
 import Badge from '../components/ui/Badge';
 import SectionHeader from '../components/ui/SectionHeader';
 import CategoryGlyph from '../components/ui/CategoryGlyph';
 import HeartIcon from '../components/ui/HeartIcon';
+
+// Pre-filled WhatsApp order message. Plain text only: the name goes through displayName()
+// (drops emojis, which break on WhatsApp Web) and prices use "Rs".
+const rupees = (amount) => `Rs ${Math.round(amount).toLocaleString('en-IN')}`;
+function whatsappOrderMessage(product, { size, color, quantity }) {
+  const lines = ['Hello Dhagaro, I would like to order this product:', '', `Product: ${displayName(product.name)}`];
+  if (size) lines.push(`Size: ${size}`);
+  if (color && color !== 'Default') lines.push(`Colour: ${color}`);
+  lines.push(`Quantity: ${quantity}`);
+  lines.push(quantity > 1
+    ? `Price: ${rupees(product.price)} x ${quantity} = ${rupees(product.price * quantity)}`
+    : `Price: ${rupees(product.price)}`);
+  lines.push(`Link: ${SITE_URL}/product/${product.id}`, '', 'Please confirm the order and delivery details.');
+  return lines.join('\n');
+}
+const whatsappNotifyMessage = (product) =>
+  `Hello Dhagaro, please notify me when this product is available: ${displayName(product.name)} - ${SITE_URL}/product/${product.id}`;
 
 // Default text the admin form fills in; not worth showing as a description
 const GENERIC_DESCRIPTION = /^high quality product from Dhagaro\.?$/i;
@@ -47,12 +65,16 @@ export default function ProductDetailPage({
 }) {
   const { id } = useParams();
   const navigate = useNavigate();
+  // ?size=40 preselects a size (Google Shopping links each size variant this way)
+  const [searchParams] = useSearchParams();
+  const sizeParam = searchParams.get('size');
 
   // Only live products are in `products`; a hidden or deleted id shows the 'not available' view
   const product = products.find(p => String(p.id) === String(id));
   const isOutOfStock = product?.inStock === false || product?.stock <= 0;
 
-  const [selectedSize, setSelectedSize] = useState(product?.sizes && product.sizes.length > 0 ? product.sizes[0] : '');
+  const initialSize = (p) => (p?.sizes?.length ? (p.sizes.includes(sizeParam) ? sizeParam : p.sizes[0]) : '');
+  const [selectedSize, setSelectedSize] = useState(initialSize(product));
   const [selectedColor, setSelectedColor] = useState(product?.colors && product.colors.length > 0 ? product.colors[0] : 'Default');
   const [quantity, setQuantity] = useState(1);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
@@ -73,7 +95,7 @@ export default function ProductDetailPage({
   const productId = product?.id;
   useEffect(() => {
     if (!product) return;
-    setSelectedSize(product.sizes && product.sizes.length > 0 ? product.sizes[0] : '');
+    setSelectedSize(initialSize(product));
     setSelectedColor(product.colors && product.colors.length > 0 ? product.colors[0] : 'Default');
     setQuantity(1);
     setActiveImageIndex(0);
@@ -364,6 +386,10 @@ export default function ProductDetailPage({
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : 0;
   const name = displayName(product.name);
+  const whatsappOrderHref = isOutOfStock
+    ? whatsappUrl(whatsappNotifyMessage(product))
+    : whatsappUrl(whatsappOrderMessage(product, { size: selectedSize, color: selectedColor, quantity }));
+  const whatsappOrderLabel = isOutOfStock ? 'Notify me on WhatsApp' : 'Order on WhatsApp';
 
   // Only show the description when it says something real (not the admin default line)
   const description = (product.description || '').trim();
@@ -672,17 +698,22 @@ export default function ProductDetailPage({
             )}
 
             {/* Actions */}
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <Button size="lg" disabled={isOutOfStock} onClick={() => !isOutOfStock && handleBuyNow()} className="flex-1">
-                {isOutOfStock ? unavailableLabel(product) : 'Buy Now · Cash on Delivery'}
-              </Button>
-              {!isOutOfStock && (
-                <Button size="lg" variant="secondary" onClick={() => handleAddToCartWithCustomization()} className={`flex-1 ${justAdded ? '!border-emerald-700 !bg-emerald-50 !text-emerald-800' : ''}`}>
-                  {justAdded
-                    ? <><CheckCircle className="h-5 w-5" aria-hidden="true" /> Added to cart</>
-                    : <><ShoppingBag className="h-5 w-5" aria-hidden="true" /> Add to Cart</>}
+            <div className="space-y-3">
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Button size="lg" disabled={isOutOfStock} onClick={() => !isOutOfStock && handleBuyNow()} className="flex-1">
+                  {isOutOfStock ? unavailableLabel(product) : 'Buy Now · Cash on Delivery'}
                 </Button>
-              )}
+                {!isOutOfStock && (
+                  <Button size="lg" variant="secondary" onClick={() => handleAddToCartWithCustomization()} className={`flex-1 ${justAdded ? '!border-emerald-700 !bg-emerald-50 !text-emerald-800' : ''}`}>
+                    {justAdded
+                      ? <><CheckCircle className="h-5 w-5" aria-hidden="true" /> Added to cart</>
+                      : <><ShoppingBag className="h-5 w-5" aria-hidden="true" /> Add to Cart</>}
+                  </Button>
+                )}
+              </div>
+              <Button href={whatsappOrderHref} variant="whatsapp" size="lg" className="w-full">
+                <WhatsAppIcon className="h-5 w-5" /> {whatsappOrderLabel}
+              </Button>
             </div>
 
             {/* Trust */}
@@ -980,6 +1011,16 @@ export default function ProductDetailPage({
               {product.sizes?.length ? `Size ${selectedSize} · ` : ''}Cash on Delivery
             </p>
           </div>
+          <a
+            href={whatsappOrderHref}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={whatsappOrderLabel}
+            title={whatsappOrderLabel}
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-[#25D366] text-[#0B2A55] transition-transform duration-150 motion-safe:active:scale-95"
+          >
+            <WhatsAppIcon className="h-6 w-6" />
+          </a>
           {!isOutOfStock && (
             <button
               type="button"

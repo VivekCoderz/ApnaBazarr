@@ -49,7 +49,10 @@ const orderSchema = new mongoose.Schema({
     enum: ['Order Placed', 'Processing', 'Packed', 'Shipped', 'Out for Delivery', 'Delivered'], 
     default: 'Order Placed' 
   },
+  // Amount the customer pays/paid: items + shipping - onlineDiscount
   totalAmount: { type: Number, required: true },
+  // Flat discount for paying online (backend/utils/payment.js); 0 for COD/offline orders
+  onlineDiscount: { type: Number, default: 0 },
   estimatedDelivery: { type: String },
   paymentId: { type: String },
   razorpayOrderId: { type: String },

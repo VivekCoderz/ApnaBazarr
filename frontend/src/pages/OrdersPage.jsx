@@ -1,4 +1,3 @@
-import React from 'react';
 import { Package } from 'lucide-react';
 import SignInPrompt from '../components/SignInPrompt';
 import { formatPrice, cloudinaryImage } from '../utils/format';
@@ -128,8 +127,13 @@ export default function OrdersPage({ orders, currentUser, authReady = true, onOp
                 {/* Total */}
                 <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-100">
                   <span className="text-slate-500">Payment: <strong className="text-slate-800">{ord.paymentMethod}</strong></span>
-                  <span className="text-base font-extrabold text-brand-navy">
-                    {ord.paymentStatus === 'Completed' ? 'Total paid' : 'Total'}: {formatPrice(ord.totalAmount)}
+                  <span className="text-right">
+                    {ord.onlineDiscount > 0 && (
+                      <span className="block text-xs font-semibold text-emerald-700">Online payment discount −{formatPrice(ord.onlineDiscount)}</span>
+                    )}
+                    <span className="text-base font-extrabold text-brand-navy">
+                      {ord.paymentStatus === 'Completed' ? 'Total paid' : 'Total'}: {formatPrice(ord.totalAmount)}
+                    </span>
                   </span>
                 </div>
 

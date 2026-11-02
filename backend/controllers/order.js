@@ -15,6 +15,7 @@ const Setting = require('../models/Setting');
 const { resolveResellerForOrder } = require('./reseller');
 const { orderShippingCharge: calcOrderShipping } = require('../utils/shipping');
 const { codLimitError } = require('../utils/cod');
+const { onlineDiscount } = require('../utils/payment');
 const { optionalUser } = require('../middlewares/auth');
 
 const GUEST_EMAIL = 'guest@apnabazarr.com';
@@ -272,15 +273,19 @@ module.exports.createRazorpayOrder = async (req, res) => {
     if (formattedItems.length === 0) {
       return res.status(400).json({ success: false, message: 'The items in your cart are not available right now.' });
     }
-    const amount = formattedItems.reduce((acc, item) => acc + item.price * item.quantity + item.shippingCharges, 0);
-    if (amount < 100) {
+    const orderTotal = formattedItems.reduce((acc, item) => acc + item.price * item.quantity + item.shippingCharges, 0);
+    if (orderTotal < 100) {
       return res.status(400).json({ success: false, message: 'Minimum order amount of ₹100 is required.' });
     }
+    // Paying online saves a flat amount (utils/payment.js); /verify expects the same figure
+    const discount = onlineDiscount(orderTotal);
+    const amount = orderTotal - discount;
 
     const options = {
       amount: Math.round(amount * 100), // amount in paisa
       currency: 'INR',
-      receipt: `receipt_order_${Date.now()}`
+      receipt: `receipt_order_${Date.now()}`,
+      notes: { orderTotal: String(orderTotal), onlineDiscount: String(discount) }
     };
 
     const order = await rzp.orders.create(options);
@@ -288,6 +293,8 @@ module.exports.createRazorpayOrder = async (req, res) => {
       success: true,
       order_id: order.id,
       amount: order.amount,
+      orderTotal,
+      onlineDiscount: discount,
       key: razorpayKeyId
     });
   } catch (error) {
@@ -339,11 +346,18 @@ module.exports.verifyRazorpayPayment = async (req, res) => {
     const totalItemCost = formattedItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
     const totalShipping = formattedItems.reduce((acc, item) => acc + item.shippingCharges, 0);
     const calculatedTotal = totalItemCost + totalShipping;
-
     // The signature only proves the payment happened; make sure it paid for THIS cart
-    // and that the same payment isn't turned into a second order.
+    // (at the discounted online price) and that the same payment isn't turned into a second order.
     const paidOrder = await rzp.orders.fetch(razorpay_order_id);
-    if (paidOrder.amount !== Math.round(calculatedTotal * 100)) {
+    // Same online-payment discount createRazorpayOrder took off the charge. A Razorpay order
+    // created before the discount existed (no onlineDiscount note, full amount) is still
+    // honoured at full price so a customer paying during the deploy isn't left without an order.
+    // Either way the amount was set by this server, never by the browser.
+    const legacyFullPrice = !(paidOrder.notes && paidOrder.notes.onlineDiscount !== undefined)
+      && paidOrder.amount === Math.round(calculatedTotal * 100);
+    const discount = legacyFullPrice ? 0 : onlineDiscount(calculatedTotal);
+    const amountDue = calculatedTotal - discount;
+    if (paidOrder.amount !== Math.round(amountDue * 100)) {
       return res.status(400).json({ success: false, message: 'The payment amount does not match the order total. Please contact us on WhatsApp at +91 93068 10726.' });
     }
     if (await Order.exists({ razorpayOrderId: razorpay_order_id })) {
@@ -362,7 +376,8 @@ module.exports.verifyRazorpayPayment = async (req, res) => {
       paymentMethod: 'Online (Razorpay)',
       paymentStatus: 'Completed',
       orderStatus: 'Order Placed',
-      totalAmount: calculatedTotal,
+      totalAmount: amountDue, // what the customer paid (items + shipping - onlineDiscount)
+      onlineDiscount: discount,
       estimatedDelivery: estimatedDeliveryStr,
       paymentId: razorpay_payment_id,
       razorpayOrderId: razorpay_order_id

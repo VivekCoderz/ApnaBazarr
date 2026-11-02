@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { X, Search, Heart, ShoppingBag, Phone, Mail, ChevronRight } from 'lucide-react';
-import { CATEGORIES, CORE_CATEGORIES, categoryHref } from '../config/store';
+import { CATEGORIES, CORE_CATEGORIES, categoryHref, SELLER_MARKETPLACE_ENABLED } from '../config/store';
 import CategoryGlyph from './ui/CategoryGlyph';
 
 export default function MobileDrawer({ isOpen, onClose, cartCount, wishlistCount, onOpenCart, onOpenWishlist, onOpenSearch, currentUser }) {
@@ -15,7 +15,7 @@ export default function MobileDrawer({ isOpen, onClose, cartCount, wishlistCount
     { label: 'Wishlist', to: '/wishlist' },
   ];
 
-  if (currentUser?.role === 'seller') {
+  if (SELLER_MARKETPLACE_ENABLED && currentUser?.role === 'seller') {
     navLinks.push({ label: 'Seller Dashboard', to: '/seller' });
   }
 
