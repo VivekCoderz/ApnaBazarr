@@ -49,6 +49,8 @@ export default defineConfig(({ mode }) => {
         '/products': {
           target: 'http://localhost:5000',
           changeOrigin: true,
+          // public/products/*.jpg|webp are static images, not API calls
+          bypass: (req) => (/\.(jpe?g|png|webp|avif)$/i.test(req.url.split('?')[0]) ? req.url : undefined),
         },
         '/orders': {
           target: 'http://localhost:5000',
