@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Dhagaro Share Kit</title>
+<link rel="icon" href="/favicon-32.png">
+<style>
+  :root { --navy:#0B2A55; --cta:#C2410C; --wa:#25D366; --line:#DDE3EC; --grey:#F3F5F9; --ink:#1A2233; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: Inter, system-ui, -apple-system, Segoe UI, sans-serif; background:var(--grey); color:var(--ink); }
+  header { background:var(--navy); color:#fff; padding:16px; position:sticky; top:0; z-index:5; }
+  header img { height:26px; display:block; }
+  header p { margin:6px 0 0; font-size:13px; opacity:.85; }
+  main { max-width:560px; margin:0 auto; padding:12px 14px 60px; }
+  h2 { font-size:17px; margin:22px 0 8px; color:var(--navy); }
+  .card { background:#fff; border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:12px; }
+  .msg { white-space:pre-line; font-size:14px; line-height:1.45; background:var(--grey); border-left:3px solid #F47A1F; padding:10px 12px; border-radius:6px; }
+  label { font-size:13px; font-weight:600; display:block; margin-bottom:6px; }
+  input { width:100%; font-size:16px; padding:11px 12px; border:1px solid #c9d1dd; border-radius:8px; }
+  .btn { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; border:0; border-radius:10px; padding:13px; font-size:15px; font-weight:700; color:#fff; text-decoration:none; margin-top:10px; cursor:pointer; }
+  .wa { background:var(--wa); } .navy { background:var(--navy); } .ghost { background:#fff; color:var(--navy); border:1.5px solid var(--navy); }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .grid img { width:100%; border-radius:8px; border:1px solid var(--line); display:block; }
+  .small { font-size:12px; color:#5B6576; margin-top:6px; }
+  .count { font-size:13px; font-weight:700; color:var(--cta); }
+  .tabs { display:flex; gap:6px; flex-wrap:wrap; }
+  .tabs button { flex:1; padding:9px 6px; border-radius:8px; border:1px solid var(--line); background:#fff; font-weight:600; font-size:13px; }
+  .tabs button.on { background:var(--navy); color:#fff; border-color:var(--navy); }
+  .toast { position:fixed; left:50%; bottom:20px; transform:translateX(-50%); background:#111; color:#fff; padding:10px 16px; border-radius:20px; font-size:14px; display:none; }
+</style>
+</head>
+<body>
+<header>
+  <img src="/dhagaro-logo-white.svg" alt="Dhagaro">
+  <p>Share kit: har kaam 1 tap. Naam likho, button dabao, contact chuno, Send.</p>
+</header>
+<main>
+
+  <h2>1. Apne logon ko message (sabse zaroori)</h2>
+  <div class="card">
+    <label>Kya bhejna hai?</label>
+    <div class="tabs" id="tabs">
+      <button data-k="pebble" class="on">Pebble ₹199</button>
+      <button data-k="pack">Pack of 2 ₹249</button>
+      <button data-k="all">Sab products</button>
+      <button data-k="follow">Follow-up</button>
+    </div>
+    <div style="height:12px"></div>
+    <label for="name">Unka naam (jaise "Mausi ji", "Rahul bhai")</label>
+    <input id="name" placeholder="Naam likho" autocomplete="off">
+    <div style="height:10px"></div>
+    <div class="msg" id="preview"></div>
+    <a class="btn wa" id="send" target="_blank" rel="noopener">WhatsApp pe bhejo</a>
+    <p class="small">Button dabane pe WhatsApp khulega, contact chuno aur Send. Link ke saath product ki photo apne aap dikhegi.</p>
+    <p class="count" id="count"></p>
+  </div>
+
+  <h2>2. WhatsApp Status (din mein 3 baar)</h2>
+  <div class="card">
+    <div class="grid">
+      <div><img src="/share/story-pebble.jpg" alt="Pebble status"><button class="btn navy" data-share="/share/story-pebble.jpg">Status pe lagao</button></div>
+      <div><img src="/share/story-microfiber.jpg" alt="Microfiber status"><button class="btn navy" data-share="/share/story-microfiber.jpg">Status pe lagao</button></div>
+      <div><img src="/share/story-launch.jpg" alt="Launch status"><button class="btn navy" data-share="/share/story-launch.jpg">Status pe lagao</button></div>
+      <div><img src="/share/story-striped.jpg" alt="Striped status"><button class="btn navy" data-share="/share/story-striped.jpg">Status pe lagao</button></div>
+    </div>
+    <p class="small">"Status pe lagao" dabao, WhatsApp chuno, "My status". Agar share na khule to photo ko daba ke rakho, "Download image", phir Status pe lagao.</p>
+  </div>
+
+  <h2>3. Instagram / Facebook post</h2>
+  <div class="card">
+    <div class="grid">
+      <div><img src="/share/post-launch.jpg" alt="Launch post"><button class="btn ghost" data-share="/share/post-launch.jpg" data-caption="launch">Photo + caption share</button></div>
+      <div><img src="/share/post-pebble.jpg" alt="Pebble post"><button class="btn ghost" data-share="/share/post-pebble.jpg" data-caption="pebble">Photo + caption share</button></div>
+    </div>
+    <button class="btn navy" id="copyCap">Caption copy karo</button>
+    <p class="small">Caption copy hoke clipboard mein aa jayega. Instagram mein photo chuno, caption box mein paste karo.</p>
+  </div>
+
+  <h2>4. Order aa jaaye to</h2>
+  <div class="card">
+    <a class="btn navy" href="/admin">Admin kholo (Confirm on WhatsApp)</a>
+    <p class="small">Koi website pe order na kar paaye: WhatsApp pe naam, pata, pincode, rang le lo aur khud website pe unke liye order daal do (Cash on Delivery).</p>
+  </div>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+  const SITE = 'https://dhagaro.vercel.app';
+  const P = {
+    pebble: '/product/6ae89b3679e56425e6d85780',
+    pack: '/product/6ae89b3079e56425e6d8577e',
+    striped: '/product/6ae89b3479e56425e6d8577f',
+    sherpa: '/product/6ae88ff87dba8d1ccf542ae3'
+  };
+  // Plain text only: 4-byte emojis break in WhatsApp share links
+  const MSG = {
+    pebble: n => `${n} namaste! Humne Panipat se apna online store shuru kiya hai: Dhagaro.\nPehla maal aa gaya hai: 3D Pebble Bath Mat sirf Rs 199 (3 rang: Grey, Beige, Maroon).\nCash on Delivery hai. Panipat mein main khud ghar de jaunga.\nDekhiye: ${SITE}${P.pebble}\nAapke ghar ke liye ek bhej doon? Pehle customers mein aap ho to bahut khushi hogi.`,
+    pack: n => `${n} namaste! Hamare store Dhagaro pe 2 bath mat ka pack sirf Rs 249 (online Rs 299 milta hai).\nEk bathroom, ek darwaze ke liye. Brown ya Navy.\nCash on Delivery, 7 din mein return.\nDekhiye: ${SITE}${P.pack}\nEk pack bhej doon?`,
+    all: n => `${n} namaste! Humne apna online store shuru kiya hai: Dhagaro, Panipat se seedha ghar tak.\nBath mats: Rs 129 se Rs 249 (Pebble Rs 199, 2 ka pack Rs 249).\nCash on Delivery, Rs 499 se upar delivery free.\nSab dekhiye: ${SITE}/shop\nPasand aaye to order karke support karna, aur aage share bhi kar dena.`,
+    follow: n => `${n}, pebble mat ke kuch hi piece bache hain (limited design). Aapke liye ek rakh doon? Rang bata dijiye: Grey, Beige ya Maroon.\n${SITE}${P.pebble}`
+  };
+  const CAP = {
+    launch: `Ab hum online hain! Dhagaro: Panipat se Seedha, Aapke Ghar Tak.\nPehla collection: bath mats Rs 129 se, 3D Pebble mat Rs 199, 2 ka pack Rs 249.\nCash on Delivery | 7-day returns | Rs 499+ free delivery\nOrder: dhagaro.vercel.app\n#Dhagaro #Panipat #BathMat #HomeDecor #CashOnDelivery #ShopLocal`,
+    pebble: `Bathroom ka look badal do sirf Rs 199 mein\n3D Pebble Bath Mat | Grey, Beige, Maroon | Limited batches\nCash on Delivery | Panipat se seedha\nOrder: dhagaro.vercel.app\n#Dhagaro #Panipat #BathMat #PebbleMat #BathroomDecor #HomeDecorIndia`
+  };
+  let key = 'pebble', capKey = 'launch';
+  const $ = id => document.getElementById(id);
+  const toast = t => { const el = $('toast'); el.textContent = t; el.style.display = 'block'; setTimeout(() => el.style.display = 'none', 2200); };
+  let sent = 0;
+  try { sent = Number(localStorage.getItem('dh_sent_' + new Date().toDateString()) || 0); } catch {}
+  const showCount = () => { $('count').textContent = sent ? `Aaj ${sent} message bheje. Target: 20` : 'Target aaj: 20 message'; };
+  function render() {
+    const n = $('name').value.trim() || (key === 'follow' ? 'Ji' : 'Ji');
+    const text = MSG[key](n);
+    $('preview').textContent = text;
+    $('send').href = 'https://api.whatsapp.com/send?text=' + encodeURIComponent(text);
+  }
+  $('tabs').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    key = b.dataset.k; document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('on', x === b)); render();
+  });
+  $('name').addEventListener('input', render);
+  $('send').addEventListener('click', () => {
+    sent++; try { localStorage.setItem('dh_sent_' + new Date().toDateString(), sent); } catch {}
+    showCount(); setTimeout(() => { $('name').value = ''; render(); }, 600);
+  });
+  async function copy(t) {
+    try { await navigator.clipboard.writeText(t); toast('Caption copy ho gaya'); }
+    catch { prompt('Copy karo:', t); }
+  }
+  $('copyCap').addEventListener('click', () => copy(CAP[capKey]));
+  document.querySelectorAll('[data-share]').forEach(b => b.addEventListener('click', async () => {
+    const url = b.dataset.share;
+    if (b.dataset.caption) { capKey = b.dataset.caption; try { await navigator.clipboard.writeText(CAP[capKey]); } catch {} }
+    try {
+      const blob = await (await fetch(url)).blob();
+      const file = new File([blob], url.split('/').pop(), { type: 'image/jpeg' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], text: b.dataset.caption ? CAP[capKey] : '' });
+        if (b.dataset.caption) toast('Caption bhi copy hai, paste kar dena');
+        return;
+      }
+    } catch (e) { if (e && e.name === 'AbortError') return; }
+    const a = document.createElement('a'); a.href = url; a.download = url.split('/').pop(); a.click();
+    toast('Photo download ho rahi hai');
+  }));
+  render(); showCount();
+</script>
+</body>
+</html>
