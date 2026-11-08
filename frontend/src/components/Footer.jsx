@@ -66,6 +66,7 @@ export default function Footer({ products = [] }) {
               ))}
               <li><Link to="/shop" className={linkCls}>All Products</Link></li>
               <li><Link to="/reseller" className={linkCls}>Become a Reseller</Link></li>
+              <li><Link to="/bulk" className={linkCls}>Bulk orders</Link></li>
             </ul>
           </div>
 

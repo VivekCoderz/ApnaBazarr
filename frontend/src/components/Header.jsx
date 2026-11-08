@@ -515,6 +515,9 @@ export default function Header({
               <span className="h-2 w-2 rounded-full bg-brand-orange" aria-hidden="true" />
               Become a Reseller
             </Link>
+            <Link to="/bulk" className="flex h-12 items-center text-brand-navy hover:text-brand-cta">
+              Bulk orders
+            </Link>
             <a href={whatsappUrl()} target="_blank" rel="noreferrer" className="flex h-12 items-center gap-1.5 text-slate-600 hover:text-brand-navy">
               <MessageCircle className="h-4 w-4" aria-hidden="true" />
               Help: {PHONE_DISPLAY}

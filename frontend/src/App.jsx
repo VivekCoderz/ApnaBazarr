@@ -30,6 +30,7 @@ const PolicyPage = lazy(() => import('./pages/PolicyPage'));
 const RegisterSellerPage = lazy(() => import('./pages/RegisterSellerPage'));
 const SellerDashboardPage = lazy(() => import('./pages/SellerDashboardPage'));
 const ResellerPage = lazy(() => import('./pages/ResellerPage'));
+const BulkOrdersPage = lazy(() => import('./pages/BulkOrdersPage'));
 const AdminResellersPage = lazy(() => import('./pages/AdminResellersPage'));
 
 // Shown while a page chunk downloads (usually a fraction of a second)
@@ -975,6 +976,8 @@ function AppContent() {
             path="/reseller"
             element={<ResellerPage currentUser={currentUser} authReady={authReady} products={products} onAuthSuccess={handleAuthSuccess} onOpenAuth={() => setIsAuthOpen(true)} />}
           />
+
+          <Route path="/bulk" element={<BulkOrdersPage products={products} />} />
 
           <Route
             path="/admin/resellers"
