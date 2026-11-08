@@ -17,6 +17,8 @@ const productSchema = new mongoose.Schema({
   tags: [{ type: String }],
   sizes: { type: [String], default: [] },
   colors: { type: [String], default: [] },
+  // Photos per colour, e.g. [{ color: 'Brown', images: [url, url] }]; the product page swaps the gallery
+  colorImages: { type: [{ _id: false, color: String, images: [String] }], default: [] },
   images: { type: [String], default: [] },
   inStock: { type: Boolean, default: true },
   // false = hidden from the storefront (off-season / off-brand). Missing counts as active.
