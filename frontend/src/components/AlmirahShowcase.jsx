@@ -144,14 +144,14 @@ export default function AlmirahShowcase() {
               Straight from Panipat's looms to your almirah
             </h2>
             <p className="mt-3 text-[15px] leading-relaxed text-slate-600">
-              Blankets, towels, bedsheets and women's suit sets, checked and packed by us in Panipat.
+              Bath mats today, checked and packed by us in Panipat.
               Our range is small today and more pieces are coming soon.
             </p>
             <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
               <Button to="/shop" size="lg">
                 Shop what's in stock <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Button>
-              <span className="text-sm text-slate-500">More blankets, towels, bedsheets and suits coming soon</span>
+              <span className="text-sm text-slate-500">Blankets, towels and bedsheets coming soon</span>
             </div>
           </div>
 

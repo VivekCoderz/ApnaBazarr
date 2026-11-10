@@ -56,16 +56,6 @@ export const SCENE_SLIDES = [
     headline: 'Soft towels for every day',
     subline: 'Bath and hand towels from Panipat. Coming soon to the shop.',
     cta: SHOP_CTA
-  },
-  {
-    id: 'scene-curtains',
-    kind: 'scene',
-    scene: 'curtains',
-    theme: 'light',
-    kicker: 'Coming soon · Curtains',
-    headline: 'Curtains that let the light in',
-    subline: 'Panels for living rooms and bedrooms, from Panipat. Coming soon to the shop.',
-    cta: SHOP_CTA
   }
 ];
 
@@ -118,6 +108,7 @@ export const CAMPAIGNS = [
     // 3rd item of the announcement bar until the Diwali cut-off, then the default
     announcementExtra: { text: 'Order by 4 Nov for Diwali delivery', until: '2026-11-04T23:59:59+05:30' },
     slides: [
+      ...SCENE_SLIDES,
       {
         id: 'diwali',
         kind: 'products',
@@ -137,26 +128,26 @@ export const CAMPAIGNS = [
     end: '2027-01-31T23:59:59+05:30',
     kicker: 'Straight from Panipat',
     headline: 'Bath mats from ₹129, straight from Panipat',
-    subline: 'Pebble, microfiber and sherpa bath mats, plus pure cotton suits. Cash on delivery.',
+    subline: 'Pebble, microfiber and sherpa bath mats. Bedsheets, towels and cushion covers coming soon.',
     offer: 'Free delivery on orders above ₹499',
     image: null,
     motif: 'weave',
     featured: { category: 'Mats & Table Runner' },
     cta: { label: 'Shop bath mats', category: 'Mats & Table Runner' },
-    secondary: { label: 'Pure cotton suits', category: "Women's Wear" },
+    secondary: null,
     slides: [
+      ...SCENE_SLIDES,
       {
         id: 'winter',
         kind: 'products',
         pick: 'any',
         max: 3,
         theme: 'navy',
-        kicker: 'Straight from Panipat',
-        headline: 'Bath mats from ₹129, straight from Panipat',
-        subline: 'Pebble, microfiber and sherpa bath mats, plus pure cotton suits. Cash on delivery.',
+        kicker: 'In stock · Straight from Panipat',
+        headline: 'Bath mats from ₹129',
+        subline: 'Pebble, microfiber and sherpa bath mats. Cash on delivery.',
         cta: { label: 'Shop all products', to: '/shop' }
       },
-      SLIDE_OFFER,
     ]
   }
 ];
@@ -166,13 +157,14 @@ const DEFAULT_CAMPAIGN = {
   id: 'default',
   kicker: 'Straight from Panipat',
   headline: 'Panipat quality at factory prices',
-  subline: 'Bath mats and pure cotton suits, straight from Panipat. Pay cash on delivery.',
+  subline: 'Bath mats straight from Panipat, with bedsheets and towels coming soon. Pay cash on delivery.',
   offer: 'Free delivery on orders above ₹499',
   image: null,
   motif: 'weave',
   cta: { label: 'Shop all products', to: '/shop' },
   secondary: { label: 'Become a reseller and earn from home', to: '/reseller' },
   slides: [
+    ...SCENE_SLIDES,
     {
       id: 'panipat',
       kind: 'products',
@@ -181,7 +173,7 @@ const DEFAULT_CAMPAIGN = {
       theme: 'navy',
       kicker: 'Straight from Panipat',
       headline: 'Panipat quality at factory prices',
-      subline: 'Bath mats and pure cotton suits, straight from Panipat. Pay cash on delivery.',
+      subline: 'Bath mats straight from Panipat, with bedsheets and towels coming soon. Pay cash on delivery.',
       cta: { label: 'Shop all products', to: '/shop' }
     },
   ]

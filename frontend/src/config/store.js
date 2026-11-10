@@ -66,12 +66,12 @@ export function categoryLabel(name) {
   return CATEGORIES.find(c => c.name === name)?.label || name;
 }
 
-// Main categories (mobile drawer, and the placeholder tiles while products load).
-// Only categories that have live products are shown to customers: no "Coming soon" tiles.
-export const CORE_CATEGORIES = ['Mats & Table Runner', "Women's Wear"];
+// Categories always shown on the homepage/shop, even before they have stock
+// (then as "Coming soon" with a WhatsApp notify link). Others appear once they have products.
+export const CORE_CATEGORIES = ['Mats & Table Runner', 'Kambal & Dohar', 'Bedsheet', 'Towels', 'Cushion & Sofa Cover'];
 
 // Desktop header nav: the main categories (plus the reseller link)
-export const NAV_CATEGORIES = ['Mats & Table Runner', "Women's Wear"];
+export const NAV_CATEGORIES = ['Mats & Table Runner', 'Bedsheet', 'Towels', 'Cushion & Sofa Cover'];
 
 export const EMAIL = 'dhagaro.in@gmail.com';
 
@@ -81,14 +81,14 @@ export function notifyMeUrl(label) {
 
 export const categoryHref = (name) => `/shop?category=${encodeURIComponent(name)}`;
 
-// Category tiles: only categories with live products (core ones as placeholders while loading)
+// Category tiles: live categories first, then the core ones that are "coming soon"
 export function categoryTiles(products = []) {
   const counts = {};
   products.forEach(p => {
     const cat = p.category?.trim();
     if (cat) counts[cat] = (counts[cat] || 0) + 1;
   });
-  const known = CATEGORIES.filter(c => counts[c.name] || (!products.length && CORE_CATEGORIES.includes(c.name)));
+  const known = CATEGORIES.filter(c => counts[c.name] || CORE_CATEGORIES.includes(c.name));
   const others = Object.keys(counts)
     .filter(name => !CATEGORIES.some(c => c.name === name))
     .map(name => ({ name, label: name }));

@@ -10,7 +10,7 @@ import { categoryLabel, categoryHref, NAV_CATEGORIES, whatsappUrl, PHONE_DISPLAY
 // page (expensive next to the 3D hero on cheap phones), so: words are typed but cleared
 // in one step (no per-letter delete), and after two rounds it rests on the first word.
 // Shows a static word for reduced-motion users and pauses while the tab is hidden.
-const TYPEWRITER_WORDS = ['bath mats', 'cotton suits'];
+const TYPEWRITER_WORDS = ['bath mats', 'pebble mats', 'sherpa mats'];
 const TYPEWRITER_ROUNDS = 2;
 
 function TypewriterWord() {
@@ -289,7 +289,7 @@ export default function Header({
           setDropdown(true);
         }}
         onKeyDown={(e) => handleSearchKeyDown(e, setDropdown)}
-        placeholder="Search for suits, co-ord sets, bedsheets…"
+        placeholder="Search for bath mats…"
         aria-label="Search products"
         className="h-11 w-full rounded-lg border border-line bg-brand-cream pl-11 pr-10 text-sm text-ink transition-colors placeholder:text-transparent focus:border-brand-navy focus:bg-white focus:outline-none focus:placeholder:text-slate-500 [&::-webkit-search-cancel-button]:hidden"
       />

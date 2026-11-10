@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ChevronDown, MessageCircle, Factory, PackageCheck, ClipboardCheck, ShoppingBag, Home as HomeIcon,
   UserPlus, Share2, Wallet, Phone, Mail, ArrowRight
@@ -6,6 +6,8 @@ import {
 import HeroBanner from '../components/HeroBanner';
 import TrustStrip from '../components/TrustStrip';
 import CategoryShowcase from '../components/CategoryShowcase';
+import AlmirahShowcase from '../components/AlmirahShowcase';
+import WaitlistBand from '../components/WaitlistBand';
 import ProductSpotlight from '../components/ProductSpotlight';
 import { ProductGridSkeleton } from '../components/ProductSkeleton';
 import RecentlyViewed from '../components/RecentlyViewed';
@@ -18,10 +20,27 @@ import { whatsappUrl, PHONE_DISPLAY, EMAIL } from '../config/store';
 import { getActiveCampaign, sortForHomeGrid } from '../config/campaign';
 
 const PAGE_SIZE = 12;
+// Below this many live products the homepage also shows the "new stock" WhatsApp waitlist
+const MIN_FULL_CATALOGUE = 8;
 // From this many products the homepage shows a grid; below it a large "featured" spotlight
 const MIN_FOR_GRID = 4;
 
 const GRID_CLASS = 'grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 lg:grid-cols-4';
+
+// True on tablet/desktop widths. The 3D almirah is hidden on phones anyway; not building
+// it there saves ~100 DOM nodes and its GPU layers on cheap devices.
+function useMinWidth(px) {
+  const query = `(min-width: ${px}px)`;
+  const [match, setMatch] = useState(() => typeof window !== 'undefined' && Boolean(window.matchMedia?.(query).matches));
+  useEffect(() => {
+    const mq = window.matchMedia?.(query);
+    if (!mq) return undefined;
+    const onChange = () => setMatch(mq.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, [query]);
+  return match;
+}
 
 // Website plan §3.8, in English (return answer per the founder's return policy)
 const FAQS = [
@@ -158,6 +177,7 @@ export default function HomePage({
   wishlistItems = [],
   cartItems = []
 }) {
+  const isTabletUp = useMinWidth(768);
   return (
     <div>
       <HeroBanner products={products} loading={loading} />
@@ -179,17 +199,19 @@ export default function HomePage({
         cartItems={cartItems}
       />
 
-      {/* Shop by category: only categories with live products */}
+      {/* Shop by category: photo tiles for live categories, "Coming soon" tiles for the rest */}
       <Section aria-labelledby="home-categories-title" id="categories">
         <SectionHeader
           id="home-categories-title"
           title="Shop by category"
-          description="Bath mats and cotton suits from Panipat."
+          description="Bath mats are in stock. Bedsheets, towels and cushion covers are coming soon."
           action={{ label: 'View all', to: '/shop' }}
         />
         <CategoryShowcase products={products} loading={loading} />
       </Section>
 
+      {/* 3D open-almirah showcase (tablet/desktop; phones already get the 3D hero) */}
+      {isTabletUp && <AlmirahShowcase />}
 
 
       {/* Recently viewed: only when there is something worth showing */}
@@ -261,6 +283,12 @@ export default function HomePage({
         </ol>
       </Section>
 
+      {/* While the catalogue is small, turn visitors into a WhatsApp waitlist */}
+      {!loading && products.length < MIN_FULL_CATALOGUE && (
+        <Section className="!pb-0 hidden md:block">
+          <WaitlistBand />
+        </Section>
+      )}
 
       {/* Reseller band */}
       <Section aria-labelledby="home-reseller-title">
@@ -328,7 +356,7 @@ export default function HomePage({
               ))}
             </div>
             <p className="mt-5 text-xs leading-relaxed text-slate-500">
-              Dhagaro sends bath mats and pure cotton suits from Panipat,
+              Dhagaro sends bath mats from Panipat (bedsheets, towels and cushion covers coming soon),
               Haryana at factory prices. Panipat is known as India's "City of Weavers" — we source there,
               check every piece and pack it ourselves. Cash on delivery across India, and free delivery on
               orders above ₹499.
