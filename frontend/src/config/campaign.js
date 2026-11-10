@@ -118,7 +118,6 @@ export const CAMPAIGNS = [
     // 3rd item of the announcement bar until the Diwali cut-off, then the default
     announcementExtra: { text: 'Order by 4 Nov for Diwali delivery', until: '2026-11-04T23:59:59+05:30' },
     slides: [
-      ...SCENE_SLIDES,
       {
         id: 'diwali',
         kind: 'products',
@@ -136,28 +135,28 @@ export const CAMPAIGNS = [
     id: 'winter-2026',
     start: '2026-11-09T00:00:00+05:30',
     end: '2027-01-31T23:59:59+05:30',
-    kicker: 'Winter Special · Panipat blankets',
-    headline: 'Winter is here: Panipat blankets at factory prices',
-    subline: 'Mink blankets, dohars and bedsheets. Weight and size clearly listed. Cash on delivery.',
+    kicker: 'Straight from Panipat',
+    headline: 'Bath mats from ₹129, straight from Panipat',
+    subline: 'Pebble, microfiber and sherpa bath mats, plus pure cotton suits. Cash on delivery.',
     offer: 'Free delivery on orders above ₹499',
     image: null,
-    motif: 'blanket',
-    featured: { category: 'Kambal & Dohar' },
-    cta: { label: 'Shop blankets', category: 'Kambal & Dohar' },
-    secondary: { label: 'Suit sets for the wedding season', category: 'Suit Sets' },
+    motif: 'weave',
+    featured: { category: 'Mats & Table Runner' },
+    cta: { label: 'Shop bath mats', category: 'Mats & Table Runner' },
+    secondary: { label: 'Pure cotton suits', category: "Women's Wear" },
     slides: [
-      ...SCENE_SLIDES,
       {
         id: 'winter',
         kind: 'products',
-        pick: 'featured',
+        pick: 'any',
         max: 3,
         theme: 'navy',
-        kicker: 'Winter Special · Panipat blankets',
-        headline: 'Panipat blankets at factory prices',
-        subline: 'Mink blankets, dohars and bedsheets. Weight and size clearly listed.',
-        cta: { label: 'Shop blankets', category: 'Kambal & Dohar' }
+        kicker: 'Straight from Panipat',
+        headline: 'Bath mats from ₹129, straight from Panipat',
+        subline: 'Pebble, microfiber and sherpa bath mats, plus pure cotton suits. Cash on delivery.',
+        cta: { label: 'Shop all products', to: '/shop' }
       },
+      SLIDE_OFFER,
     ]
   }
 ];
@@ -167,14 +166,13 @@ const DEFAULT_CAMPAIGN = {
   id: 'default',
   kicker: 'Straight from Panipat',
   headline: 'Panipat quality at factory prices',
-  subline: 'Bedsheets, blankets and suit sets, straight from Panipat. Pay cash on delivery.',
+  subline: 'Bath mats and pure cotton suits, straight from Panipat. Pay cash on delivery.',
   offer: 'Free delivery on orders above ₹499',
   image: null,
   motif: 'weave',
   cta: { label: 'Shop all products', to: '/shop' },
   secondary: { label: 'Become a reseller and earn from home', to: '/reseller' },
   slides: [
-    ...SCENE_SLIDES,
     {
       id: 'panipat',
       kind: 'products',
@@ -183,7 +181,7 @@ const DEFAULT_CAMPAIGN = {
       theme: 'navy',
       kicker: 'Straight from Panipat',
       headline: 'Panipat quality at factory prices',
-      subline: 'Bedsheets, blankets and suit sets, straight from Panipat. Pay cash on delivery.',
+      subline: 'Bath mats and pure cotton suits, straight from Panipat. Pay cash on delivery.',
       cta: { label: 'Shop all products', to: '/shop' }
     },
   ]

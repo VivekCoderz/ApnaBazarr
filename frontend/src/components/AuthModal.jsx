@@ -129,7 +129,7 @@ function AuthModalContent({ onClose, onAuthSuccess }) {
               {isLogin ? "Welcome back" : "Join Dhagaro"}
             </p>
             <p className="mt-2 text-sm leading-relaxed text-white/70">
-              Blankets, bedsheets and suit sets straight from Panipat, at factory prices.
+              Bath mats and cotton suits straight from Panipat, at factory prices.
             </p>
             <ul className="mt-8 space-y-4">
               {PERKS.map(({ icon: Icon, text }) => (

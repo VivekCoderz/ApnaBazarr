@@ -10,7 +10,7 @@ import { categoryLabel, categoryHref, NAV_CATEGORIES, whatsappUrl, PHONE_DISPLAY
 // page (expensive next to the 3D hero on cheap phones), so: words are typed but cleared
 // in one step (no per-letter delete), and after two rounds it rests on the first word.
 // Shows a static word for reduced-motion users and pauses while the tab is hidden.
-const TYPEWRITER_WORDS = ['suits', 'co-ord sets', 'bedsheets', 'blankets'];
+const TYPEWRITER_WORDS = ['bath mats', 'cotton suits'];
 const TYPEWRITER_ROUNDS = 2;
 
 function TypewriterWord() {

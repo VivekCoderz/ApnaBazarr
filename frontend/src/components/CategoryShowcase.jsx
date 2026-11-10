@@ -57,6 +57,8 @@ export default function CategoryShowcase({ products = [], loading = false }) {
     if (cat && p.image && !firstImage[cat] && p.inStock !== false) firstImage[cat] = p.image;
   });
   const tileClass = 'group block w-[88px] shrink-0 snap-start sm:w-auto';
+  // Never show empty "Coming soon" tiles: if nothing is live (e.g. the API failed), hide the row
+  if (!loading && !tiles.some(t => t.count > 0)) return null;
 
   return (
     <div className={`-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-1 no-scrollbar sm:mx-0 sm:grid sm:grid-cols-4 sm:gap-5 sm:overflow-visible sm:px-0 md:grid-cols-6 ${LG_COLS[tiles.length] || 'lg:grid-cols-8'}`}>

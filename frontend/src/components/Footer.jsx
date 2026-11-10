@@ -32,7 +32,7 @@ export default function Footer({ products = [] }) {
             </Link>
             <p className="text-lg font-semibold text-brand-orange">Panipat se Seedha, Aapke Ghar Tak</p>
             <p className="max-w-sm text-sm leading-relaxed text-white/70">
-              Blankets, bedsheets, cushion covers and women's suit sets from Panipat, India's City of Weavers, at factory prices with cash on delivery.
+              Bath mats and pure cotton suits from Panipat, India's City of Weavers, at factory prices with cash on delivery.
             </p>
             <Button href={whatsappUrl('Hello Dhagaro, I have a question.')} variant="whatsapp" size="sm">
               <MessageCircle className="h-4 w-4" aria-hidden="true" /> Chat on WhatsApp
