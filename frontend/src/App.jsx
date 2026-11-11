@@ -31,6 +31,7 @@ const RegisterSellerPage = lazy(() => import('./pages/RegisterSellerPage'));
 const SellerDashboardPage = lazy(() => import('./pages/SellerDashboardPage'));
 const ResellerPage = lazy(() => import('./pages/ResellerPage'));
 const BulkOrdersPage = lazy(() => import('./pages/BulkOrdersPage'));
+const TrackOrderPage = lazy(() => import('./pages/TrackOrderPage'));
 const AdminResellersPage = lazy(() => import('./pages/AdminResellersPage'));
 
 // Shown while a page chunk downloads (usually a fraction of a second)
@@ -1020,6 +1021,8 @@ function AppContent() {
           />
 
           <Route path="/bulk" element={<BulkOrdersPage products={products} />} />
+
+          <Route path="/track" element={<TrackOrderPage />} />
 
           <Route
             path="/admin/resellers"

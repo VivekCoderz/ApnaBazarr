@@ -69,6 +69,11 @@ export default function ProductDetailPage({
   // ?size=40 preselects a size (Google Shopping links each size variant this way)
   const [searchParams] = useSearchParams();
   const sizeParam = searchParams.get('size');
+  // ?review=<orderId>&t=<token>: signed post-delivery review link sent on WhatsApp.
+  // The server checks the token; a valid one marks the review "Verified buyer".
+  const reviewOrderId = (searchParams.get('review') || '').trim().slice(0, 40);
+  const reviewToken = (searchParams.get('t') || '').trim().slice(0, 32);
+  const reviewInvite = reviewOrderId && reviewToken ? { orderId: reviewOrderId, token: reviewToken } : null;
 
   // Only live products are in `products`; a hidden or deleted id shows the 'not available' view
   const product = products.find(p => String(p.id) === String(id));
@@ -247,6 +252,17 @@ export default function ProductDetailPage({
     return () => { cancelled = true; };
   }, [productId]);
 
+  // Review invite links end in #write-review; the form only exists once the product
+  // has loaded, so scroll there ourselves (once per product)
+  const scrolledToReview = useRef(null);
+  useEffect(() => {
+    if (!reviewOrderId || !reviewToken || !productId || scrolledToReview.current === productId) return;
+    const el = document.getElementById('write-review');
+    if (!el) return;
+    scrolledToReview.current = productId;
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [reviewOrderId, reviewToken, productId, reviewsLoading]);
+
   // Upload photo to Cloudinary via backend
   const handleReviewPhotoUpload = async (e) => {
     const file = e.target.files[0];
@@ -297,6 +313,7 @@ export default function ProductDetailPage({
           photoUrl: reviewPhotoUrl,
           videoUrl: reviewVideoUrl,
           sellerRating: sellerRating,
+          ...(reviewInvite ? { orderId: reviewInvite.orderId, token: reviewInvite.token } : {}),
         }),
       });
       const data = await res.json();
@@ -819,11 +836,16 @@ export default function ProductDetailPage({
               ) : reviews.map((rev) => (
                 <article key={rev._id || rev.id} className="space-y-3 rounded-lg border border-line bg-white p-5 shadow-card">
                   <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-navy text-sm font-semibold text-white">
                         {(rev.userName || rev.name || '?').charAt(0).toUpperCase()}
                       </span>
                       <span className="text-sm font-semibold text-ink">{rev.userName || rev.name}</span>
+                      {rev.verified && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                          <CheckCircle className="h-3.5 w-3.5" aria-hidden="true" /> Verified buyer
+                        </span>
+                      )}
                     </div>
                     <span className="text-xs text-slate-500">
                       {new Date(rev.createdAt || rev.date).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}
@@ -931,6 +953,11 @@ export default function ProductDetailPage({
             <div id="write-review" className="scroll-mt-40 rounded-lg border border-line bg-white p-5 shadow-card sm:p-6 lg:col-span-5">
               <h3 className="text-xl font-semibold text-brand-navy">Write a review</h3>
               <p className="mt-1 text-sm text-slate-600">Tell others about the fabric, size and delivery.</p>
+              {reviewInvite && (
+                <p className="mt-3 rounded-lg bg-brand-cream px-3 py-2 text-sm text-ink">
+                  Thanks for your order <span className="font-semibold">{reviewInvite.orderId}</span>! Your review will show as Verified buyer.
+                </p>
+              )}
 
               {reviewSubmitted ? (
                 <div className="space-y-2 py-8 text-center animate-fade-in">

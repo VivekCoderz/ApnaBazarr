@@ -33,6 +33,14 @@ const confirmMessage = (order) =>
   `Name: ${order.shippingAddress?.fullName || ''}. ` +
   `Total: Rs ${Math.round(order.totalAmount)} (${order.paymentMethod === 'COD' ? 'Cash on Delivery' : 'Paid online'}). Yes, please ship it.`;
 
+// Prefilled /track link for the success screen
+const trackHref = (order) => {
+  const params = new URLSearchParams({ id: order.orderId || '' });
+  const phone = String(order.shippingAddress?.phone || '').replace(/\D/g, '').slice(-10);
+  if (phone) params.set('phone', phone);
+  return `/track?${params}`;
+};
+
 export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }) {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
@@ -503,6 +511,12 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
                     My Orders
                   </button>
                 )}
+                <Link
+                  to={trackHref(placedOrder)}
+                  className="px-6 py-3 border border-brand-navy text-brand-navy text-sm font-semibold rounded-xl"
+                >
+                  Track your order
+                </Link>
                 <Link to="/shop" className="px-6 py-3 text-brand-navy text-sm font-semibold underline underline-offset-4">
                   Continue shopping
                 </Link>

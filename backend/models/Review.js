@@ -9,6 +9,9 @@ const reviewSchema = new mongoose.Schema({
   comment:     { type: String, required: true },
   photoUrl:    { type: String, default: '' },
   videoUrl:    { type: String, default: '' },
+  // true when posted through a signed post-delivery link (backend/utils/reviewToken.js)
+  verified:    { type: Boolean, default: false },
+  orderId:     { type: String },
   sellerId:    { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   sellerRating: { type: Number, min: 1, max: 5 },
   likes:       { type: [String], default: [] },
@@ -22,5 +25,11 @@ const reviewSchema = new mongoose.Schema({
     }
   ]
 }, { timestamps: true });
+
+// One verified review per order + product (plain reviews have no orderId and are not affected)
+reviewSchema.index(
+  { orderId: 1, productId: 1 },
+  { unique: true, partialFilterExpression: { verified: true } }
+);
 
 module.exports = mongoose.model('Review', reviewSchema);

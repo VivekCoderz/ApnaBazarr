@@ -8,7 +8,8 @@ import Button from './ui/Button';
 const HELP_LINKS = [
   { to: '/shipping', label: 'Shipping Policy' },
   { to: '/refunds', label: 'Returns & Refunds' },
-  { to: '/orders', label: 'Track my orders' },
+  { to: '/track', label: 'Track order' },
+  { to: '/orders', label: 'My orders' },
   { to: '/contact', label: 'Contact us' },
   { to: '/terms', label: 'Terms & Conditions' },
   { to: '/privacy', label: 'Privacy Policy' }

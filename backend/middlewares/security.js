@@ -44,6 +44,8 @@ const limiters = {
   signup: limiter({ windowMs: 60 * MIN, limit: 10, message: 'Too many sign-ups from this network. Please try again in an hour.' }),
   // COD orders and Razorpay order creation (not /orders/verify: a paid order must never be blocked)
   order: limiter({ windowMs: 60 * MIN, limit: 30, message: 'Too many orders from this network. Please WhatsApp us at +91 93068 10726 if you need help.' }),
+  // Public order tracking (order ID + phone): stops guessing order IDs by brute force
+  orderTrack: limiter({ windowMs: 15 * MIN, limit: 20, message: 'Too many tracking attempts. Please wait 15 minutes and try again.' }),
   review: limiter({ windowMs: 60 * MIN, limit: 10, message: 'Too many reviews from this network. Please try again later.' }),
   reviewInteraction: limiter({ windowMs: 15 * MIN, limit: 100, message: TRY_LATER }),
   feedback: limiter({ windowMs: 60 * MIN, limit: 10, message: 'Too many feedback messages. Please try again later.' }),

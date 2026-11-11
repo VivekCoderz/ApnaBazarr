@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react';
 import { Phone, Copy, Check, Plus, Search, X } from 'lucide-react';
 import WhatsAppIcon from '../ui/WhatsAppIcon';
-import { orderWhatsappLinks } from '../../utils/orderWhatsapp';
+import { orderWhatsappLinks, reviewRequestMessage } from '../../utils/orderWhatsapp';
+import { whatsappChatUrl } from '../../config/store';
+import { BASE_URL, adminHeaders } from './adminApi';
 import { Card, PanelHeader, Pill, FilterTabs, EmptyState } from './AdminUi';
 import { btn, input } from './adminStyles';
 import {
@@ -11,20 +13,61 @@ import {
 
 const PAGE = 30;
 
+// "Ask for review" on delivered orders: fetches signed review links (admin-only endpoint)
+// and opens WhatsApp with them. The window is opened on the click itself so popup
+// blockers allow it, then pointed at WhatsApp once the links arrive.
+function AskReviewButton({ order, phone }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleClick = async () => {
+    setBusy(true);
+    setError('');
+    const win = window.open('', '_blank');
+    try {
+      const res = await fetch(`${BASE_URL}/orders/${encodeURIComponent(order.orderId)}/review-links`, {
+        headers: adminHeaders(),
+        credentials: 'include'
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success || !data.links?.length) throw new Error(data.message || 'Could not create review links.');
+      const url = whatsappChatUrl(phone, reviewRequestMessage(order, data.links));
+      if (win) win.location.href = url;
+      else window.location.href = url;
+    } catch (err) {
+      if (win) win.close();
+      setError(err.message || 'Could not create review links.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <>
+      <button type="button" onClick={handleClick} disabled={busy} className={btn.outline} title="Ask the customer for a review on WhatsApp">
+        <WhatsAppIcon className="h-4 w-4 shrink-0" /> {busy ? 'Opening…' : 'Ask for review'}
+      </button>
+      {error && <p className="col-span-2 text-xs text-red-700" role="alert">{error}</p>}
+    </>
+  );
+}
+
 // "Confirm on WhatsApp" / "Send shipped update" buttons for one order
 function OrderWhatsappActions({ order }) {
   const links = orderWhatsappLinks(order);
   if (!links) {
     return <p className="text-xs text-slate-500">No valid mobile number for WhatsApp.</p>;
   }
+  const delivered = order.orderStatus === 'Delivered';
   return (
-    <div className="grid grid-cols-2 gap-2 sm:flex">
+    <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
       <a href={links.confirm} target="_blank" rel="noopener noreferrer" className={btn.whatsapp} title="Send order confirmation on WhatsApp">
         <WhatsAppIcon className="h-4 w-4 shrink-0" /> Confirm order
       </a>
       <a href={links.shipped} target="_blank" rel="noopener noreferrer" className={btn.outline} title="Send shipped update on WhatsApp">
         <WhatsAppIcon className="h-4 w-4 shrink-0" /> Shipped msg
       </a>
+      {delivered && <AskReviewButton order={order} phone={links.phone} />}
     </div>
   );
 }

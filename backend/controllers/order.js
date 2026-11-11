@@ -18,6 +18,7 @@ const { orderShippingCharge: calcOrderShipping, hasFreeDeliveryTag } = require('
 const { codLimitError } = require('../utils/cod');
 const { onlineDiscount } = require('../utils/payment');
 const { optionalUser } = require('../middlewares/auth');
+const { reviewLink } = require('../utils/reviewToken');
 
 const GUEST_EMAIL = 'guest@apnabazarr.com';
 
@@ -601,5 +602,76 @@ module.exports.createOfflineOrder = async (req, res) => {
   } catch (error) {
     console.error('Offline order creation error:', error);
     res.status(500).json({ success: false, message: 'Server error while creating offline order.' });
+  }
+};
+
+const last10 = (value) => String(value || '').replace(/\D/g, '').slice(-10);
+const TRACK_NOT_FOUND = "We couldn't find an order with that ID and phone number.";
+
+// GET /orders/track?orderId=X&phone=Y — public, rate-limited guest tracking.
+// The order ID alone is not enough: the phone on the order must match too, and every
+// failure gets the same 404 so the endpoint never reveals whether an order ID exists.
+// Only status fields are returned: no email, full address, reseller or cost data.
+module.exports.trackOrder = async (req, res) => {
+  try {
+    const orderId = typeof req.query.orderId === 'string' ? req.query.orderId.trim().toUpperCase().slice(0, 40) : '';
+    const phone = last10(typeof req.query.phone === 'string' ? req.query.phone : '');
+    if (!orderId || phone.length !== 10) {
+      return res.status(404).json({ success: false, message: TRACK_NOT_FOUND });
+    }
+    // Order IDs are generated in upper case (newOrderId), so this is a case-insensitive match
+    const order = await Order.findOne({ orderId }).lean();
+    if (!order || last10(order.shippingAddress?.phone) !== phone) {
+      return res.status(404).json({ success: false, message: TRACK_NOT_FOUND });
+    }
+    const fullName = String(order.shippingAddress?.fullName || '').trim();
+    res.json({
+      success: true,
+      order: {
+        orderId: order.orderId,
+        createdAt: order.createdAt,
+        orderStatus: order.orderStatus,
+        paymentMethod: order.paymentMethod,
+        paymentStatus: order.paymentStatus,
+        totalAmount: order.totalAmount,
+        estimatedDelivery: order.estimatedDelivery || '',
+        items: (order.items || []).map(i => ({
+          name: i.name,
+          quantity: i.quantity,
+          price: i.price,
+          image: i.image || '',
+          color: i.color || '',
+          size: i.size || ''
+        })),
+        shippingAddress: {
+          firstName: fullName.split(/\s+/)[0] || '',
+          city: order.shippingAddress?.city || ''
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Track order error:', error);
+    res.status(500).json({ success: false, message: 'Something went wrong. Please try again.' });
+  }
+};
+
+// GET /orders/:orderId/review-links — admin only (see routes/order.js). One signed
+// "write a review" link per distinct product in the order, for the WhatsApp ask.
+module.exports.getReviewLinks = async (req, res) => {
+  try {
+    const order = await Order.findOne({ orderId: String(req.params.orderId) }).lean();
+    if (!order) return res.status(404).json({ success: false, message: 'Order not found.' });
+    const seen = new Set();
+    const links = [];
+    for (const item of order.items || []) {
+      const productId = String(item.productId || '');
+      if (!productId || seen.has(productId)) continue;
+      seen.add(productId);
+      links.push({ productId, name: item.name, url: reviewLink(order.orderId, productId) });
+    }
+    res.json({ success: true, orderId: order.orderId, orderStatus: order.orderStatus, links });
+  } catch (error) {
+    console.error('Review links error:', error);
+    res.status(500).json({ success: false, message: 'Could not create review links.' });
   }
 };

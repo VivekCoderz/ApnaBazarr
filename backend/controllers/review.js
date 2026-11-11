@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const Review = require('../models/Review');
 const Product = require('../models/Product');
+const Order = require('../models/Order');
+const { isValidReviewToken } = require('../utils/reviewToken');
 const { optionalUser } = require('../middlewares/auth');
 
 const MAX_NAME = 80;
@@ -45,6 +47,7 @@ function publicReview(review, viewer) {
     photoUrl: r.photoUrl,
     videoUrl: r.videoUrl,
     sellerRating: r.sellerRating,
+    verified: Boolean(r.verified),
     createdAt: r.createdAt,
     updatedAt: r.updatedAt,
     likesCount: likes.length,
@@ -90,6 +93,22 @@ exports.createReview = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Product not found.' });
     }
 
+    // Verified buyer: a valid signed link for a delivered order that contains this product.
+    // Anything less (no token, bad token, not delivered) is just a normal review.
+    const productKey = String(prod._id);
+    const orderId = typeof req.body.orderId === 'string' ? req.body.orderId.trim().slice(0, 40) : '';
+    const token = typeof req.body.token === 'string' ? req.body.token.trim() : '';
+    let verifiedOrderId = '';
+    if (orderId && token && isValidReviewToken(orderId, productKey, token)) {
+      const order = await Order.findOne({ orderId }).select('orderStatus items.productId').lean();
+      if (order && order.orderStatus === 'Delivered' && (order.items || []).some(i => String(i.productId) === productKey)) {
+        verifiedOrderId = orderId;
+      }
+    }
+    if (verifiedOrderId && await Review.exists({ orderId: verifiedOrderId, productId: productKey, verified: true })) {
+      return res.status(400).json({ success: false, message: 'You have already reviewed this product for this order. Thank you!' });
+    }
+
     // The reviewer's email comes from their session (empty for guests), never the body
     const viewer = await optionalUser(req);
 
@@ -103,7 +122,8 @@ exports.createReview = async (req, res) => {
       photoUrl: cleanMediaUrl(req.body.photoUrl),
       videoUrl: cleanMediaUrl(req.body.videoUrl),
       sellerId: prod.seller || null,
-      sellerRating: validServiceStars
+      sellerRating: validServiceStars,
+      ...(verifiedOrderId ? { verified: true, orderId: verifiedOrderId } : {})
     });
 
     // Recalculate average rating and reviewsCount for the product
@@ -116,6 +136,10 @@ exports.createReview = async (req, res) => {
 
     res.status(201).json({ success: true, review: publicReview(review, viewer) });
   } catch (err) {
+    // Two submits racing past the check above hit the unique verified-review index
+    if (err && err.code === 11000) {
+      return res.status(400).json({ success: false, message: 'You have already reviewed this product for this order. Thank you!' });
+    }
     serverError(res, err, 'Create review error');
   }
 };

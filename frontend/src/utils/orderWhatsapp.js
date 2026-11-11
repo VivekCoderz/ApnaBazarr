@@ -1,6 +1,6 @@
 // Admin WhatsApp messages to a customer about their order. Plain text only (no emojis:
 // 4-byte characters break on WhatsApp Web), prices as "Rs".
-import { whatsappChatUrl, normalizeIndianPhone } from '../config/store';
+import { whatsappChatUrl, normalizeIndianPhone, SITE_URL } from '../config/store';
 import { displayName } from './format';
 
 const rupees = (amount) => `Rs ${Math.round(Number(amount) || 0).toLocaleString('en-IN')}`;
@@ -8,6 +8,15 @@ const rupees = (amount) => `Rs ${Math.round(Number(amount) || 0).toLocaleString(
 const firstName = (order) => (order.shippingAddress?.fullName || '').trim().split(/\s+/)[0] || 'there';
 
 const isCod = (order) => order.paymentMethod === 'COD';
+
+// Public tracking page with the order prefilled (TrackOrderPage). The 10-digit phone is
+// the one on the order, so the link only works for the customer it is sent to.
+export function trackingUrl(order) {
+  const phone = normalizeIndianPhone(order.shippingAddress?.phone).slice(2);
+  const params = new URLSearchParams({ id: order.orderId || '' });
+  if (phone) params.set('phone', phone);
+  return `${SITE_URL}/track?${params}`;
+}
 
 function itemLine(item) {
   const options = [
@@ -47,6 +56,8 @@ export function orderConfirmMessage(order) {
     '',
     `Delivery address: ${addressLine(order.shippingAddress)}`,
     '',
+    `Track your order: ${trackingUrl(order)}`,
+    '',
     'Reply YES to confirm your order.'
   );
   return lines.join('\n');
@@ -58,7 +69,23 @@ export function orderShippedMessage(order) {
   ];
   if (order.estimatedDelivery && order.estimatedDelivery !== 'Completed') lines.push(`Expected delivery: ${order.estimatedDelivery}`);
   if (isCod(order)) lines.push(`Amount to pay on delivery: ${rupees(order.totalAmount)} (cash)`);
-  lines.push('', 'Thank you for shopping with Dhagaro.');
+  lines.push('', `Track your order: ${trackingUrl(order)}`, '', 'Thank you for shopping with Dhagaro.');
+  return lines.join('\n');
+}
+
+// Hinglish "please review" message after delivery; one signed link per product
+// (links come from GET /orders/:orderId/review-links). Plain text, no emojis.
+export function reviewRequestMessage(order, links = []) {
+  const lines = [
+    `Namaste ${firstName(order)}, aapka Dhagaro order ${order.orderId} deliver ho gaya. Kaisa laga?`,
+    '1 minute mein review de dijiye, photo ke saath ho to aur achha:'
+  ];
+  if (links.length === 1) {
+    lines.push(links[0].url);
+  } else {
+    links.forEach(l => lines.push('', `${displayName(l.name)}:`, l.url));
+  }
+  lines.push('', 'Thank you!');
   return lines.join('\n');
 }
 

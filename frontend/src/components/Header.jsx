@@ -518,6 +518,9 @@ export default function Header({
             <Link to="/bulk" className="flex h-12 items-center text-brand-navy hover:text-brand-cta">
               Bulk orders
             </Link>
+            <Link to="/track" className="flex h-12 items-center text-brand-navy hover:text-brand-cta">
+              Track order
+            </Link>
             <a href={whatsappUrl()} target="_blank" rel="noreferrer" className="flex h-12 items-center gap-1.5 text-slate-600 hover:text-brand-navy">
               <MessageCircle className="h-4 w-4" aria-hidden="true" />
               Help: {PHONE_DISPLAY}

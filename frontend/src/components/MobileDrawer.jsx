@@ -24,6 +24,7 @@ export default function MobileDrawer({ isOpen, onClose, cartCount, wishlistCount
   }
 
   navLinks.push(
+    { label: 'Track order', to: '/track' },
     { label: 'Bulk orders', to: '/bulk' },
     { label: 'Shipping Policy', to: '/shipping' },
     { label: 'Returns & Refunds', to: '/refunds' },
