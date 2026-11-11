@@ -1407,6 +1407,11 @@ function AdminDashboardContent({ isOpen, onClose, products, orders, onAddProduct
                               Online Payment (Razorpay/UPI)
                             </span>
                           )}
+                          {ord.source && (
+                            <span className="ml-2 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-0.5 text-[10px] font-extrabold text-indigo-700" title="Where this customer came from">
+                              From: {ord.source}
+                            </span>
+                          )}
                         </div>
 
                         {/* Status Updater Dropdown */}

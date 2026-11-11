@@ -58,6 +58,8 @@ const orderSchema = new mongoose.Schema({
   razorpayOrderId: { type: String },
   isOffline: { type: Boolean, default: false },
   resellerCode: { type: String },
+  // Marketing channel the customer came from (utm_source / facebook / instagram / google / direct)
+  source: { type: String, default: '' },
   resellerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   resellerCommission: { type: Number, default: 0 },
   resellerPayoutStatus: { type: String, enum: ['pending', 'paid'], default: 'pending' },

@@ -146,9 +146,13 @@ async function processOrderItems(items, deliveryPincode) {
   return formatted;
 }
 
+// Marketing source sent by the shop (utils/source.js): short, plain text only
+const cleanSource = (v) => (typeof v === 'string' ? v.toLowerCase().replace(/[^a-z0-9_.\-/ ]/g, '').trim().slice(0, 100) : '') || 'direct';
+
 module.exports.createOrder = async (req, res) => {
   try {
     const { userEmail, items, shippingAddress, paymentMethod, totalAmount, resellerCode } = req.body;
+    const source = cleanSource(req.body.source);
 
     if (!Array.isArray(items) || items.length === 0 || !shippingAddress) {
       return res.status(400).json({ success: false, message: 'Invalid order details provided.' });
@@ -206,6 +210,7 @@ module.exports.createOrder = async (req, res) => {
       items: formattedItems,
       ...resellerFields,
       shippingAddress: cleanAddress(shippingAddress),
+      source,
       paymentMethod: 'COD',
       paymentStatus: 'Pending COD',
       orderStatus: 'Order Placed',
@@ -317,6 +322,7 @@ module.exports.verifyRazorpayPayment = async (req, res) => {
       email,
       resellerCode
     } = req.body;
+    const source = cleanSource(req.body.source);
 
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
       return res.status(400).json({ success: false, message: 'Missing payment signature details.' });
@@ -375,6 +381,7 @@ module.exports.verifyRazorpayPayment = async (req, res) => {
       items: formattedItems,
       ...resellerFields,
       shippingAddress: cleanAddress(shippingAddress),
+      source,
       paymentMethod: 'Online (Razorpay)',
       paymentStatus: 'Completed',
       orderStatus: 'Order Placed',

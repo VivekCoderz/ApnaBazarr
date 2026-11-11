@@ -42,6 +42,7 @@ function PageFallback() {
   );
 }
 import { captureReferral } from './utils/referral';
+import { captureSource } from './utils/source';
 import { prefersReducedMotion } from './components/ui/motion';
 
 import { Check, ShieldCheck } from 'lucide-react';
@@ -138,6 +139,7 @@ function AppContent() {
   // Remember the reseller who shared the link (?ref=CODE)
   useEffect(() => {
     captureReferral(search);
+    captureSource(search);
   }, [search]);
 
   // New page: start at the top. Back/forward: return to where the visitor was

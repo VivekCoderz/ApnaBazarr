@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { ArrowRight, ArrowLeft, Check, Banknote, CreditCard, Loader2, MessageCircle } from 'lucide-react';
 
 import { getReferral } from '../utils/referral';
+import { getSource } from '../utils/source';
 import { useShippingQuote } from '../utils/shipping';
 import { formatPrice } from '../utils/format';
 import { COD_MAX_AMOUNT, whatsappUrl, onlineDiscountFor } from '../config/store';
@@ -216,7 +217,8 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
                   items: orderItems(),
                   shippingAddress: shippingAddress(),
                   totalAmount: payable,
-                  resellerCode: getReferral()
+                  resellerCode: getReferral(),
+                  source: getSource()
                 }),
               });
               const verifyResult = await safeParseJSON(verifyRes);
@@ -260,6 +262,7 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
             paymentMethod: 'COD',
             totalAmount: total,
             resellerCode: getReferral(),
+            source: getSource(),
           }),
         });
         const result = await safeParseJSON(res);
