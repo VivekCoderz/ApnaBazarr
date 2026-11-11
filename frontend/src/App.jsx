@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Link, Navigate, useNavigate, useLocation,
 import { SELLER_MARKETPLACE_ENABLED } from './config/store';
 
 import Header from './components/Header';
+import PanipatWelcome from './components/PanipatWelcome';
 import MobileDrawer from './components/MobileDrawer';
 import QuickViewModal from './components/QuickViewModal';
 import AuthModal from './components/AuthModal';
@@ -861,6 +862,7 @@ function AppContent() {
       </div>
 
       {/* Top Ribbon */}
+      <PanipatWelcome />
 
       {!isNoNavRoute && (
         <Header

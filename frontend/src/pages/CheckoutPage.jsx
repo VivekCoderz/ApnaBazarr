@@ -7,7 +7,7 @@ import { getSource } from '../utils/source';
 import { useShippingQuote } from '../utils/shipping';
 import { getSavedPincode, savePincode, isValidPincode } from '../utils/location';
 import { formatPrice } from '../utils/format';
-import { COD_MAX_AMOUNT, whatsappUrl, onlineDiscountFor, hasFreeDeliveryTag } from '../config/store';
+import { COD_MAX_AMOUNT, whatsappUrl, onlineDiscountFor, hasFreeDeliveryTag, isPanipatPincode } from '../config/store';
 import FreeDeliveryProgress from '../components/FreeDeliveryProgress';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -390,7 +390,9 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-600">Delivery</span>
-                  <span className={`font-semibold ${shipping === 0 ? 'text-emerald-700' : 'text-slate-800'}`}>{shipping === 0 ? 'FREE' : formatPrice(shipping)}</span>
+                  {shipping === 0 && isPanipatPincode(addressPincode)
+                    ? <span className="text-right"><span className="font-bold text-emerald-700">FREE</span> <span className="text-xs text-slate-400 line-through">₹49</span><span className="block text-xs font-medium text-emerald-700">Panipat mein free delivery</span></span>
+                    : <span className={`font-semibold ${shipping === 0 ? 'text-emerald-700' : 'text-slate-800'}`}>{shipping === 0 ? 'FREE' : formatPrice(shipping)}</span>}
                 </div>
                 {effectiveMethod === 'UPI' && onlineSaving > 0 && (
                   <div className="flex justify-between">
