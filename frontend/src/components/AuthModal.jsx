@@ -14,6 +14,9 @@ import {
   AlertCircle,
   Loader2,
 } from "lucide-react";
+import GoogleSignInButton from "./GoogleSignInButton";
+
+const googleSignInEnabled = Boolean(import.meta.env.VITE_GOOGLE_CLIENT_ID);
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -113,6 +116,30 @@ function AuthModalContent({ onClose, onAuthSuccess }) {
     }
   };
 
+  const handleGoogle = async (credential) => {
+    if (!credential) return;
+    setLoading(true);
+    setErrorMessage("");
+    try {
+      const res = await fetch(`${BASE_URL}/auth/google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ credential }),
+      });
+      const result = await res.json().catch(() => {
+        throw new Error("Our server is starting up. Please try again in 10-15 seconds.");
+      });
+      if (!res.ok || !result.success) throw new Error(result.message || `Request failed: ${res.status}`);
+      onAuthSuccess(result.user);
+      onClose();
+    } catch (err) {
+      setErrorMessage(err.message || "Google sign-in failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-labelledby="auth-title">
       {/* Backdrop */}
@@ -186,6 +213,15 @@ function AuthModalContent({ onClose, onAuthSuccess }) {
                 </button>
               ))}
             </div>
+
+            {googleSignInEnabled && (
+              <div className="mt-5">
+                <GoogleSignInButton onCredential={handleGoogle} text={isLogin ? "continue_with" : "signup_with"} />
+                <div className="mt-4 flex items-center gap-3 text-xs text-slate-400" aria-hidden="true">
+                  <span className="h-px flex-1 bg-slate-200" />or use email<span className="h-px flex-1 bg-slate-200" />
+                </div>
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className="mt-5 space-y-4">
               {!isLogin && (

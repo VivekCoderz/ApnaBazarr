@@ -6,6 +6,7 @@ const { limiters } = require("../middlewares/security.js");
 
 router.post("/signup", limiters.signup, authController.signup);
 router.post("/login", limiters.login, authController.login);
+router.post("/google", limiters.login, authController.googleLogin);
 router.post("/logout", authController.logout);
 router.post("/admin/login", limiters.adminLogin, authController.adminLogin);
 router.get("/me", authController.getme);

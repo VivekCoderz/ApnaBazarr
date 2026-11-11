@@ -142,6 +142,65 @@ module.exports.login = async (req, res) => {
   }
 };
 
+// "Continue with Google": the browser gets a signed ID token from Google Identity Services;
+// we ask Google to verify it (tokeninfo checks the signature and expiry), then make sure it
+// was issued for OUR client id and that Google has verified the email. Existing accounts with
+// the same email are logged in; new emails get an account with an unusable random password.
+const GOOGLE_ISSUERS = ['accounts.google.com', 'https://accounts.google.com'];
+
+module.exports.googleLogin = async (req, res) => {
+  try {
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    if (!clientId) return res.status(503).json({ success: false, message: 'Google login is not set up yet.' });
+
+    const credential = req.body?.credential;
+    if (typeof credential !== 'string' || credential.length < 100 || credential.length > 4096) {
+      return res.status(400).json({ success: false, message: 'Google sign-in failed. Please try again.' });
+    }
+
+    const r = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`);
+    const info = r.ok ? await r.json() : null;
+    const valid = info && info.aud === clientId && GOOGLE_ISSUERS.includes(info.iss) &&
+      (info.email_verified === true || info.email_verified === 'true') && Number(info.exp) * 1000 > Date.now();
+    if (!valid || !info.email) {
+      return res.status(401).json({ success: false, message: 'Google sign-in failed. Please try again.' });
+    }
+
+    const email = normaliseEmail(info.email).toLowerCase();
+    let user = await findUserByEmail(email);
+    if (!user) {
+      const passwordHash = await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 10);
+      user = await User.create({
+        name: (typeof info.name === 'string' && info.name.trim()) || email.split('@')[0],
+        email,
+        phone: '',
+        password: passwordHash
+      });
+    }
+
+    const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, { expiresIn: `${SESSION_DAYS}d` });
+    res.cookie('token', token, SESSION_COOKIE);
+    return res.json({
+      success: true,
+      message: 'Login successful!',
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role || 'user',
+        cart: user.cart || [],
+        wishlist: user.wishlist || [],
+        recentlyViewed: user.recentlyViewed || []
+      }
+    });
+  } catch (error) {
+    console.error('Google Login Error:', error);
+    res.status(500).json({ success: false, message: 'Server error during Google sign-in.' });
+  }
+};
+
 module.exports.logout = (req, res) => {
   // 1. Clear secure sameSite=none cookie (for Production/HTTPS)
   res.cookie('token', '', {
