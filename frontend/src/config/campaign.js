@@ -64,8 +64,8 @@ export const SLIDE_OFFER = {
   kind: 'offer',
   theme: 'navy',
   kicker: 'Free delivery · Cash on Delivery',
-  headline: 'Free delivery on orders above ₹499',
-  subline: 'Pay in cash when your parcel arrives. Below ₹499, delivery is just ₹49.',
+  headline: 'Free delivery in Panipat, on every order',
+  subline: 'Elsewhere free above ₹499, otherwise just ₹49. Pay in cash when your parcel arrives.',
   cta: { label: 'Shop now', to: '/shop' }
 };
 
@@ -204,7 +204,7 @@ export function getAnnouncementItems(now = getNow()) {
   const campaign = getActiveCampaign(now);
   const extra = campaign.announcementExtra;
   const third = extra && now <= new Date(extra.until) ? extra.text : DEFAULT_ANNOUNCEMENT_EXTRA;
-  return ['Cash on delivery', 'Free delivery above ₹499', third];
+  return ['Cash on delivery', 'Free delivery in Panipat · ₹499+ elsewhere', third];
 }
 
 const countFor = (link, products) => {
