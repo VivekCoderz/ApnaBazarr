@@ -136,7 +136,6 @@ export const CAMPAIGNS = [
     cta: { label: 'Shop bath mats', category: 'Mats & Table Runner' },
     secondary: null,
     slides: [
-      ...SCENE_SLIDES,
       {
         id: 'winter',
         kind: 'products',
@@ -148,6 +147,7 @@ export const CAMPAIGNS = [
         subline: 'Pebble, microfiber and sherpa bath mats. Cash on delivery.',
         cta: { label: 'Shop all products', to: '/shop' }
       },
+      ...SCENE_SLIDES,
     ]
   }
 ];
@@ -164,7 +164,6 @@ const DEFAULT_CAMPAIGN = {
   cta: { label: 'Shop all products', to: '/shop' },
   secondary: { label: 'Become a reseller and earn from home', to: '/reseller' },
   slides: [
-    ...SCENE_SLIDES,
     {
       id: 'panipat',
       kind: 'products',
@@ -176,6 +175,7 @@ const DEFAULT_CAMPAIGN = {
       subline: 'Bath mats straight from Panipat, with bedsheets and towels coming soon. Pay cash on delivery.',
       cta: { label: 'Shop all products', to: '/shop' }
     },
+    ...SCENE_SLIDES,
   ]
 };
 

@@ -113,12 +113,22 @@ function AppContent() {
 
   // Fetch products from backend
   const loadProducts = async () => {
+    // Show the catalogue saved on the last visit straight away (the free API server can
+    // take ~50 s to wake up), then replace it with fresh data.
+    try {
+      const cached = JSON.parse(localStorage.getItem('dhagaro_products') || 'null');
+      if (Array.isArray(cached?.data) && cached.data.length && Date.now() - cached.at < 7 * 864e5) {
+        setProducts(prev => (prev.length ? prev : cached.data));
+        setProductsLoading(false);
+      }
+    } catch { /* no cache */ }
     try {
       const res = await fetch(`${BASE_URL}/products`);
       const result = await res.json();
       if (result.success && result.data) {
         setProducts(result.data);
         productsLoadedAt.current = Date.now();
+        try { localStorage.setItem('dhagaro_products', JSON.stringify({ at: Date.now(), data: result.data })); } catch { /* storage full/blocked */ }
       }
     } catch {
       console.warn('Could not reach backend for products.');

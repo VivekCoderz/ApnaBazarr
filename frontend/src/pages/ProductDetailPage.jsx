@@ -800,13 +800,14 @@ export default function ProductDetailPage({
                   {[0, 1].map(i => <div key={i} className="h-28 animate-pulse rounded-lg bg-slate-100" />)}
                 </div>
               ) : reviews.length === 0 ? (
-                <div className="flex flex-col items-center rounded-lg border-2 border-dashed border-line bg-brand-cream/60 px-6 py-10 text-center">
-                  <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-white text-slate-400 ring-1 ring-inset ring-line">
-                    <Star className="h-7 w-7" aria-hidden="true" />
-                  </span>
-                  <p className="mt-4 text-xl font-semibold text-brand-navy">Be the first to review</p>
-                  <p className="mt-1 max-w-sm text-slate-600">Bought this product? Share a photo and a few words to help other shoppers.</p>
-                  <Button href="#write-review" variant="secondary" size="sm" className="mt-5">Write a review</Button>
+                <div className="rounded-lg border border-line bg-white p-5">
+                  <p className="text-[15px] font-semibold text-ink">New on Dhagaro, no reviews yet</p>
+                  <ul className="mt-3 space-y-1.5 text-sm text-slate-600">
+                    <li>Packed and shipped by us from Panipat</li>
+                    <li>Pay cash when it arrives · 7-day easy returns</li>
+                    <li>Questions? Call or WhatsApp +91 93068 10726</li>
+                  </ul>
+                  <a href="#write-review" className="mt-3 inline-block text-sm font-medium text-brand-cta hover:underline">Bought it? Write a review</a>
                 </div>
               ) : reviews.map((rev) => (
                 <article key={rev._id || rev.id} className="space-y-3 rounded-lg border border-line bg-white p-5 shadow-card">
