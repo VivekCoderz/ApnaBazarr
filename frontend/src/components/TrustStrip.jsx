@@ -4,7 +4,7 @@ import { formatPrice } from '../utils/format';
 
 const TRUST_ITEMS = [
   { icon: Banknote, title: 'Cash on Delivery', sub: `Pay when it arrives, up to ${formatPrice(COD_MAX_AMOUNT)}` },
-  { icon: Truck, title: `Free delivery above ₹${FREE_DELIVERY_ABOVE}`, sub: `Otherwise ₹${DELIVERY_CHARGE} · ships in 2 days` },
+  { icon: Truck, title: `Free delivery above ₹${FREE_DELIVERY_ABOVE}`, sub: `Free in Panipat on every order · else ₹${DELIVERY_CHARGE}` },
   { icon: RotateCcw, title: '7-day easy returns', sub: 'Damaged, wrong item or size' },
   { icon: MapPin, title: 'Made in Panipat', sub: 'Checked and packed by us' }
 ];

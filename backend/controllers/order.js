@@ -14,7 +14,7 @@ const rzp = new Razorpay({
 const Product = require('../models/Product');
 const Setting = require('../models/Setting');
 const { resolveResellerForOrder } = require('./reseller');
-const { orderShippingCharge: calcOrderShipping, hasFreeDeliveryTag } = require('../utils/shipping');
+const { orderShippingCharge: calcOrderShipping, hasFreeDeliveryTag, isPanipatPincode } = require('../utils/shipping');
 const { codLimitError } = require('../utils/cod');
 const { onlineDiscount } = require('../utils/payment');
 const { optionalUser } = require('../middlewares/auth');
@@ -111,8 +111,8 @@ async function processOrderItems(items, deliveryPincode) {
     }
   }
 
-  // 2. Free shipping on ₹499+ (or when the cart has a free-delivery combo), otherwise flat ₹49
-  const orderShippingCharge = calcOrderShipping(subtotal, dbProducts.some(d => hasFreeDeliveryTag(d.dbProduct)));
+  // 2. Free shipping in Panipat, on ₹499+ or with a free-delivery combo, otherwise flat ₹49
+  const orderShippingCharge = calcOrderShipping(subtotal, dbProducts.some(d => hasFreeDeliveryTag(d.dbProduct)), deliveryPincode);
 
   const formatted = [];
   for (let idx = 0; idx < dbProducts.length; idx++) {
@@ -150,9 +150,8 @@ async function processOrderItems(items, deliveryPincode) {
 // Low-price items tagged "cod-panipat-only" (Sherpa mat) lose money on courier COD when
 // ordered alone, so a COD cart made ONLY of such items must be a Panipat pincode (1321xx).
 // With any other item in the cart, or with online payment, they ship anywhere.
-const PANIPAT_PINCODE = /^1321\d\d$/;
 async function panipatOnlyCodError(formattedItems, pincode) {
-  if (PANIPAT_PINCODE.test(String(pincode || '').trim())) return null;
+  if (isPanipatPincode(pincode)) return null;
   for (const item of formattedItems) {
     const p = await Product.findById(item.productId).select('tags');
     const tags = (p?.tags || []).map(t => String(t).toLowerCase());
@@ -286,7 +285,10 @@ module.exports.getOrderById = async (req, res) => {
 module.exports.createRazorpayOrder = async (req, res) => {
   try {
     // Charge what the server calculates for the cart, never an amount sent by the browser
+    // deliveryPincode only decides free delivery (Panipat); /verify recalculates with the
+    // address pincode and rejects the payment if the two totals differ.
     const { items } = req.body;
+    const deliveryPincode = String(req.body.deliveryPincode || '').trim().slice(0, 6);
     if (!Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ success: false, message: 'Your cart is empty.' });
     }
@@ -294,7 +296,7 @@ module.exports.createRazorpayOrder = async (req, res) => {
     if (soldOut.length) {
       return res.status(400).json({ success: false, message: `Not available right now: ${soldOut.join(', ')}. Please remove it from your cart.` });
     }
-    const formattedItems = await processOrderItems(items);
+    const formattedItems = await processOrderItems(items, deliveryPincode);
     if (formattedItems.length === 0) {
       return res.status(400).json({ success: false, message: 'The items in your cart are not available right now.' });
     }
@@ -367,11 +369,6 @@ module.exports.verifyRazorpayPayment = async (req, res) => {
       day: 'numeric'
     });
 
-    const formattedItems = await processOrderItems(items, shippingAddress.pincode);
-
-    const totalItemCost = formattedItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-    const totalShipping = formattedItems.reduce((acc, item) => acc + item.shippingCharges, 0);
-    const calculatedTotal = totalItemCost + totalShipping;
     // The signature only proves the payment happened; make sure it paid for THIS cart
     // (at the discounted online price) and that the same payment isn't turned into a second order.
     const paidOrder = await rzp.orders.fetch(razorpay_order_id);
@@ -379,10 +376,23 @@ module.exports.verifyRazorpayPayment = async (req, res) => {
     // created before the discount existed (no onlineDiscount note, full amount) is still
     // honoured at full price so a customer paying during the deploy isn't left without an order.
     // Either way the amount was set by this server, never by the browser.
-    const legacyFullPrice = !(paidOrder.notes && paidOrder.notes.onlineDiscount !== undefined)
-      && paidOrder.amount === Math.round(calculatedTotal * 100);
-    const discount = legacyFullPrice ? 0 : onlineDiscount(calculatedTotal);
-    const amountDue = calculatedTotal - discount;
+    const priceCart = (formatted) => {
+      const itemCost = formatted.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+      const shippingTotal = formatted.reduce((acc, item) => acc + item.shippingCharges, 0);
+      const total = itemCost + shippingTotal;
+      const legacyFullPrice = !(paidOrder.notes && paidOrder.notes.onlineDiscount !== undefined)
+        && paidOrder.amount === Math.round(total * 100);
+      const disc = legacyFullPrice ? 0 : onlineDiscount(total);
+      return { formatted, discount: disc, amountDue: total - disc };
+    };
+    let priced = priceCart(await processOrderItems(items, shippingAddress.pincode));
+    // Panipat delivery is free, but a payment started from an older page (no pincode sent to
+    // /orders/razorpay) was charged the ₹49 the server quoted then: record it as charged.
+    if (paidOrder.amount !== Math.round(priced.amountDue * 100) && isPanipatPincode(shippingAddress.pincode)) {
+      const withCharge = priceCart(await processOrderItems(items));
+      if (paidOrder.amount === Math.round(withCharge.amountDue * 100)) priced = withCharge;
+    }
+    const { formatted: formattedItems, discount, amountDue } = priced;
     if (paidOrder.amount !== Math.round(amountDue * 100)) {
       return res.status(400).json({ success: false, message: 'The payment amount does not match the order total. Please contact us on WhatsApp at +91 93068 10726.' });
     }

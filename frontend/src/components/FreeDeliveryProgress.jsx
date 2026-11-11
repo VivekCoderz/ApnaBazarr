@@ -1,14 +1,20 @@
 import { Truck, CheckCircle } from 'lucide-react';
-import { FREE_DELIVERY_ABOVE } from '../config/store';
+import { FREE_DELIVERY_ABOVE, isPanipatPincode } from '../config/store';
 import { formatPrice } from '../utils/format';
+import { usePincode } from '../utils/location';
 
 // "Add ₹X more for free delivery" with a slim progress bar, or "unlocked" once the
 // items reach FREE_DELIVERY_ABOVE (same rule the server charges: backend/utils/shipping.js).
-export default function FreeDeliveryProgress({ subtotal, compact = false, freeByOffer = false }) {
+// Panipat pincodes always get free delivery. pincode defaults to the shopper's saved one;
+// checkout passes the address pincode.
+export default function FreeDeliveryProgress({ subtotal, compact = false, freeByOffer = false, pincode }) {
+  const savedPincode = usePincode();
   if (!(subtotal > 0)) return null;
-  const needed = freeByOffer ? 0 : Math.max(0, FREE_DELIVERY_ABOVE - subtotal);
+  const panipat = isPanipatPincode(pincode ?? savedPincode);
+  const free = freeByOffer || panipat;
+  const needed = free ? 0 : Math.max(0, FREE_DELIVERY_ABOVE - subtotal);
   const unlocked = needed === 0;
-  const percent = freeByOffer ? 100 : Math.min(100, Math.round((subtotal / FREE_DELIVERY_ABOVE) * 100));
+  const percent = free ? 100 : Math.min(100, Math.round((subtotal / FREE_DELIVERY_ABOVE) * 100));
 
   return (
     <div className={`${compact ? 'pt-2' : 'rounded-xl p-3'} ${!compact && (unlocked ? 'bg-emerald-50' : 'bg-brand-peach')}`}>
@@ -17,7 +23,9 @@ export default function FreeDeliveryProgress({ subtotal, compact = false, freeBy
           ? <CheckCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           : <Truck className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />}
         <span>
-          {unlocked
+          {panipat
+            ? 'Free delivery in Panipat: we deliver it ourselves'
+            : unlocked
             ? "You've unlocked free delivery"
             : <>Add <span className="text-brand-cta">{formatPrice(needed)}</span> more for free delivery</>}
         </span>

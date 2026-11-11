@@ -6,6 +6,12 @@ export const DELIVERY_CHARGE = 49;
 // Same rule as backend/utils/shipping.js: ₹499+ or a product tagged "free-delivery" (combo)
 export const hasFreeDeliveryTag = (p) => Array.isArray(p?.tags) && p.tags.some(t => String(t).toLowerCase() === 'free-delivery');
 export const shipsFree = (p) => (p?.price || 0) >= FREE_DELIVERY_ABOVE || hasFreeDeliveryTag(p);
+// Panipat pincodes (1321xx): we hand-deliver, so delivery is free on every order there
+export const PANIPAT_PINCODE = /^1321\d\d$/;
+export const isPanipatPincode = (pin) => PANIPAT_PINCODE.test(String(pin || '').trim());
+// shipsFree for a single product, also counting the shopper's saved/delivery pincode
+export const shipsFreeTo = (p, pincode) => shipsFree(p) || isPanipatPincode(pincode);
+export const PANIPAT_FREE_DELIVERY_LINE = 'Free delivery in Panipat on every order';
 export const COD_MAX_AMOUNT = 3000;
 
 export const WHATSAPP_NUMBER = '919306810726';

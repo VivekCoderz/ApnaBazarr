@@ -68,7 +68,7 @@ export default function PolicyPage({ type }) {
               <h3 className="text-base font-black text-slate-900 pt-2">Delivery time</h3>
               <p>After dispatch, delivery usually takes 2–4 days in Haryana and Delhi, and 4–8 days to the rest of India. Remote areas (North-East, J&K, islands) can take a little longer. We do not offer express or same-day delivery.</p>
               <h3 className="text-base font-black text-slate-900 pt-2">Delivery charge</h3>
-              <p>Delivery is free on orders of ₹499 or more. Below that, a flat ₹49 is charged.</p>
+              <p>Free delivery in Panipat on every order: our team delivers there itself. Everywhere else, delivery is free on orders of ₹499 or more (and on combo packs marked free delivery). Below that, a flat ₹49 is charged.</p>
               <h3 className="text-base font-black text-slate-900 pt-2">Cash on Delivery</h3>
               <p>Cash on delivery is available on orders up to ₹3,000. We confirm every cash-on-delivery order with you on WhatsApp and ship it once you confirm.</p>
               <h3 className="text-base font-black text-slate-900 pt-2">Tracking</h3>

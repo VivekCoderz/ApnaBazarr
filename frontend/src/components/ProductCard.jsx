@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
 import { Star } from 'lucide-react';
 import { formatPrice, displayName, discountPercent, isComingSoon, unavailableLabel, localImage } from '../utils/format';
-import { DELIVERY_CHARGE, shipsFree, categoryLabel } from '../config/store';
+import { DELIVERY_CHARGE, shipsFreeTo, categoryLabel } from '../config/store';
+import { usePincode } from '../utils/location';
 import Badge from './ui/Badge';
 import HeartIcon from './ui/HeartIcon';
 
@@ -16,6 +17,7 @@ export const markLoaded = (e) => { e.currentTarget.dataset.loaded = ''; };
 
 // priority: first row of a grid. Loads eagerly (it is often the LCP image) and skips the fade.
 export default function ProductCard({ product, onToggleWishlist, isWishlisted, compact = false, priority = false }) {
+  const pincode = usePincode(); // Panipat shoppers get free delivery on everything
   const isOutOfStock = product.inStock === false || product.stock <= 0;
   const isClosed = product.seller && product.seller.isOpen === false;
   // Stars only for real reviews (rating is null when there are none)
@@ -90,7 +92,7 @@ export default function ProductCard({ product, onToggleWishlist, isWishlisted, c
 
           {!compact && (
             <span className="text-xs font-semibold text-slate-600">
-              {shipsFree(product)
+              {shipsFreeTo(product, pincode)
                 ? <><span className="text-emerald-700">Free delivery</span> · COD</>
                 : `₹${DELIVERY_CHARGE} delivery · COD`}
             </span>

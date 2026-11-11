@@ -4,8 +4,9 @@ import { Star, ShoppingBag, Truck, RotateCcw, Upload, CheckCircle, Sparkles, Vid
 import ProductCard from '../components/ProductCard';
 import { whatsappShareUrl } from '../utils/referral';
 import { useShippingQuote } from '../utils/shipping';
+import { usePincode } from '../utils/location';
 import { formatPrice, displayName, cloudinaryImage, unavailableLabel } from '../utils/format';
-import { FREE_DELIVERY_ABOVE, DELIVERY_CHARGE, hasFreeDeliveryTag, COD_MAX_AMOUNT, RETURN_POLICY_LINE, whatsappUrl, categoryLabel, SITE_URL } from '../config/store';
+import { FREE_DELIVERY_ABOVE, DELIVERY_CHARGE, hasFreeDeliveryTag, isPanipatPincode, PANIPAT_FREE_DELIVERY_LINE, COD_MAX_AMOUNT, RETURN_POLICY_LINE, whatsappUrl, categoryLabel, SITE_URL } from '../config/store';
 import WhatsAppIcon from '../components/ui/WhatsAppIcon';
 import Button from '../components/ui/Button';
 import { buttonClass } from '../components/ui/buttonClass';
@@ -221,7 +222,9 @@ export default function ProductDetailPage({
   };
 
   // Delivery fee for the selected quantity is quoted by the server so cost/margin stays private
+  // (for the shopper's saved pincode: free on every order in Panipat)
   const { shipping: deliveryCharge, loading: deliveryLoading } = useShippingQuote(product ? [{ id: product.id, quantity }] : []);
+  const inPanipat = isPanipatPincode(usePincode());
 
   // Leave room for the mobile sticky buy bar at the bottom of the page
   const hasProduct = Boolean(product);
@@ -403,7 +406,7 @@ export default function ProductDetailPage({
   const showRating = reviewCount > 0 && averageRating != null;
 
   const lineTotal = product.price * quantity;
-  const neededForFree = hasFreeDeliveryTag(product) ? 0 : Math.max(0, FREE_DELIVERY_ABOVE - lineTotal);
+  const neededForFree = hasFreeDeliveryTag(product) || inPanipat ? 0 : Math.max(0, FREE_DELIVERY_ABOVE - lineTotal);
   const off = product.originalPrice > product.price
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : 0;
@@ -434,7 +437,7 @@ export default function ProductDetailPage({
   const deliveryText = deliveryLoading
     ? 'Checking delivery charge…'
     : deliveryCharge === 0 || (deliveryCharge === null && neededForFree === 0)
-      ? 'Free delivery on this order'
+      ? (inPanipat ? 'FREE delivery in Panipat — we deliver ourselves' : 'Free delivery on this order')
       : `Delivery ₹${deliveryCharge ?? 49} · add ${formatPrice(neededForFree)} more for free delivery`;
   const deliveryFree = !deliveryLoading && (deliveryCharge === 0 || (deliveryCharge === null && neededForFree === 0));
 
@@ -464,7 +467,8 @@ export default function ProductDetailPage({
       title: 'Delivery',
       body: (
         <ul className="list-disc space-y-1 pl-5">
-          <li>Free delivery on orders of ₹{FREE_DELIVERY_ABOVE} or more, otherwise ₹{DELIVERY_CHARGE}.</li>
+          <li>{PANIPAT_FREE_DELIVERY_LINE}: we deliver there ourselves.</li>
+          <li>Elsewhere, free delivery on orders of ₹{FREE_DELIVERY_ABOVE} or more, otherwise ₹{DELIVERY_CHARGE}.</li>
           <li>Dispatched from Panipat within 2 days, Monday to Saturday.</li>
           <li>Delivery takes 2–4 days in Haryana and Delhi, 4–8 days to the rest of India.</li>
         </ul>
@@ -766,7 +770,7 @@ export default function ProductDetailPage({
             <ul className="grid grid-cols-2 gap-3">
               {[
                 { icon: Banknote, title: 'Cash on Delivery', sub: 'Pay when it arrives' },
-                { icon: Truck, title: 'Free delivery', sub: 'Above ₹499, otherwise ₹49' },
+                { icon: Truck, title: 'Free delivery', sub: `Panipat: every order · elsewhere above ₹${FREE_DELIVERY_ABOVE}` },
                 { icon: Package, title: 'Ships in 2 days', sub: 'From Panipat, Mon–Sat' },
                 { icon: RotateCcw, title: '7-day returns', sub: 'Damaged, wrong or wrong size' }
               ].map(({ icon: Icon, title, sub }) => (

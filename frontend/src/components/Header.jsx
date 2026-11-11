@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Search, Heart, ShoppingBag, User, Menu, Package, Settings, LogOut, ChevronDown, X, LogIn, ShieldCheck, MessageCircle } from 'lucide-react';
 import { formatPrice, cloudinaryImage, displayName } from '../utils/format';
 import { pop } from './ui/motion';
+import DeliverTo from './DeliverTo';
 import { categoryLabel, categoryHref, NAV_CATEGORIES, whatsappUrl, PHONE_DISPLAY, SELLER_MARKETPLACE_ENABLED } from '../config/store';
 
 // Typewriter search hint. Its own component so the ticks re-render only this <span>,
@@ -344,6 +345,9 @@ export default function Header({
                 className="h-8 w-auto sm:h-9"
               />
             </Link>
+            <div className="ml-2 hidden md:block">
+              <DeliverTo variant="desktop" />
+            </div>
           </div>
 
           {/* CENTER: Live search (desktop) */}
@@ -479,6 +483,9 @@ export default function Header({
         <div className="relative block pb-3 md:hidden" ref={mobileSearchRef}>
           {renderSearchForm(isMobileSearchFocused, setIsMobileSearchFocused, setShowMobileSearchDropdown, 'search-suggest-mobile', showMobileSearchDropdown)}
           {showMobileSearchDropdown && renderResults('search-suggest-mobile', 'absolute left-0 right-0 mt-2', isMobileSearchFocused)}
+        </div>
+        <div className="-mt-1 md:hidden">
+          <DeliverTo variant="mobile" />
         </div>
       </div>
 

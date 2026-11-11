@@ -1,12 +1,13 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { MapPin, Truck, Banknote, AlertCircle } from 'lucide-react';
+import { usePincode, usePlace, savePincode, getSavedPincode } from '../utils/location';
+import { PANIPAT_PINCODE as PANIPAT, shipsFree, FREE_DELIVERY_ABOVE, DELIVERY_CHARGE } from '../config/store';
 
 // "Check delivery" on the product page: delivery date range + whether Cash on Delivery is
 // available for this pincode. Rules mirror the backend (orders: 'cod-panipat-only' tag) and
 // our shipping promise (dispatch in 2 days Mon–Sat; Panipat we deliver ourselves,
-// Haryana/Delhi 2–4 days, rest of India 4–8 days). The pincode is remembered for checkout.
-const PINCODE_KEY = 'dhagaro_pincode'; // also prefills the checkout pincode
-const PANIPAT = /^1321\d\d$/;
+// Haryana/Delhi 2–4 days, rest of India 4–8 days). The pincode is shared with the header
+// "Deliver to" chip and prefills checkout (utils/location.js).
 
 const zoneFor = (pin) => {
   if (PANIPAT.test(pin)) return { name: 'Panipat', min: 0, max: 1, note: 'We deliver in Panipat ourselves' };
@@ -26,10 +27,6 @@ const addWorkingDays = (date, n) => {
 };
 const fmt = (d) => d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' });
 
-const readSaved = () => {
-  try { return localStorage.getItem(PINCODE_KEY) || ''; } catch { return ''; }
-};
-
 function computeResult(p, product) {
   if (!/^\d{6}$/.test(p)) return null;
   const zone = zoneFor(p);
@@ -41,39 +38,33 @@ function computeResult(p, product) {
     from: addWorkingDays(today, 1 + zone.min),
     to: addWorkingDays(today, 2 + zone.max),
     codAlone: !(tags.includes('cod-panipat-only') && !PANIPAT.test(p)),
+    freeDelivery: PANIPAT.test(p) || shipsFree(product),
   };
 }
 
 export default function PincodeCheck({ product }) {
-  const [pin, setPin] = useState(readSaved);
-  // The pincode last checked (a pincode saved on an earlier visit counts as checked)
-  const [checked, setChecked] = useState(() => (/^\d{6}$/.test(readSaved()) ? readSaved() : ''));
+  // The saved pincode counts as checked (set here, in the header chip or on an earlier visit)
+  const checked = usePincode();
+  const [pin, setPin] = useState(getSavedPincode);
   const [error, setError] = useState('');
-  const [place, setPlace] = useState({ pin: '', name: '' });
   const result = useMemo(() => computeResult(checked, product), [checked, product]);
+  // Typing box follows a pincode chosen elsewhere (e.g. the header chip)
+  const [lastChecked, setLastChecked] = useState(checked);
+  if (checked !== lastChecked) {
+    setLastChecked(checked);
+    setPin(checked);
+  }
 
   const check = () => {
     const p = String(pin).trim();
     if (!/^\d{6}$/.test(p)) { setError('Please enter a 6-digit pincode.'); return; }
     setError('');
-    try { localStorage.setItem(PINCODE_KEY, p); } catch { /* storage blocked */ }
-    setChecked(p);
+    savePincode(p);
   };
 
   // Best effort: show the district for the pincode (free India Post API)
-  useEffect(() => {
-    if (!checked) return undefined;
-    let cancelled = false;
-    fetch(`https://api.postalpincode.in/pincode/${checked}`)
-      .then(r => r.json())
-      .then(data => {
-        const po = data?.[0]?.PostOffice?.[0];
-        if (!cancelled && po) setPlace({ pin: checked, name: `${po.District}, ${po.State}` });
-      })
-      .catch(() => {});
-    return () => { cancelled = true; };
-  }, [checked]);
-  const placeName = place.pin === checked ? place.name : '';
+  const place = usePlace(checked);
+  const placeName = place ? `${place.district}, ${place.state}` : '';
 
   return (
     <div className="rounded-lg border border-line p-4">
@@ -112,6 +103,16 @@ export default function PincodeCheck({ product }) {
               <span className="font-semibold text-ink">Delivery by {fmt(result.from)} – {fmt(result.to)}</span>
               {result.zone.note && <span className="block text-xs text-slate-500">{result.zone.note}</span>}
             </span>
+          </li>
+          <li className="flex items-start gap-2">
+            <Truck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" aria-hidden="true" />
+            {PANIPAT.test(result.pin) ? (
+              <span className="font-semibold text-emerald-700">FREE delivery in Panipat — we deliver ourselves</span>
+            ) : result.freeDelivery ? (
+              <span className="font-semibold text-emerald-700">FREE delivery</span>
+            ) : (
+              <span className="text-slate-700">₹{DELIVERY_CHARGE} delivery · free on orders of ₹{FREE_DELIVERY_ABOVE}+</span>
+            )}
           </li>
           <li className="flex items-start gap-2">
             <Banknote className={`mt-0.5 h-4 w-4 shrink-0 ${result.codAlone ? 'text-emerald-700' : 'text-amber-600'}`} aria-hidden="true" />

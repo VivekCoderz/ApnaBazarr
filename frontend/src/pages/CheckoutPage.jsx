@@ -5,6 +5,7 @@ import { ArrowRight, ArrowLeft, Check, Banknote, CreditCard, Loader2, MessageCir
 import { getReferral } from '../utils/referral';
 import { getSource } from '../utils/source';
 import { useShippingQuote } from '../utils/shipping';
+import { getSavedPincode, savePincode, isValidPincode } from '../utils/location';
 import { formatPrice } from '../utils/format';
 import { COD_MAX_AMOUNT, whatsappUrl, onlineDiscountFor, hasFreeDeliveryTag } from '../config/store';
 import FreeDeliveryProgress from '../components/FreeDeliveryProgress';
@@ -51,7 +52,7 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
   const [address, setAddress] = useState({
     fullName: '',
     phone: '',
-    pincode: (() => { try { return localStorage.getItem('dhagaro_pincode') || ''; } catch { return ''; } })(),
+    pincode: getSavedPincode(),
     flatNo: '',
     area: '',
     city: '',
@@ -64,8 +65,11 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
   const [paymentMethod, setPaymentMethod] = useState('COD');
   const [placedOrder, setPlacedOrder] = useState(null);
 
-  // Initial shipping quote from the server; refreshed again once the delivery pincode is entered
-  const { shipping: quotedShipping, loading: quoteLoading } = useShippingQuote(cartItems);
+  // Shipping quote from the server for the address pincode (free in Panipat); refreshed
+  // again when the address is submitted. Until a full pincode is typed, the saved one is used.
+  const addressPincode = address.pincode.trim();
+  const quotePincode = isValidPincode(addressPincode) ? addressPincode : undefined;
+  const { shipping: quotedShipping, loading: quoteLoading } = useShippingQuote(cartItems, quotePincode);
   const [shippingCharges, setShippingCharges] = useState(null);
 
   const calculateShippingFees = async (deliveryPincode) => {
@@ -124,6 +128,7 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
     setFormErrors(errors);
     if (Object.keys(errors).length > 0) return;
 
+    savePincode(address.pincode.trim()); // header "Deliver to" + next visit
     await calculateShippingFees(address.pincode.trim());
     setStep(2);
     window.scrollTo({ top: 0, behavior: 'instant' });
@@ -194,7 +199,9 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
         const orderRes = await fetch(`${BASE_URL}/orders/razorpay`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ items: orderItems() }),
+          // Same pincode /verify will see in shippingAddress, so both server totals match
+          // (free delivery in Panipat). The server calculates the amount; we never send it.
+          body: JSON.stringify({ items: orderItems(), deliveryPincode: address.pincode.trim() }),
         });
         const orderData = await safeParseJSON(orderRes);
         if (!orderData.success) {
@@ -395,7 +402,7 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
                   <span className="text-slate-900">Total</span>
                   <span className="font-heading text-lg text-brand-cta">{formatPrice(payable)}</span>
                 </div>
-                <FreeDeliveryProgress subtotal={subtotal} compact freeByOffer={cartItems.some(hasFreeDeliveryTag)} />
+                <FreeDeliveryProgress subtotal={subtotal} compact freeByOffer={cartItems.some(hasFreeDeliveryTag)} pincode={address.pincode.trim()} />
               </div>
 
               <div className="space-y-3" role="radiogroup" aria-label="Payment method">

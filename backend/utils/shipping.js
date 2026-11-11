@@ -9,9 +9,14 @@ const FREE_DELIVERY_TAG = 'free-delivery';
 const hasFreeDeliveryTag = (product) =>
   Array.isArray(product?.tags) && product.tags.some(t => String(t).toLowerCase() === FREE_DELIVERY_TAG);
 
-// Free delivery on orders of ₹499 or more (or with a free-delivery product), otherwise a flat ₹49
-function orderShippingCharge(subtotal, forceFree = false) {
-  if (subtotal <= 0 || forceFree || subtotal >= FREE_SHIPPING_ABOVE) return 0;
+// Panipat pincodes (1321xx): the team hand-delivers, so delivery is free on any order
+const PANIPAT_PINCODE = /^1321\d\d$/;
+const isPanipatPincode = (pincode) => PANIPAT_PINCODE.test(String(pincode || '').trim());
+
+// Free delivery in Panipat, on orders of ₹499 or more, or with a free-delivery product;
+// otherwise a flat ₹49
+function orderShippingCharge(subtotal, forceFree = false, deliveryPincode = '') {
+  if (subtotal <= 0 || forceFree || subtotal >= FREE_SHIPPING_ABOVE || isPanipatPincode(deliveryPincode)) return 0;
   return FLAT_SHIPPING_CHARGE;
 }
 
@@ -23,4 +28,4 @@ function shippingPreview(product) {
   };
 }
 
-module.exports = { FREE_SHIPPING_ABOVE, FLAT_SHIPPING_CHARGE, orderShippingCharge, shippingPreview, hasFreeDeliveryTag };
+module.exports = { FREE_SHIPPING_ABOVE, FLAT_SHIPPING_CHARGE, PANIPAT_PINCODE, isPanipatPincode, orderShippingCharge, shippingPreview, hasFreeDeliveryTag };

@@ -3,7 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Banknote, Truck, ArrowRight, PackageCheck } from 'lucide-react';
 import HeartIcon from './ui/HeartIcon';
 import { formatPrice, displayName, discountPercent, unavailableLabel, localImage } from '../utils/format';
-import { DELIVERY_CHARGE, shipsFree, categoryLabel } from '../config/store';
+import { DELIVERY_CHARGE, shipsFreeTo, categoryLabel } from '../config/store';
+import { usePincode } from '../utils/location';
 import Button from './ui/Button';
 import Badge from './ui/Badge';
 
@@ -23,7 +24,8 @@ export default function ProductSpotlight({ product, onAddToCart, onToggleWishlis
   // Customizable products need input on the product page first
   const canQuickBuy = !isOutOfStock && !product.isCustomizable && Boolean(onAddToCart);
   const off = discountPercent(product);
-  const freeDelivery = shipsFree(product);
+  const pincode = usePincode();
+  const freeDelivery = shipsFreeTo(product, pincode); // also free for a saved Panipat pincode
   const href = `/product/${product.id}`;
 
   const buyNow = () => {
