@@ -13,6 +13,7 @@ import Badge from '../components/ui/Badge';
 import SectionHeader from '../components/ui/SectionHeader';
 import CategoryGlyph from '../components/ui/CategoryGlyph';
 import HeartIcon from '../components/ui/HeartIcon';
+import PincodeCheck from '../components/PincodeCheck';
 
 // Pre-filled WhatsApp order message. Plain text only: the name goes through displayName()
 // (drops emojis, which break on WhatsApp Web) and prices use "Rs".
@@ -719,6 +720,9 @@ export default function ProductDetailPage({
               </div>
             )}
 
+            {/* Delivery date + COD check for the shopper's pincode */}
+            {!isOutOfStock && <PincodeCheck product={product} />}
+
             {/* Actions */}
             <div className="space-y-3">
               <div className="flex flex-col gap-3 sm:flex-row">
@@ -736,6 +740,9 @@ export default function ProductDetailPage({
               <Button href={whatsappOrderHref} variant="whatsapp" size="lg" className="w-full">
                 <WhatsAppIcon className="h-5 w-5" /> {whatsappOrderLabel}
               </Button>
+              {!isOutOfStock && (
+                <p className="text-center text-sm text-slate-600">Saman aane par paise dein · 7 din mein aasaan return</p>
+              )}
             </div>
 
             {/* Trust */}

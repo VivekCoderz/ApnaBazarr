@@ -43,7 +43,7 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
   const [address, setAddress] = useState({
     fullName: '',
     phone: '',
-    pincode: '',
+    pincode: (() => { try { return localStorage.getItem('dhagaro_pincode') || ''; } catch { return ''; } })(),
     flatNo: '',
     area: '',
     city: '',

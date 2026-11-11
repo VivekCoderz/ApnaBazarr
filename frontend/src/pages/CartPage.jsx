@@ -25,6 +25,13 @@ function cartSuggestions(products, cartItems) {
 export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem, products = [], onAddToCart }) {
   const navigate = useNavigate();
   const suggestions = onAddToCart ? cartSuggestions(products, cartItems) : [];
+  // Upsell: exactly one "Pack of 2" in the cart and no combo yet -> show the free-delivery combo
+  const isPack = (p) => /pack of 2/i.test(p?.name || '') && !hasFreeDeliveryTag(p);
+  const packQty = cartItems.filter(isPack).reduce((n, i) => n + i.quantity, 0);
+  const packPrice = cartItems.find(isPack)?.price || 0;
+  const comboOffer = packQty === 1 && !cartItems.some(hasFreeDeliveryTag)
+    ? products.find(p => hasFreeDeliveryTag(p) && isOrderable(p))
+    : null;
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
   // Shipping is quoted by the server (same rule it charges at checkout)
@@ -176,6 +183,12 @@ export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem, pr
 
               {/* Free-delivery progress */}
               <FreeDeliveryProgress subtotal={subtotal} freeByOffer={cartItems.some(hasFreeDeliveryTag)} />
+              {comboOffer && (
+                <Link to={`/product/${comboOffer.id}`} className="mt-3 block rounded-lg border border-brand-orange/40 bg-brand-peach p-3 text-sm hover:border-brand-orange">
+                  <span className="block font-semibold text-brand-navy">Make it 2 packs for {formatPrice(comboOffer.price)}, free delivery</span>
+                  <span className="mt-0.5 block text-slate-600">4 mats in the {displayName(comboOffer.name).split(':')[0]}. Saves {formatPrice(Math.max(0, 2 * packPrice + 49 - comboOffer.price))} vs 2 packs bought separately →</span>
+                </Link>
+              )}
 
               <div className="space-y-2 text-sm text-slate-600">
                 <div className="flex justify-between">
