@@ -678,6 +678,36 @@ function AppContent() {
     }
   };
 
+  // Admin "Edit product": PUT the changed fields, then refresh the store and admin lists.
+  // Returns true on success so the form can close.
+  const handleUpdateProduct = async (productId, fields) => {
+    try {
+      const token = getToken();
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch(`${BASE_URL}/products/${productId}`, {
+        method: 'PUT',
+        headers,
+        credentials: 'include',
+        body: JSON.stringify(fields)
+      });
+      const data = await res.json();
+      if (data.success) {
+        loadProducts();
+        loadAdminProducts();
+        loadAdminCostPrices();
+        showToast(`Product "${data.data.name}" updated`);
+        return true;
+      }
+      showToast(data.message || 'Could not update the product.');
+      return false;
+    } catch {
+      showToast("Failed to update product in database.");
+      return false;
+    }
+  };
+
   // Hide a product from the store (or show it again). Hidden products stay in the admin list.
   const handleToggleActive = async (productId) => {
     const targetProduct = (adminAllProducts || products).find(p => String(p.id) === String(productId));
@@ -1005,6 +1035,7 @@ function AppContent() {
                   orders={orders}
                   feedbacks={feedbacks}
                   onAddProduct={handleAddProduct}
+                  onUpdateProduct={handleUpdateProduct}
                   onDeleteProduct={handleDeleteProduct}
                   onUpdateOrderStatus={handleUpdateOrderStatus}
                   onAdminLogout={handleAdminLogout}
