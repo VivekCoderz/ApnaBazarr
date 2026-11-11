@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Star } from 'lucide-react';
 import { formatPrice, displayName, discountPercent, isComingSoon, unavailableLabel, localImage } from '../utils/format';
-import { FREE_DELIVERY_ABOVE, DELIVERY_CHARGE, categoryLabel } from '../config/store';
+import { DELIVERY_CHARGE, shipsFree, categoryLabel } from '../config/store';
 import Badge from './ui/Badge';
 import HeartIcon from './ui/HeartIcon';
 
@@ -90,7 +90,7 @@ export default function ProductCard({ product, onToggleWishlist, isWishlisted, c
 
           {!compact && (
             <span className="text-xs font-semibold text-slate-600">
-              {product.price >= FREE_DELIVERY_ABOVE
+              {shipsFree(product)
                 ? <><span className="text-emerald-700">Free delivery</span> · COD</>
                 : `₹${DELIVERY_CHARGE} delivery · COD`}
             </span>

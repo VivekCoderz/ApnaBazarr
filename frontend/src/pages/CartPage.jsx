@@ -2,7 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Plus, Minus, Trash2, ShoppingBag, ArrowRight, ArrowLeft } from 'lucide-react';
 import { useShippingQuote } from '../utils/shipping';
 import { formatPrice, cloudinaryImage, displayName, isOrderable } from '../utils/format';
-import { categoryLabel, onlineDiscountFor } from '../config/store';
+import { categoryLabel, onlineDiscountFor, hasFreeDeliveryTag } from '../config/store';
 import FreeDeliveryProgress from '../components/FreeDeliveryProgress';
 
 const MIN_ORDER = 100;
@@ -175,7 +175,7 @@ export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem, pr
               <h3 className="font-bold text-base text-slate-900 border-b border-slate-100 pb-3">Order Summary</h3>
 
               {/* Free-delivery progress */}
-              <FreeDeliveryProgress subtotal={subtotal} />
+              <FreeDeliveryProgress subtotal={subtotal} freeByOffer={cartItems.some(hasFreeDeliveryTag)} />
 
               <div className="space-y-2 text-sm text-slate-600">
                 <div className="flex justify-between">

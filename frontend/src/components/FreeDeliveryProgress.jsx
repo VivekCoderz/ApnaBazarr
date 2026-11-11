@@ -4,11 +4,11 @@ import { formatPrice } from '../utils/format';
 
 // "Add ₹X more for free delivery" with a slim progress bar, or "unlocked" once the
 // items reach FREE_DELIVERY_ABOVE (same rule the server charges: backend/utils/shipping.js).
-export default function FreeDeliveryProgress({ subtotal, compact = false }) {
+export default function FreeDeliveryProgress({ subtotal, compact = false, freeByOffer = false }) {
   if (!(subtotal > 0)) return null;
-  const needed = Math.max(0, FREE_DELIVERY_ABOVE - subtotal);
+  const needed = freeByOffer ? 0 : Math.max(0, FREE_DELIVERY_ABOVE - subtotal);
   const unlocked = needed === 0;
-  const percent = Math.min(100, Math.round((subtotal / FREE_DELIVERY_ABOVE) * 100));
+  const percent = freeByOffer ? 100 : Math.min(100, Math.round((subtotal / FREE_DELIVERY_ABOVE) * 100));
 
   return (
     <div className={`${compact ? 'pt-2' : 'rounded-xl p-3'} ${!compact && (unlocked ? 'bg-emerald-50' : 'bg-brand-peach')}`}>

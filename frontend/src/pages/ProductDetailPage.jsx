@@ -5,7 +5,7 @@ import ProductCard from '../components/ProductCard';
 import { whatsappShareUrl } from '../utils/referral';
 import { useShippingQuote } from '../utils/shipping';
 import { formatPrice, displayName, cloudinaryImage, unavailableLabel } from '../utils/format';
-import { FREE_DELIVERY_ABOVE, DELIVERY_CHARGE, COD_MAX_AMOUNT, RETURN_POLICY_LINE, whatsappUrl, categoryLabel, SITE_URL } from '../config/store';
+import { FREE_DELIVERY_ABOVE, DELIVERY_CHARGE, hasFreeDeliveryTag, COD_MAX_AMOUNT, RETURN_POLICY_LINE, whatsappUrl, categoryLabel, SITE_URL } from '../config/store';
 import WhatsAppIcon from '../components/ui/WhatsAppIcon';
 import Button from '../components/ui/Button';
 import { buttonClass } from '../components/ui/buttonClass';
@@ -385,7 +385,7 @@ export default function ProductDetailPage({
   const showRating = reviewCount > 0 && averageRating != null;
 
   const lineTotal = product.price * quantity;
-  const neededForFree = Math.max(0, FREE_DELIVERY_ABOVE - lineTotal);
+  const neededForFree = hasFreeDeliveryTag(product) ? 0 : Math.max(0, FREE_DELIVERY_ABOVE - lineTotal);
   const off = product.originalPrice > product.price
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : 0;

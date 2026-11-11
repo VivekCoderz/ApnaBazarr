@@ -14,7 +14,7 @@ const rzp = new Razorpay({
 const Product = require('../models/Product');
 const Setting = require('../models/Setting');
 const { resolveResellerForOrder } = require('./reseller');
-const { orderShippingCharge: calcOrderShipping } = require('../utils/shipping');
+const { orderShippingCharge: calcOrderShipping, hasFreeDeliveryTag } = require('../utils/shipping');
 const { codLimitError } = require('../utils/cod');
 const { onlineDiscount } = require('../utils/payment');
 const { optionalUser } = require('../middlewares/auth');
@@ -110,8 +110,8 @@ async function processOrderItems(items, deliveryPincode) {
     }
   }
 
-  // 2. Free shipping on ₹499+, otherwise flat ₹49
-  const orderShippingCharge = calcOrderShipping(subtotal);
+  // 2. Free shipping on ₹499+ (or when the cart has a free-delivery combo), otherwise flat ₹49
+  const orderShippingCharge = calcOrderShipping(subtotal, dbProducts.some(d => hasFreeDeliveryTag(d.dbProduct)));
 
   const formatted = [];
   for (let idx = 0; idx < dbProducts.length; idx++) {
@@ -144,6 +144,21 @@ async function processOrderItems(items, deliveryPincode) {
     });
   }
   return formatted;
+}
+
+// Low-price items tagged "cod-panipat-only" (Sherpa mat) lose money on courier COD when
+// ordered alone, so a COD cart made ONLY of such items must be a Panipat pincode (1321xx).
+// With any other item in the cart, or with online payment, they ship anywhere.
+const PANIPAT_PINCODE = /^1321\d\d$/;
+async function panipatOnlyCodError(formattedItems, pincode) {
+  if (PANIPAT_PINCODE.test(String(pincode || '').trim())) return null;
+  for (const item of formattedItems) {
+    const p = await Product.findById(item.productId).select('tags');
+    const tags = (p?.tags || []).map(t => String(t).toLowerCase());
+    if (!tags.includes('cod-panipat-only')) return null;
+  }
+  const names = formattedItems.map(i => i.name).join(', ');
+  return `${names}: Cash on Delivery for this item alone is available only in Panipat. Add another bath mat to your cart, or pay online.`;
 }
 
 // Marketing source sent by the shop (utils/source.js): short, plain text only
@@ -185,6 +200,8 @@ module.exports.createOrder = async (req, res) => {
     if (formattedItems.length === 0) {
       return res.status(400).json({ success: false, message: 'The items in your cart are no longer available. Please check your cart.' });
     }
+    const localOnly = await panipatOnlyCodError(formattedItems, shippingAddress.pincode);
+    if (localOnly) return res.status(400).json({ success: false, message: localOnly });
 
     const totalItemCost = formattedItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
     const totalShipping = formattedItems.reduce((acc, item) => acc + item.shippingCharges, 0);

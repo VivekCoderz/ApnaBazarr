@@ -6,7 +6,7 @@ import { getReferral } from '../utils/referral';
 import { getSource } from '../utils/source';
 import { useShippingQuote } from '../utils/shipping';
 import { formatPrice } from '../utils/format';
-import { COD_MAX_AMOUNT, whatsappUrl, onlineDiscountFor } from '../config/store';
+import { COD_MAX_AMOUNT, whatsappUrl, onlineDiscountFor, hasFreeDeliveryTag } from '../config/store';
 import FreeDeliveryProgress from '../components/FreeDeliveryProgress';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -387,7 +387,7 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
                   <span className="text-slate-900">Total</span>
                   <span className="font-heading text-lg text-brand-cta">{formatPrice(payable)}</span>
                 </div>
-                <FreeDeliveryProgress subtotal={subtotal} compact />
+                <FreeDeliveryProgress subtotal={subtotal} compact freeByOffer={cartItems.some(hasFreeDeliveryTag)} />
               </div>
 
               <div className="space-y-3" role="radiogroup" aria-label="Payment method">

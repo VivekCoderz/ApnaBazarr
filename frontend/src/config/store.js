@@ -3,6 +3,9 @@
 
 export const FREE_DELIVERY_ABOVE = 499;
 export const DELIVERY_CHARGE = 49;
+// Same rule as backend/utils/shipping.js: ₹499+ or a product tagged "free-delivery" (combo)
+export const hasFreeDeliveryTag = (p) => Array.isArray(p?.tags) && p.tags.some(t => String(t).toLowerCase() === 'free-delivery');
+export const shipsFree = (p) => (p?.price || 0) >= FREE_DELIVERY_ABOVE || hasFreeDeliveryTag(p);
 export const COD_MAX_AMOUNT = 3000;
 
 export const WHATSAPP_NUMBER = '919306810726';
