@@ -221,7 +221,7 @@ function QuickViewContent({ product, onClose, onAddToCart, onToggleWishlist, isW
               <div className="flex items-center justify-between text-[11px] text-slate-500 pt-2 border-t border-slate-100">
                 <div className="flex items-center space-x-1">
                   <Truck className="w-3.5 h-3.5 text-brand-navy" />
-                  <span>Free delivery on orders above ₹499</span>
+                  <span>Free delivery in Panipat, and on orders above ₹499</span>
                 </div>
                 <div className="flex items-center space-x-1">
                   <Shield className="w-3.5 h-3.5 text-brand-navy" />

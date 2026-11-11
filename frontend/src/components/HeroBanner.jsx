@@ -91,7 +91,7 @@ function PhotoSkeleton() {
 // Large clean figures on navy: free delivery / COD / returns
 function OfferPanel() {
   const items = [
-    { big: '₹499', small: 'Free delivery above' },
+    { big: 'Free', small: 'Delivery in Panipat · ₹499+ elsewhere' },
     { big: 'COD', small: 'Pay on delivery, up to ₹3,000' },
     { big: '7 days', small: 'Easy return or exchange' }
   ];
