@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const crypto = require('crypto');
+const { publicAddress } = require('../utils/address');
 
 // Session cookie: httpOnly (JS can't read it), Secure, and SameSite=None because the
 // shop (vercel.app) and the API (onrender.com) are different sites. Lifetime matches
@@ -46,6 +47,8 @@ const sessionUserId = (req) => {
     return null;
   }
 };
+
+module.exports.sessionUserId = sessionUserId;
 
 module.exports.signup = async (req, res) => {
   try {
@@ -92,7 +95,8 @@ module.exports.signup = async (req, res) => {
         role: newUser.role || 'user',
         cart: [],
         wishlist: [],
-        recentlyViewed: []
+        recentlyViewed: [],
+        addresses: []
       }
     });
   } catch (error) {
@@ -133,7 +137,8 @@ module.exports.login = async (req, res) => {
         role: user.role || 'user',
         cart: user.cart || [],
         wishlist: user.wishlist || [],
-        recentlyViewed: user.recentlyViewed || []
+        recentlyViewed: user.recentlyViewed || [],
+        addresses: (user.addresses || []).map(publicAddress)
       }
     });
   } catch (error) {
@@ -192,7 +197,8 @@ module.exports.googleLogin = async (req, res) => {
         role: user.role || 'user',
         cart: user.cart || [],
         wishlist: user.wishlist || [],
-        recentlyViewed: user.recentlyViewed || []
+        recentlyViewed: user.recentlyViewed || [],
+        addresses: (user.addresses || []).map(publicAddress)
       }
     });
   } catch (error) {

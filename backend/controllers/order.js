@@ -19,6 +19,7 @@ const { codLimitError } = require('../utils/cod');
 const { onlineDiscount } = require('../utils/payment');
 const { optionalUser } = require('../middlewares/auth');
 const { reviewLink } = require('../utils/reviewToken');
+const { rememberOrderAddress } = require('../utils/address');
 
 const GUEST_EMAIL = 'guest@apnabazarr.com';
 
@@ -34,6 +35,19 @@ async function orderOwner(req, typedEmail) {
   }
   const email = (typeof typedEmail === 'string' && typedEmail.trim()) ? typedEmail.trim().slice(0, 200) : GUEST_EMAIL;
   return { userEmail: email, isGuest: true };
+}
+
+// Logged-in customer: keep this order's delivery address on the account for next time
+// (skipped if already saved, the account has 5, or the shopper unticked "Save this address").
+// Runs after the order is saved and never affects it.
+function rememberAddressForViewer(req, shippingAddress) {
+  if (req.body.saveAddress === false) return;
+  optionalUser(req)
+    .then(viewer => {
+      if (viewer && viewer.role !== 'admin' && viewer._id) return rememberOrderAddress(viewer._id, shippingAddress);
+      return null;
+    })
+    .catch(() => {});
 }
 
 const MAX_QTY_PER_LINE = 50;
@@ -235,6 +249,7 @@ module.exports.createOrder = async (req, res) => {
       estimatedDelivery: estimatedDeliveryStr
     });
     notifyNewOrder(newOrder);
+    rememberAddressForViewer(req, shippingAddress);
 
     res.status(201).json({
       success: true,
@@ -420,6 +435,7 @@ module.exports.verifyRazorpayPayment = async (req, res) => {
       razorpayOrderId: razorpay_order_id
     });
     notifyNewOrder(newOrder);
+    rememberAddressForViewer(req, shippingAddress);
 
     return res.status(201).json({
       success: true,

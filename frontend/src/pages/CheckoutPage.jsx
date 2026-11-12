@@ -1,11 +1,17 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowRight, ArrowLeft, Check, Banknote, CreditCard, Loader2, MessageCircle } from 'lucide-react';
 
 import { getReferral } from '../utils/referral';
 import { getSource } from '../utils/source';
 import { useShippingQuote } from '../utils/shipping';
-import { getSavedPincode, savePincode, isValidPincode } from '../utils/location';
+import { getSavedPincode, savePincode, isValidPincode, lookupPlace } from '../utils/location';
+import {
+  pickAddress, cleanPhone, stateOption, sortAddresses, readLocalAddresses, rememberLocalAddress,
+  removeLocalAddress, fetchAccountAddresses, updateAccountAddress, deleteAccountAddress
+} from '../utils/addresses';
+import AddressForm, { inputClass, labelClass, FieldError } from '../components/checkout/AddressForm';
+import AddressPicker from '../components/checkout/AddressPicker';
 import { formatPrice } from '../utils/format';
 import { COD_MAX_AMOUNT, whatsappUrl, onlineDiscountFor, hasFreeDeliveryTag, isPanipatPincode } from '../config/store';
 import FreeDeliveryProgress from '../components/FreeDeliveryProgress';
@@ -14,19 +20,38 @@ const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const MIN_ORDER = 100;
 const GUEST_EMAIL = 'guest@apnabazarr.com';
 
-const INDIAN_STATES = [
-  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
-  "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka",
-  "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya",
-  "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim",
-  "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand",
-  "West Bengal", "Andaman and Nicobar Islands", "Chandigarh",
-  "Dadra and Nagar Haveli and Daman and Diu", "Delhi",
-  "Jammu and Kashmir", "Ladakh", "Lakshadweep", "Puducherry"
-];
+const MAX_SAVED_ADDRESSES = 5;
 
-const inputClass = 'w-full px-3 py-2.5 text-base border border-slate-300 rounded-lg focus:outline-none focus:border-brand-navy bg-white';
-const labelClass = 'block text-sm font-semibold text-slate-700 mb-1';
+// Blank address for "Add a new address": name/phone from the account, pincode from "Deliver to"
+const newAddressFor = (user) => {
+  const phone = cleanPhone(user?.phone);
+  return {
+    fullName: user?.name || '',
+    phone: /^[6-9]\d{9}$/.test(phone) ? phone : '',
+    pincode: getSavedPincode(),
+    flatNo: '',
+    area: '',
+    city: '',
+    state: '',
+    addressType: 'Home'
+  };
+};
+
+// City + state for the dropdown from the India Post lookup
+const placeFields = (place) => {
+  const state = stateOption(place?.state);
+  return { city: state === 'Delhi' ? 'Delhi' : (place?.district || ''), state };
+};
+
+// Fills city/state only when empty or still holding what we filled last time, so the
+// shopper's own typing is never overwritten. Ignored if the pincode changed meanwhile.
+const placeUpdater = (pin, fields, lastAuto) => (prev) => {
+  if (prev.pincode !== pin) return prev;
+  const next = { ...prev };
+  if (fields.city && (!prev.city.trim() || prev.city === lastAuto.city)) next.city = fields.city;
+  if (fields.state && (!prev.state || prev.state === lastAuto.state)) next.state = fields.state;
+  return next;
+};
 
 // Plain-text WhatsApp message (no emojis: they break on WhatsApp Web)
 const confirmMessage = (order) =>
@@ -49,17 +74,150 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
   const [orderError, setOrderError] = useState('');
   const [formErrors, setFormErrors] = useState({});
 
-  const [address, setAddress] = useState({
-    fullName: '',
-    phone: '',
-    pincode: getSavedPincode(),
-    flatNo: '',
-    area: '',
-    city: '',
-    state: '',
-    addressType: 'Home'
+  // Saved addresses: the account's for logged-in shoppers, this device's for guests.
+  // With any saved, the first (default / most recent) is pre-selected; otherwise the form shows.
+  const [init] = useState(() => {
+    const list = currentUser ? sortAddresses(currentUser.addresses) : readLocalAddresses();
+    return list.length
+      ? { saved: list, mode: 'pick', selectedId: list[0]._id, address: pickAddress(list[0]) }
+      : { saved: [], mode: 'form', selectedId: null, address: newAddressFor(currentUser) };
   });
+  const [saved, setSaved] = useState(init.saved);
+  const [mode, setMode] = useState(init.mode); // 'pick' (saved cards) | 'form'
+  const [selectedId, setSelectedId] = useState(init.selectedId);
+  const [editingId, setEditingId] = useState(null); // saved address open in the form, null = new
+  const [address, setAddress] = useState(init.address);
+  const [saveForNext, setSaveForNext] = useState(true);
+  const [placeLoading, setPlaceLoading] = useState(false);
+  const [busyId, setBusyId] = useState(null);
+  const [listError, setListError] = useState('');
+  const formTouchedRef = useRef(false); // shopper started typing: don't swap the form for the saved list
+  const autoPlaceRef = useRef({ city: '', state: '' }); // city/state we filled from the pincode
   const [email, setEmail] = useState(currentUser?.email || '');
+
+  const userKey = currentUser ? String(currentUser._id || currentUser.id || currentUser.email || 'me') : '';
+  const userName = currentUser?.name || '';
+  const userPhone = currentUser?.phone || '';
+
+  // Logged in (also when the session is restored after this page opened): load the
+  // account's saved addresses
+  useEffect(() => {
+    if (!userKey) return undefined;
+    let cancelled = false;
+    fetchAccountAddresses()
+      .then(list => {
+        if (cancelled) return;
+        const sorted = sortAddresses(list);
+        setSaved(sorted);
+        if (formTouchedRef.current) return;
+        if (sorted.length) {
+          setMode('pick');
+          setSelectedId(sorted[0]._id);
+          setEditingId(null);
+          setAddress(pickAddress(sorted[0]));
+        } else {
+          const blank = newAddressFor({ name: userName, phone: userPhone });
+          setMode('form');
+          setSelectedId(null);
+          setAddress(prev => ({ ...prev, fullName: prev.fullName || blank.fullName, phone: prev.phone || blank.phone }));
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [userKey, userName, userPhone]);
+
+  // Opened straight on the form with a known pincode: fill city/state once
+  useEffect(() => {
+    const pin = init.address.pincode;
+    if (init.mode !== 'form' || !isValidPincode(pin)) return undefined;
+    let cancelled = false;
+    lookupPlace(pin)
+      .then(place => {
+        if (cancelled || !place) return;
+        const fields = placeFields(place);
+        setAddress(placeUpdater(pin, fields, autoPlaceRef.current));
+        autoPlaceRef.current = fields;
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [init]);
+
+  const fillPlace = (pin) => {
+    if (!isValidPincode(pin)) return;
+    setPlaceLoading(true);
+    lookupPlace(pin)
+      .then(place => {
+        if (!place) return;
+        const fields = placeFields(place);
+        setAddress(placeUpdater(pin, fields, autoPlaceRef.current));
+        autoPlaceRef.current = fields;
+      })
+      .catch(() => {})
+      .finally(() => setPlaceLoading(false));
+  };
+
+  const selectAddress = (a) => {
+    setSelectedId(a._id);
+    setAddress(pickAddress(a));
+    setFormErrors({});
+  };
+
+  const openNewAddress = () => {
+    formTouchedRef.current = true;
+    const blank = newAddressFor(currentUser);
+    autoPlaceRef.current = { city: '', state: '' };
+    setEditingId(null);
+    setMode('form');
+    setAddress(blank);
+    setFormErrors({});
+    fillPlace(blank.pincode);
+  };
+
+  const editAddress = (a) => {
+    formTouchedRef.current = true;
+    autoPlaceRef.current = { city: a.city, state: a.state };
+    setEditingId(a._id);
+    setSelectedId(a._id);
+    setMode('form');
+    setAddress(pickAddress(a));
+    setFormErrors({});
+  };
+
+  const backToSaved = () => {
+    formTouchedRef.current = false;
+    const current = saved.find(a => a._id === selectedId) || saved[0];
+    setEditingId(null);
+    setMode('pick');
+    if (current) selectAddress(current);
+  };
+
+  const removeAddress = async (a) => {
+    if (!window.confirm('Remove this address?')) return;
+    setListError('');
+    let next;
+    if (currentUser) {
+      setBusyId(a._id);
+      try {
+        next = sortAddresses(await deleteAccountAddress(a._id));
+      } catch (err) {
+        setListError(err.message);
+        return;
+      } finally {
+        setBusyId(null);
+      }
+    } else {
+      next = removeLocalAddress(a._id);
+    }
+    setSaved(next);
+    if (!next.length) {
+      setEditingId(null);
+      setSelectedId(null);
+      setMode('form');
+      setAddress(newAddressFor(currentUser));
+    } else if (a._id === selectedId) {
+      selectAddress(next[0]);
+    }
+  };
 
   // COD first (trust first). Switched to online automatically when the order is above the COD limit.
   const [paymentMethod, setPaymentMethod] = useState('COD');
@@ -109,15 +267,19 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
   }, [cartItems, total, quoteLoading, navigate]);
 
   const setField = (field, value) => {
-    setAddress(prev => ({ ...prev, [field]: value }));
+    formTouchedRef.current = true;
+    // Phone autofill may give "+91 98765 43210": keep the 10-digit number
+    const v = field === 'phone' ? cleanPhone(value) : value;
+    setAddress(prev => ({ ...prev, [field]: v }));
     setFormErrors(prev => ({ ...prev, [field]: '' }));
+    if (field === 'pincode' && isValidPincode(v)) fillPlace(v);
   };
 
   const handleAddressSubmit = async (e) => {
     e.preventDefault();
     const errors = {};
     if (!address.fullName.trim()) errors.fullName = 'Please enter your name.';
-    if (!/^[6-9]\d{9}$/.test(address.phone.trim())) errors.phone = 'Please enter a valid 10-digit mobile number.';
+    if (!/^[6-9]\d{9}$/.test(cleanPhone(address.phone))) errors.phone = 'Please enter a valid 10-digit mobile number.';
     if (!/^\d{6}$/.test(address.pincode.trim())) errors.pincode = 'Pincode must be 6 digits.';
     if (!address.flatNo.trim()) errors.flatNo = 'Please enter your house or flat number.';
     if (!address.area.trim()) errors.area = 'Please enter your area or street.';
@@ -126,7 +288,39 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
     if (!currentUser && email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) errors.email = 'Please enter a valid email or leave it empty.';
     if (cartItems.length === 0) return;
     setFormErrors(errors);
-    if (Object.keys(errors).length > 0) return;
+    if (Object.keys(errors).length > 0) {
+      // A saved address with something missing: open it in the form so it can be fixed
+      if (mode === 'pick' && Object.keys(errors).some(k => k !== 'email')) {
+        const current = saved.find(a => a._id === selectedId);
+        if (current) {
+          formTouchedRef.current = true;
+          setEditingId(current._id);
+          setMode('form');
+        }
+      }
+      return;
+    }
+
+    // Edited a saved address: update it (account or this device), then show it selected.
+    // If saving fails the order still uses the edited address (and the server saves it then).
+    if (mode === 'form' && editingId) {
+      let next = null;
+      if (currentUser) {
+        try { next = sortAddresses(await updateAccountAddress(editingId, pickAddress(address))); } catch { /* see above */ }
+      } else {
+        next = rememberLocalAddress(address, editingId);
+      }
+      if (next) {
+        const match = next.find(a => a._id === editingId) || (!currentUser && next[0]);
+        setSaved(next);
+        if (match) {
+          formTouchedRef.current = false;
+          setSelectedId(match._id);
+          setEditingId(null);
+          setMode('pick');
+        }
+      }
+    }
 
     savePincode(address.pincode.trim()); // header "Deliver to" + next visit
     await calculateShippingFees(address.pincode.trim());
@@ -168,9 +362,12 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
   const shippingAddress = () => ({
     ...address,
     fullName: address.fullName.trim(),
-    phone: address.phone.trim(),
+    phone: cleanPhone(address.phone),
     pincode: address.pincode.trim()
   });
+  // Keep this address for next time: always for a saved one, for a new one only if the box is ticked.
+  // Logged in: the server adds it to the account with the order. Guest: this device, after the order.
+  const wantSave = !(mode === 'form' && !editingId && !saveForNext);
 
   // The success screen uses the order returned by the create/verify call (no extra lookup)
   const finishOrder = (savedOrder) => {
@@ -178,6 +375,7 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
       ...savedOrder,
       createdAt: savedOrder.createdAt || new Date().toISOString(),
     };
+    if (!currentUser && wantSave) setSaved(rememberLocalAddress(shippingAddress()));
     setPlacedOrder(normalisedOrder);
     setStep(3);
     onOrderComplete(normalisedOrder);
@@ -231,6 +429,7 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
                   email: buyerEmail,
                   items: orderItems(),
                   shippingAddress: shippingAddress(),
+                  saveAddress: wantSave,
                   totalAmount: payable,
                   resellerCode: getReferral(),
                   source: getSource()
@@ -274,6 +473,7 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
             userEmail: buyerEmail,
             items: orderItems(),
             shippingAddress: shippingAddress(),
+            saveAddress: wantSave,
             paymentMethod: 'COD',
             totalAmount: total,
             resellerCode: getReferral(),
@@ -296,9 +496,6 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
     }
   };
 
-  const fieldError = (field) => formErrors[field] && (
-    <p className="text-sm text-red-600 font-semibold mt-1">{formErrors[field]}</p>
-  );
 
   return (
     <div className="py-6 sm:py-10 bg-slate-50 min-h-screen">
@@ -315,60 +512,49 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
         <div className="bg-white p-4 sm:p-8 rounded-2xl border border-slate-200 shadow-xs">
           {step === 1 && cartItems.length > 0 && (
             <form onSubmit={handleAddressSubmit} noValidate className="space-y-4">
-              <h3 className="font-bold text-lg text-slate-900 border-b pb-2">1. Delivery address</h3>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className={labelClass} htmlFor="co-name">Full name *</label>
-                  <input id="co-name" type="text" autoComplete="name" value={address.fullName} onChange={(e) => setField('fullName', e.target.value)} placeholder="Your name" className={inputClass} />
-                  {fieldError('fullName')}
-                </div>
-                <div>
-                  <label className={labelClass} htmlFor="co-phone">Mobile number (WhatsApp) *</label>
-                  <input id="co-phone" type="tel" inputMode="numeric" autoComplete="tel-national" maxLength={10} value={address.phone} onChange={(e) => setField('phone', e.target.value.replace(/\D/g, ''))} placeholder="9876543210" className={inputClass} />
-                  <p className="text-xs text-slate-500 mt-1">We will WhatsApp or call you on this number</p>
-                  {fieldError('phone')}
-                </div>
-                <div>
-                  <label className={labelClass} htmlFor="co-pincode">Pincode *</label>
-                  <input id="co-pincode" type="text" inputMode="numeric" autoComplete="postal-code" maxLength={6} value={address.pincode} onChange={(e) => setField('pincode', e.target.value.replace(/\D/g, ''))} placeholder="132103" className={inputClass} />
-                  {fieldError('pincode')}
-                </div>
-                <div>
-                  <label className={labelClass} htmlFor="co-flat">House / flat no. *</label>
-                  <input id="co-flat" type="text" autoComplete="address-line1" value={address.flatNo} onChange={(e) => setField('flatNo', e.target.value)} placeholder="H.No. 12, 2nd floor" className={inputClass} />
-                  {fieldError('flatNo')}
-                </div>
+              <div className="flex items-center justify-between gap-3 border-b pb-2">
+                <h3 className="font-bold text-lg text-slate-900">1. Delivery address</h3>
+                {mode === 'form' && saved.length > 0 && (
+                  <button type="button" onClick={backToSaved} className="text-sm font-semibold text-brand-navy underline underline-offset-4">
+                    Saved addresses
+                  </button>
+                )}
               </div>
 
-              <div>
-                <label className={labelClass} htmlFor="co-area">Area / street *</label>
-                <input id="co-area" type="text" autoComplete="address-line2" value={address.area} onChange={(e) => setField('area', e.target.value)} placeholder="Model Town, near the temple" className={inputClass} />
-                {fieldError('area')}
-              </div>
+              {listError && <p className="text-sm text-red-700 font-semibold bg-red-50 border border-red-200 rounded-lg px-3 py-2">{listError}</p>}
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className={labelClass} htmlFor="co-city">City *</label>
-                  <input id="co-city" type="text" autoComplete="address-level2" value={address.city} onChange={(e) => setField('city', e.target.value)} placeholder="Panipat" className={inputClass} />
-                  {fieldError('city')}
-                </div>
-                <div>
-                  <label className={labelClass} htmlFor="co-state">State *</label>
-                  <select id="co-state" value={address.state} onChange={(e) => setField('state', e.target.value)} className={inputClass}>
-                    <option value="">Select state</option>
-                    {INDIAN_STATES.map((st) => <option key={st} value={st}>{st}</option>)}
-                  </select>
-                  {fieldError('state')}
-                </div>
-              </div>
+              {mode === 'pick' ? (
+                <AddressPicker
+                  addresses={saved}
+                  selectedId={selectedId}
+                  onSelect={selectAddress}
+                  onEdit={editAddress}
+                  onRemove={removeAddress}
+                  onAddNew={openNewAddress}
+                  busyId={busyId}
+                  firstBadge={currentUser ? 'Default' : 'Last used'}
+                  canAddMore={!currentUser || saved.length < MAX_SAVED_ADDRESSES}
+                />
+              ) : (
+                <>
+                  {editingId && <p className="text-sm font-semibold text-slate-600">Editing a saved address</p>}
+                  <AddressForm address={address} onChange={setField} errors={formErrors} placeLoading={placeLoading} />
+                </>
+              )}
 
               {!currentUser && (
                 <div>
                   <label className={labelClass} htmlFor="co-email">Email (optional)</label>
                   <input id="co-email" type="email" autoComplete="email" value={email} onChange={(e) => { setEmail(e.target.value); setFormErrors(prev => ({ ...prev, email: '' })); }} placeholder="you@gmail.com" className={inputClass} />
-                  {fieldError('email')}
+                  <FieldError message={formErrors.email} />
                 </div>
+              )}
+
+              {mode === 'form' && !editingId && (!currentUser || saved.length < MAX_SAVED_ADDRESSES) && (
+                <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                  <input type="checkbox" className="h-4 w-4 accent-brand-navy" checked={saveForNext} onChange={(e) => setSaveForNext(e.target.checked)} />
+                  {currentUser ? 'Save this address for next time' : 'Remember this address on this device'}
+                </label>
               )}
 
               <button type="submit" className="w-full min-h-12 py-3.5 bg-brand-cta hover:bg-brand-cta-hover text-white font-semibold text-base rounded-lg flex items-center justify-center gap-2">
@@ -391,7 +577,7 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
                 <div className="flex justify-between">
                   <span className="text-slate-600">Delivery</span>
                   {shipping === 0 && isPanipatPincode(addressPincode)
-                    ? <span className="text-right"><span className="font-bold text-emerald-700">FREE</span> <span className="text-xs text-slate-400 line-through">₹49</span><span className="block text-xs font-medium text-emerald-700">Panipat mein free delivery</span></span>
+                    ? <span className="text-right"><span className="font-bold text-emerald-700">FREE</span> <span className="text-xs text-slate-400 line-through">₹49</span><span className="block text-xs font-medium text-emerald-700">Free delivery in Panipat</span></span>
                     : <span className={`font-semibold ${shipping === 0 ? 'text-emerald-700' : 'text-slate-800'}`}>{shipping === 0 ? 'FREE' : formatPrice(shipping)}</span>}
                 </div>
                 {effectiveMethod === 'UPI' && onlineSaving > 0 && (

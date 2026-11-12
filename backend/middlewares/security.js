@@ -48,6 +48,8 @@ const limiters = {
   orderTrack: limiter({ windowMs: 15 * MIN, limit: 20, message: 'Too many tracking attempts. Please wait 15 minutes and try again.' }),
   review: limiter({ windowMs: 60 * MIN, limit: 10, message: 'Too many reviews from this network. Please try again later.' }),
   reviewInteraction: limiter({ windowMs: 15 * MIN, limit: 100, message: TRY_LATER }),
+  // Saved delivery addresses (logged-in list / add / edit / remove)
+  addresses: limiter({ windowMs: 15 * MIN, limit: 120, message: TRY_LATER }),
   feedback: limiter({ windowMs: 60 * MIN, limit: 10, message: 'Too many feedback messages. Please try again later.' }),
   imageUpload: limiter({ windowMs: 60 * MIN, limit: 30, message: 'Too many uploads. Please try again later.' }),
   videoUpload: limiter({ windowMs: 60 * MIN, limit: 10, message: 'Too many video uploads. Please try again later.' })
