@@ -762,7 +762,7 @@ export default function ProductDetailPage({
                 <WhatsAppIcon className="h-5 w-5" /> {whatsappOrderLabel}
               </Button>
               {!isOutOfStock && (
-                <p className="text-center text-sm text-slate-600">Saman aane par paise dein · 7 din mein aasaan return</p>
+                <p className="text-center text-sm text-slate-600">Pay when it arrives · Easy 7-day returns</p>
               )}
             </div>
 

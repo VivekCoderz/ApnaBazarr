@@ -200,7 +200,7 @@ export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem, pr
                 <div className="flex justify-between">
                   <span>Delivery</span>
                   <span className="font-semibold text-slate-800">
-                    {shippingLoading ? '...' : shipping === null ? 'At checkout' : shipping === 0 && inPanipat ? <span className="text-right"><span className="font-bold text-emerald-700">FREE</span> <span className="text-xs text-slate-400 line-through">₹49</span><span className="block text-xs font-medium text-emerald-700">Panipat mein free delivery</span></span> : shipping === 0 ? <span className="text-emerald-600 font-bold">FREE</span> : formatPrice(shipping)}
+                    {shippingLoading ? '...' : shipping === null ? 'At checkout' : shipping === 0 && inPanipat ? <span className="text-right"><span className="font-bold text-emerald-700">FREE</span> <span className="text-xs text-slate-400 line-through">₹49</span><span className="block text-xs font-medium text-emerald-700">Free delivery in Panipat</span></span> : shipping === 0 ? <span className="text-emerald-600 font-bold">FREE</span> : formatPrice(shipping)}
                   </span>
                 </div>
                 <div className="flex justify-between text-base font-bold text-slate-900 pt-3 border-t border-slate-200">
