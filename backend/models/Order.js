@@ -49,10 +49,13 @@ const orderSchema = new mongoose.Schema({
     enum: ['Order Placed', 'Processing', 'Packed', 'Shipped', 'Out for Delivery', 'Delivered'], 
     default: 'Order Placed' 
   },
-  // Amount the customer pays/paid: items + shipping - onlineDiscount
+  // Amount the customer pays/paid: items + shipping - voucherDiscount - onlineDiscount
   totalAmount: { type: Number, required: true },
   // Flat discount for paying online (backend/utils/payment.js); 0 for COD/offline orders
   onlineDiscount: { type: Number, default: 0 },
+  // Automatic first-order voucher (backend/utils/voucher.js), e.g. 'PANIPAT30' / 30; '' / 0 when none
+  voucherCode: { type: String, default: '' },
+  voucherDiscount: { type: Number, default: 0 },
   estimatedDelivery: { type: String },
   paymentId: { type: String },
   razorpayOrderId: { type: String },

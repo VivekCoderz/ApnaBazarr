@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { MapPin, ChevronDown, LocateFixed, Loader2, AlertCircle, X } from 'lucide-react';
 import { usePincode, usePlace, savePincode, pincodeFromCurrentLocation } from '../utils/location';
-import { isPanipatPincode, FREE_DELIVERY_ABOVE, DELIVERY_CHARGE } from '../config/store';
+import { isPanipatPincode, FREE_DELIVERY_ABOVE, DELIVERY_CHARGE, PANIPAT_VOUCHER_AMOUNT, PANIPAT_VOUCHER_MIN } from '../config/store';
 
 // Header "Deliver to <pincode>" chip (like Amazon) with a small popover: type a pincode or
 // "Use my current location". Location is asked for ONLY when that button is tapped.
@@ -115,7 +115,7 @@ export default function DeliverTo({ variant = 'desktop' }) {
             </button>
           </div>
           <p className="mb-3 text-xs text-slate-600">
-            <span className="font-semibold text-emerald-700">Free delivery in Panipat on every order.</span>{' '}
+            <span className="font-semibold text-emerald-700">Free delivery in Panipat on every order, plus ₹{PANIPAT_VOUCHER_AMOUNT} off your first order.</span>{' '}
             Elsewhere free above ₹{FREE_DELIVERY_ABOVE}, otherwise ₹{DELIVERY_CHARGE}.
           </p>
           <form onSubmit={apply} className="flex gap-2">
@@ -155,6 +155,7 @@ export default function DeliverTo({ variant = 'desktop' }) {
             <p className="mt-2 text-xs text-slate-500">
               Now: {place ? `${place.district}, ${place.state}` : 'Pincode'} ({pin})
               {panipat && <span className="block font-semibold text-emerald-700">FREE delivery — we deliver in Panipat ourselves</span>}
+              {panipat && <span className="block font-semibold text-emerald-700">Plus ₹{PANIPAT_VOUCHER_AMOUNT} off your first order (₹{PANIPAT_VOUCHER_MIN}+)</span>}
             </p>
           )}
         </div>

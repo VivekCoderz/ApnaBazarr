@@ -46,6 +46,8 @@ const limiters = {
   order: limiter({ windowMs: 60 * MIN, limit: 30, message: 'Too many orders from this network. Please WhatsApp us at +91 93068 10726 if you need help.' }),
   // Public order tracking (order ID + phone): stops guessing order IDs by brute force
   orderTrack: limiter({ windowMs: 15 * MIN, limit: 20, message: 'Too many tracking attempts. Please wait 15 minutes and try again.' }),
+  // Cart/checkout quotes that include a phone (PANIPAT30 first-order check): stops phone probing
+  voucherCheck: limiter({ windowMs: 15 * MIN, limit: 40, message: TRY_LATER }),
   review: limiter({ windowMs: 60 * MIN, limit: 10, message: 'Too many reviews from this network. Please try again later.' }),
   reviewInteraction: limiter({ windowMs: 15 * MIN, limit: 100, message: TRY_LATER }),
   // Saved delivery addresses (logged-in list / add / edit / remove)

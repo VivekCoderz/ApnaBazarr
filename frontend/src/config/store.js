@@ -13,6 +13,11 @@ export const isPanipatPincode = (pin) => PANIPAT_PINCODE.test(String(pin || '').
 export const shipsFreeTo = (p, pincode) => shipsFree(p) || isPanipatPincode(pincode);
 export const PANIPAT_FREE_DELIVERY_LINE = 'Free delivery in Panipat on every order';
 export const COD_MAX_AMOUNT = 3000;
+// PANIPAT30: automatic ₹30 off a first order delivered in Panipat, items ₹199+. Display only:
+// the server (backend/utils/voucher.js) decides whether it applies and sets the amount charged.
+export const PANIPAT_VOUCHER_CODE = 'PANIPAT30';
+export const PANIPAT_VOUCHER_AMOUNT = 30;
+export const PANIPAT_VOUCHER_MIN = 199;
 
 export const WHATSAPP_NUMBER = '919306810726';
 export const PHONE_DISPLAY = '+91 93068 10726';

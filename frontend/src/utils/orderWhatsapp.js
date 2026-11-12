@@ -49,6 +49,7 @@ export function orderConfirmMessage(order) {
     ...items.map(itemLine),
     `Delivery: ${shipping > 0 ? rupees(shipping) : 'FREE'}`
   ];
+  if (order.voucherDiscount > 0) lines.push(`${order.voucherCode || 'Voucher'} (first order in Panipat): -${rupees(order.voucherDiscount)}`);
   if (order.onlineDiscount > 0) lines.push(`Online payment discount: -${rupees(order.onlineDiscount)}`);
   lines.push(
     `Total: ${rupees(order.totalAmount)}`,

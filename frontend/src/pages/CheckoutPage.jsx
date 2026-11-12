@@ -4,7 +4,7 @@ import { ArrowRight, ArrowLeft, Check, Banknote, CreditCard, Loader2, MessageCir
 
 import { getReferral } from '../utils/referral';
 import { getSource } from '../utils/source';
-import { useShippingQuote } from '../utils/shipping';
+import { useShippingQuote, clearQuoteCache } from '../utils/shipping';
 import { getSavedPincode, savePincode, isValidPincode, lookupPlace } from '../utils/location';
 import {
   pickAddress, cleanPhone, stateOption, sortAddresses, readLocalAddresses, rememberLocalAddress,
@@ -13,7 +13,7 @@ import {
 import AddressForm, { inputClass, labelClass, FieldError } from '../components/checkout/AddressForm';
 import AddressPicker from '../components/checkout/AddressPicker';
 import { formatPrice } from '../utils/format';
-import { COD_MAX_AMOUNT, whatsappUrl, onlineDiscountFor, hasFreeDeliveryTag, isPanipatPincode } from '../config/store';
+import { COD_MAX_AMOUNT, whatsappUrl, onlineDiscountFor, hasFreeDeliveryTag, isPanipatPincode, PANIPAT_VOUCHER_AMOUNT, PANIPAT_VOUCHER_CODE } from '../config/store';
 import FreeDeliveryProgress from '../components/FreeDeliveryProgress';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -57,7 +57,8 @@ const placeUpdater = (pin, fields, lastAuto) => (prev) => {
 const confirmMessage = (order) =>
   `Hello Dhagaro, I confirm my order #${order.orderId}. ` +
   `Name: ${order.shippingAddress?.fullName || ''}. ` +
-  `Total: Rs ${Math.round(order.totalAmount)} (${order.paymentMethod === 'COD' ? 'Cash on Delivery' : 'Paid online'}). Yes, please ship it.`;
+  `Total: Rs ${Math.round(order.totalAmount)} (${order.paymentMethod === 'COD' ? 'Cash on Delivery' : 'Paid online'}` +
+  `${order.voucherDiscount > 0 ? `, ${order.voucherCode || PANIPAT_VOUCHER_CODE} -Rs ${order.voucherDiscount} applied` : ''}). Yes, please ship it.`;
 
 // Prefilled /track link for the success screen
 const trackHref = (order) => {
@@ -66,6 +67,25 @@ const trackHref = (order) => {
   if (phone) params.set('phone', phone);
   return `/track?${params}`;
 };
+
+// PANIPAT30 status from the server quote: applied, or how much more to add (Panipat only)
+function VoucherNote({ voucher, nudge }) {
+  if (voucher?.amount > 0) {
+    return (
+      <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800 ring-1 ring-emerald-200">
+        {voucher.code} applied · {formatPrice(voucher.amount)} off your first order in Panipat
+      </p>
+    );
+  }
+  if (nudge > 0) {
+    return (
+      <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-800 ring-1 ring-emerald-200">
+        Add {formatPrice(nudge)} more to get ₹{PANIPAT_VOUCHER_AMOUNT} off your first Panipat order
+      </p>
+    );
+  }
+  return null;
+}
 
 export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }) {
   const navigate = useNavigate();
@@ -227,7 +247,9 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
   // again when the address is submitted. Until a full pincode is typed, the saved one is used.
   const addressPincode = address.pincode.trim();
   const quotePincode = isValidPincode(addressPincode) ? addressPincode : undefined;
-  const { shipping: quotedShipping, loading: quoteLoading } = useShippingQuote(cartItems, quotePincode);
+  // With a Panipat pincode the phone is sent too, for the PANIPAT30 first-order voucher
+  const quotePhone = cleanPhone(address.phone);
+  const { shipping: quotedShipping, loading: quoteLoading, voucher, voucherNudge } = useShippingQuote(cartItems, quotePincode, quotePhone);
   const [shippingCharges, setShippingCharges] = useState(null);
 
   const calculateShippingFees = async (deliveryPincode) => {
@@ -253,7 +275,9 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const shipping = shippingCharges ?? quotedShipping ?? 0;
-  const total = subtotal + shipping;
+  // PANIPAT30 as quoted by the server (it decides again when the order is placed)
+  const voucherAmount = voucher?.amount || 0;
+  const total = subtotal + shipping - voucherAmount;
   const codAllowed = total <= COD_MAX_AMOUNT;
   const effectiveMethod = !codAllowed && paymentMethod === 'COD' ? 'UPI' : paymentMethod;
   // "Pay online & save": shown here, but the server applies it and sets the amount charged
@@ -376,6 +400,7 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
       createdAt: savedOrder.createdAt || new Date().toISOString(),
     };
     if (!currentUser && wantSave) setSaved(rememberLocalAddress(shippingAddress()));
+    clearQuoteCache(); // this phone has ordered now: no first-order voucher in later quotes
     setPlacedOrder(normalisedOrder);
     setStep(3);
     onOrderComplete(normalisedOrder);
@@ -399,7 +424,10 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
           headers: { 'Content-Type': 'application/json' },
           // Same pincode /verify will see in shippingAddress, so both server totals match
           // (free delivery in Panipat). The server calculates the amount; we never send it.
-          body: JSON.stringify({ items: orderItems(), deliveryPincode: address.pincode.trim() }),
+          // The phone is for the PANIPAT30 first-order check; /verify honours the voucher only
+          // for the same phone. The session cookie lets the server check the account too.
+          credentials: 'include',
+          body: JSON.stringify({ items: orderItems(), deliveryPincode: address.pincode.trim(), phone: cleanPhone(address.phone) }),
         });
         const orderData = await safeParseJSON(orderRes);
         if (!orderData.success) {
@@ -557,6 +585,7 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
                 </label>
               )}
 
+              <VoucherNote voucher={voucher} nudge={voucherNudge} />
               <button type="submit" className="w-full min-h-12 py-3.5 bg-brand-cta hover:bg-brand-cta-hover text-white font-semibold text-base rounded-lg flex items-center justify-center gap-2">
                 <span>Continue · {formatPrice(total)}</span>
                 <ArrowRight className="w-4 h-4" />
@@ -580,6 +609,12 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
                     ? <span className="text-right"><span className="font-bold text-emerald-700">FREE</span> <span className="text-xs text-slate-400 line-through">₹49</span><span className="block text-xs font-medium text-emerald-700">Free delivery in Panipat</span></span>
                     : <span className={`font-semibold ${shipping === 0 ? 'text-emerald-700' : 'text-slate-800'}`}>{shipping === 0 ? 'FREE' : formatPrice(shipping)}</span>}
                 </div>
+                {voucherAmount > 0 && (
+                  <div className="flex justify-between gap-3">
+                    <span className="text-emerald-700"><span className="font-bold">{voucher.code}</span> · First order in Panipat</span>
+                    <span className="font-semibold text-emerald-700">−{formatPrice(voucherAmount)}</span>
+                  </div>
+                )}
                 {effectiveMethod === 'UPI' && onlineSaving > 0 && (
                   <div className="flex justify-between">
                     <span className="text-slate-600">Online payment discount</span>
@@ -590,6 +625,7 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
                   <span className="text-slate-900">Total</span>
                   <span className="font-heading text-lg text-brand-cta">{formatPrice(payable)}</span>
                 </div>
+                <VoucherNote voucher={voucher} nudge={voucherNudge} />
                 <FreeDeliveryProgress subtotal={subtotal} compact freeByOffer={cartItems.some(hasFreeDeliveryTag)} pincode={address.pincode.trim()} />
               </div>
 
@@ -676,6 +712,9 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
               <p className="text-base text-slate-700">It will be dispatched within 2 days.</p>
 
               <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-sm text-left space-y-1 max-w-md mx-auto">
+                {placedOrder.voucherDiscount > 0 && (
+                  <div className="flex justify-between gap-3"><span className="text-slate-500">{placedOrder.voucherCode || PANIPAT_VOUCHER_CODE} · First order in Panipat</span><span className="font-semibold text-emerald-700">−{formatPrice(placedOrder.voucherDiscount)}</span></div>
+                )}
                 {placedOrder.onlineDiscount > 0 && (
                   <div className="flex justify-between"><span className="text-slate-500">Online payment discount</span><span className="font-semibold text-emerald-700">−{formatPrice(placedOrder.onlineDiscount)}</span></div>
                 )}

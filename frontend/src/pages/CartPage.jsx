@@ -2,7 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Plus, Minus, Trash2, ShoppingBag, ArrowRight, ArrowLeft } from 'lucide-react';
 import { useShippingQuote } from '../utils/shipping';
 import { formatPrice, cloudinaryImage, displayName, isOrderable } from '../utils/format';
-import { categoryLabel, onlineDiscountFor, hasFreeDeliveryTag, isPanipatPincode } from '../config/store';
+import { categoryLabel, onlineDiscountFor, hasFreeDeliveryTag, isPanipatPincode, PANIPAT_VOUCHER_AMOUNT, PANIPAT_VOUCHER_MIN } from '../config/store';
 import { usePincode } from '../utils/location';
 import FreeDeliveryProgress from '../components/FreeDeliveryProgress';
 
@@ -208,6 +208,15 @@ export default function CartPage({ cartItems, onUpdateQuantity, onRemoveItem, pr
                   <span className="font-heading text-lg text-brand-cta">{formatPrice(total)}</span>
                 </div>
               </div>
+
+              {/* PANIPAT30: no phone yet, so only a hint; checkout shows whether it applies */}
+              {inPanipat && (
+                <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-800 ring-1 ring-emerald-200">
+                  {subtotal >= PANIPAT_VOUCHER_MIN
+                    ? `First order in Panipat? Get ₹${PANIPAT_VOUCHER_AMOUNT} off at checkout (orders ₹${PANIPAT_VOUCHER_MIN}+)`
+                    : `First order in Panipat? Add ${formatPrice(PANIPAT_VOUCHER_MIN - subtotal)} more to get ₹${PANIPAT_VOUCHER_AMOUNT} off at checkout`}
+                </p>
+              )}
 
               {belowMinimum && (
                 <p className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-sm text-rose-800 font-semibold">

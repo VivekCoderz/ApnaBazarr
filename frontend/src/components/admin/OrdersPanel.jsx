@@ -193,6 +193,9 @@ function OrderCard({ order, onUpdateOrderStatus }) {
         <div className="flex items-end justify-between gap-3">
           <span className="text-xs text-slate-500">{units} unit{units === 1 ? '' : 's'}</span>
           <div className="text-right">
+            {order.voucherDiscount > 0 && (
+              <p className="mb-0.5"><span className="inline-block rounded bg-emerald-50 px-1.5 py-0.5 text-[11px] font-bold text-emerald-700 ring-1 ring-emerald-200">{order.voucherCode || 'Voucher'} −{rupees(order.voucherDiscount)}</span></p>
+            )}
             {order.onlineDiscount > 0 && <p className="text-xs text-emerald-700">Online discount −{rupees(order.onlineDiscount)}</p>}
             <p className="text-xs text-slate-500">{order.paymentMethod === 'COD' ? 'To collect (COD)' : 'Amount paid'}</p>
             <p className="text-lg font-semibold tabular-nums text-brand-navy">{rupees(order.totalAmount)}</p>

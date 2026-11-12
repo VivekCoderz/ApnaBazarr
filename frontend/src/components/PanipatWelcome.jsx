@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { PartyPopper, X } from 'lucide-react';
 import { usePincode } from '../utils/location';
-import { isPanipatPincode, DELIVERY_CHARGE } from '../config/store';
+import { isPanipatPincode, DELIVERY_CHARGE, PANIPAT_VOUCHER_AMOUNT, PANIPAT_VOUCHER_MIN } from '../config/store';
 
 // When the shopper's pincode becomes a Panipat one (typed, or "Use my current location"),
 // tell them clearly that delivery is free BECAUSE they are in Panipat. Shown when the
@@ -49,6 +49,9 @@ export default function PanipatWelcome() {
           <p className="font-semibold text-emerald-800">You're in Panipat, so delivery is FREE! 🎉</p>
           <p className="mt-0.5 text-sm text-emerald-900/80">
             Every Panipat order ships free, even a ₹129 mat. You save ₹{DELIVERY_CHARGE}, and we deliver it to your door ourselves.
+          </p>
+          <p className="mt-1 text-sm font-semibold text-emerald-800">
+            Plus ₹{PANIPAT_VOUCHER_AMOUNT} off your first order (₹{PANIPAT_VOUCHER_MIN}+).
           </p>
         </div>
         <button type="button" onClick={() => setShow(false)} aria-label="Close" className="-mr-1 -mt-1 flex h-8 w-8 items-center justify-center rounded-full text-emerald-800 hover:bg-emerald-100">

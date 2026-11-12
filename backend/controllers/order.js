@@ -20,6 +20,7 @@ const { onlineDiscount } = require('../utils/payment');
 const { optionalUser } = require('../middlewares/auth');
 const { reviewLink } = require('../utils/reviewToken');
 const { rememberOrderAddress } = require('../utils/address');
+const { panipatVoucher, hasOrderedBefore, voucherNudgeFor, voucherRuleMet, last10, PANIPAT_VOUCHER_CODE, PANIPAT_VOUCHER_AMOUNT } = require('../utils/voucher');
 
 const GUEST_EMAIL = 'guest@apnabazarr.com';
 
@@ -35,6 +36,12 @@ async function orderOwner(req, typedEmail) {
   }
   const email = (typeof typedEmail === 'string' && typedEmail.trim()) ? typedEmail.trim().slice(0, 200) : GUEST_EMAIL;
   return { userEmail: email, isGuest: true };
+}
+
+// Account email of a logged-in customer (for the first-order check), otherwise ''
+async function viewerEmail(req) {
+  const viewer = await optionalUser(req);
+  return viewer && viewer.role !== 'admin' && viewer.email ? viewer.email : '';
 }
 
 // Logged-in customer: keep this order's delivery address on the account for next time
@@ -219,20 +226,29 @@ module.exports.createOrder = async (req, res) => {
 
     const totalItemCost = formattedItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
     const totalShipping = formattedItems.reduce((acc, item) => acc + item.shippingCharges, 0);
-    const calculatedTotal = totalItemCost + totalShipping;
 
     // Minimum order is checked on the server-calculated total, never the browser's
-    if (calculatedTotal < 100) {
+    if (totalItemCost + totalShipping < 100) {
       return res.status(400).json({ success: false, message: 'Minimum order amount of ₹100 is required.' });
     }
 
-    // COD is open to everyone, up to a per-order limit (checked on the server-calculated total)
+    // PANIPAT30: decided here from the address and order history, never sent by the browser
+    const owner = await orderOwner(req, userEmail);
+    const voucher = await panipatVoucher({
+      pincode: shippingAddress.pincode,
+      subtotal: totalItemCost,
+      phone: shippingAddress.phone,
+      email: owner.isGuest ? '' : owner.userEmail
+    });
+    const voucherDiscount = voucher ? voucher.amount : 0;
+    const calculatedTotal = totalItemCost + totalShipping - voucherDiscount;
+
+    // COD is open to everyone, up to a per-order limit (checked on what the customer pays)
     const codError = codLimitError(calculatedTotal);
     if (codError) {
       return res.status(400).json({ success: false, message: codError });
     }
 
-    const owner = await orderOwner(req, userEmail);
     const resellerFields = await resolveResellerForOrder(resellerCode, owner.userEmail, formattedItems);
 
     const newOrder = await Order.create({
@@ -245,7 +261,9 @@ module.exports.createOrder = async (req, res) => {
       paymentMethod: 'COD',
       paymentStatus: 'Pending COD',
       orderStatus: 'Order Placed',
-      totalAmount: calculatedTotal,
+      totalAmount: calculatedTotal, // items + shipping - voucher
+      voucherCode: voucher ? voucher.code : '',
+      voucherDiscount,
       estimatedDelivery: estimatedDeliveryStr
     });
     notifyNewOrder(newOrder);
@@ -302,8 +320,11 @@ module.exports.createRazorpayOrder = async (req, res) => {
     // Charge what the server calculates for the cart, never an amount sent by the browser
     // deliveryPincode only decides free delivery (Panipat); /verify recalculates with the
     // address pincode and rejects the payment if the two totals differ.
+    // phone (delivery address) is only used for the PANIPAT30 first-order check; /verify
+    // honours the voucher only for the same phone (see verifyRazorpayPayment).
     const { items } = req.body;
     const deliveryPincode = String(req.body.deliveryPincode || '').trim().slice(0, 6);
+    const phone = last10(typeof req.body.phone === 'string' ? req.body.phone : '');
     if (!Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ success: false, message: 'Your cart is empty.' });
     }
@@ -315,10 +336,16 @@ module.exports.createRazorpayOrder = async (req, res) => {
     if (formattedItems.length === 0) {
       return res.status(400).json({ success: false, message: 'The items in your cart are not available right now.' });
     }
-    const orderTotal = formattedItems.reduce((acc, item) => acc + item.price * item.quantity + item.shippingCharges, 0);
-    if (orderTotal < 100) {
+    const itemCost = formattedItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+    const grossTotal = formattedItems.reduce((acc, item) => acc + item.price * item.quantity + item.shippingCharges, 0);
+    if (grossTotal < 100) {
       return res.status(400).json({ success: false, message: 'Minimum order amount of ₹100 is required.' });
     }
+    const voucher = phone.length === 10
+      ? await panipatVoucher({ pincode: deliveryPincode, subtotal: itemCost, phone, email: await viewerEmail(req) })
+      : null;
+    const voucherDiscount = voucher ? voucher.amount : 0;
+    const orderTotal = grossTotal - voucherDiscount;
     // Paying online saves a flat amount (utils/payment.js); /verify expects the same figure
     const discount = onlineDiscount(orderTotal);
     const amount = orderTotal - discount;
@@ -327,7 +354,14 @@ module.exports.createRazorpayOrder = async (req, res) => {
       amount: Math.round(amount * 100), // amount in paisa
       currency: 'INR',
       receipt: `receipt_order_${Date.now()}`,
-      notes: { orderTotal: String(orderTotal), onlineDiscount: String(discount) }
+      // Notes are set here by the server and read back by /verify (the browser can't change them)
+      notes: {
+        orderTotal: String(orderTotal),
+        onlineDiscount: String(discount),
+        voucherCode: voucher ? voucher.code : '',
+        voucherDiscount: String(voucherDiscount),
+        voucherPhone: voucher ? phone : ''
+      }
     };
 
     const order = await rzp.orders.create(options);
@@ -337,6 +371,7 @@ module.exports.createRazorpayOrder = async (req, res) => {
       amount: order.amount,
       orderTotal,
       onlineDiscount: discount,
+      voucher: voucher || null,
       key: razorpayKeyId
     });
   } catch (error) {
@@ -387,6 +422,16 @@ module.exports.verifyRazorpayPayment = async (req, res) => {
     // The signature only proves the payment happened; make sure it paid for THIS cart
     // (at the discounted online price) and that the same payment isn't turned into a second order.
     const paidOrder = await rzp.orders.fetch(razorpay_order_id);
+    // PANIPAT30 is NOT re-checked against order history here: createRazorpayOrder already
+    // decided it and wrote it into the Razorpay order's notes (server-set, so the browser can't
+    // add it). Re-checking would wrongly reject a paid customer whose other order (e.g. a COD
+    // order in another tab) landed in between. It is honoured only if the notes grant it AND
+    // this order is for the same phone, a Panipat pincode and items of ₹199+; otherwise the
+    // total has no voucher and the amount check below rejects a mismatched payment.
+    // An order created before vouchers existed has no voucher notes, so no voucher.
+    const notes = paidOrder.notes || {};
+    const notedVoucher = notes.voucherCode === PANIPAT_VOUCHER_CODE && Number(notes.voucherDiscount) === PANIPAT_VOUCHER_AMOUNT
+      && last10(notes.voucherPhone).length === 10 && last10(notes.voucherPhone) === last10(shippingAddress.phone);
     // Same online-payment discount createRazorpayOrder took off the charge. A Razorpay order
     // created before the discount existed (no onlineDiscount note, full amount) is still
     // honoured at full price so a customer paying during the deploy isn't left without an order.
@@ -394,11 +439,12 @@ module.exports.verifyRazorpayPayment = async (req, res) => {
     const priceCart = (formatted) => {
       const itemCost = formatted.reduce((acc, item) => acc + (item.price * item.quantity), 0);
       const shippingTotal = formatted.reduce((acc, item) => acc + item.shippingCharges, 0);
-      const total = itemCost + shippingTotal;
-      const legacyFullPrice = !(paidOrder.notes && paidOrder.notes.onlineDiscount !== undefined)
+      const voucherDiscount = notedVoucher && voucherRuleMet(shippingAddress.pincode, itemCost) ? PANIPAT_VOUCHER_AMOUNT : 0;
+      const total = itemCost + shippingTotal - voucherDiscount;
+      const legacyFullPrice = notes.onlineDiscount === undefined
         && paidOrder.amount === Math.round(total * 100);
       const disc = legacyFullPrice ? 0 : onlineDiscount(total);
-      return { formatted, discount: disc, amountDue: total - disc };
+      return { formatted, discount: disc, voucherDiscount, amountDue: total - disc };
     };
     let priced = priceCart(await processOrderItems(items, shippingAddress.pincode));
     // Panipat delivery is free, but a payment started from an older page (no pincode sent to
@@ -407,7 +453,7 @@ module.exports.verifyRazorpayPayment = async (req, res) => {
       const withCharge = priceCart(await processOrderItems(items));
       if (paidOrder.amount === Math.round(withCharge.amountDue * 100)) priced = withCharge;
     }
-    const { formatted: formattedItems, discount, amountDue } = priced;
+    const { formatted: formattedItems, discount, voucherDiscount, amountDue } = priced;
     if (paidOrder.amount !== Math.round(amountDue * 100)) {
       return res.status(400).json({ success: false, message: 'The payment amount does not match the order total. Please contact us on WhatsApp at +91 93068 10726.' });
     }
@@ -428,8 +474,10 @@ module.exports.verifyRazorpayPayment = async (req, res) => {
       paymentMethod: 'Online (Razorpay)',
       paymentStatus: 'Completed',
       orderStatus: 'Order Placed',
-      totalAmount: amountDue, // what the customer paid (items + shipping - onlineDiscount)
+      totalAmount: amountDue, // what the customer paid (items + shipping - voucher - onlineDiscount)
       onlineDiscount: discount,
+      voucherCode: voucherDiscount > 0 ? PANIPAT_VOUCHER_CODE : '',
+      voucherDiscount,
       estimatedDelivery: estimatedDeliveryStr,
       paymentId: razorpay_payment_id,
       razorpayOrderId: razorpay_order_id
@@ -532,9 +580,29 @@ module.exports.getShippingCalculation = async (req, res) => {
     const formattedItems = await processOrderItems(items, deliveryPincode);
     const totalShipping = formattedItems.reduce((acc, item) => acc + item.shippingCharges, 0);
 
+    // PANIPAT30 preview (Panipat pincodes only). With a phone: whether the voucher applies
+    // (yes/no only, nothing else about past orders). voucherNudge: rupees to add to reach
+    // the ₹199 minimum; not shown to a phone that has already ordered.
+    let voucher = null;
+    let voucherNudge = 0;
+    const pin = String(deliveryPincode || '').trim();
+    const phone = last10(typeof req.body.phone === 'string' ? req.body.phone : '');
+    if (isPanipatPincode(pin)) {
+      const itemCost = formattedItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+      const email = phone.length === 10 ? await viewerEmail(req) : '';
+      if (voucherRuleMet(pin, itemCost)) {
+        if (phone.length === 10) voucher = await panipatVoucher({ pincode: pin, subtotal: itemCost, phone, email });
+      } else {
+        voucherNudge = voucherNudgeFor(pin, itemCost);
+        if (voucherNudge && phone.length === 10 && await hasOrderedBefore({ phone, email })) voucherNudge = 0;
+      }
+    }
+
     return res.json({
       success: true,
       shippingCharges: totalShipping,
+      voucher,
+      voucherNudge,
       items: formattedItems.map(item => ({
         productId: item.productId,
         name: item.name,
@@ -631,7 +699,7 @@ module.exports.createOfflineOrder = async (req, res) => {
   }
 };
 
-const last10 = (value) => String(value || '').replace(/\D/g, '').slice(-10);
+// last10 (last 10 digits of a phone) comes from utils/voucher.js
 const TRACK_NOT_FOUND = "We couldn't find an order with that ID and phone number.";
 
 // GET /orders/track?orderId=X&phone=Y — public, rate-limited guest tracking.
