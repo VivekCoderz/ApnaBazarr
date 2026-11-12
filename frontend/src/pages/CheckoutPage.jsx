@@ -87,7 +87,7 @@ function VoucherNote({ voucher, nudge }) {
   return null;
 }
 
-export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }) {
+export default function CheckoutPage({ cartItems, onOrderComplete, currentUser, buyNow = false }) {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [orderLoading, setOrderLoading] = useState(false);
@@ -535,6 +535,12 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser }
             <h1 className="text-2xl font-bold text-brand-navy">Order details</h1>
             <span className="text-sm font-semibold text-slate-500">Step {step} / 2</span>
           </div>
+        )}
+
+        {buyNow && step < 3 && (
+          <p className="mb-3 rounded-lg border border-line bg-brand-cream px-4 py-2.5 text-sm text-slate-700">
+            You're buying just this item. Your cart is unchanged. <Link to="/cart" className="font-semibold text-brand-navy underline underline-offset-2">View cart</Link>
+          </p>
         )}
 
         <div className="bg-white p-4 sm:p-8 rounded-2xl border border-slate-200 shadow-xs">

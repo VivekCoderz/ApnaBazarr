@@ -7,6 +7,7 @@ import { DELIVERY_CHARGE, shipsFreeTo, categoryLabel } from '../config/store';
 import { usePincode } from '../utils/location';
 import Button from './ui/Button';
 import Badge from './ui/Badge';
+import { startBuyNow } from '../utils/buyNow';
 
 // Cloudinary resize for large spotlight images
 const sized = (url, w) =>
@@ -30,8 +31,7 @@ export default function ProductSpotlight({ product, onAddToCart, onToggleWishlis
 
   const buyNow = () => {
     if (!canQuickBuy) return navigate(href);
-    onAddToCart(product, 1, { selectedSize: size });
-    navigate('/checkout');
+    navigate(startBuyNow(product, 1, { selectedSize: size }));
   };
 
   return (

@@ -15,6 +15,7 @@ import SectionHeader from '../components/ui/SectionHeader';
 import CategoryGlyph from '../components/ui/CategoryGlyph';
 import HeartIcon from '../components/ui/HeartIcon';
 import PincodeCheck from '../components/PincodeCheck';
+import { startBuyNow } from '../utils/buyNow';
 
 // Pre-filled WhatsApp order message. Plain text only: the name goes through displayName()
 // (drops emojis, which break on WhatsApp Web) and prices use "Rs".
@@ -133,7 +134,8 @@ export default function ProductDetailPage({
   const [reviewError, setReviewError] = useState('');
 
 
-  const handleAddToCartWithCustomization = () => {
+  // Customizable products need their text/photo before they can be bought
+  const customizationReady = () => {
     if (product.isCustomizable) {
       if ((product.customizationType === 'text' || product.customizationType === 'both') && !customTextVal.trim()) {
         alert(product.customizationPrompt || "Please enter the required customization text.");
@@ -144,6 +146,11 @@ export default function ProductDetailPage({
         return false;
       }
     }
+    return true;
+  };
+
+  const handleAddToCartWithCustomization = () => {
+    if (!customizationReady()) return false;
     onAddToCart(product, quantity, {
       customText: customTextVal,
       customImage: customImageVal,
@@ -431,7 +438,13 @@ export default function ProductDetailPage({
 
   // "Buy Now": add to cart and go straight to checkout
   const handleBuyNow = () => {
-    if (handleAddToCartWithCustomization()) navigate('/checkout');
+    if (!customizationReady()) return;
+    navigate(startBuyNow(product, quantity, {
+      customText: customTextVal,
+      customImage: customImageVal,
+      selectedSize,
+      selectedColor
+    }));
   };
 
   const deliveryText = deliveryLoading

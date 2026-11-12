@@ -21,6 +21,7 @@ import ProductDetailPage from './pages/ProductDetailPage';
 import CartPage from './pages/CartPage';
 const loadCheckoutPage = () => import('./pages/CheckoutPage');
 const CheckoutPage = lazy(loadCheckoutPage);
+import { getBuyNowItems, clearBuyNow } from './utils/buyNow';
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const OrdersPage = lazy(() => import('./pages/OrdersPage'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage'));
@@ -112,6 +113,13 @@ function AppContent() {
   const [cartItems, setCartItems] = useState(readGuestCart);
   const [wishlistItems, setWishlistItems] = useState([]);
   const [orders, setOrders] = useState([]);
+  // "Buy Now" checkout (/checkout?mode=buynow): just that product, cart untouched
+  // Memoised so checkout effects that depend on the item list don't re-run every render
+  const buyNowItems = useMemo(
+    () => (pathname === '/checkout' && new URLSearchParams(search).get('mode') === 'buynow' ? getBuyNowItems() : []),
+    [pathname, search]
+  );
+  const isBuyNowCheckout = buyNowItems.length > 0;
 
   // Fetch products from backend
   const loadProducts = async () => {
@@ -605,7 +613,9 @@ function AppContent() {
   // Order Handler
   const handleOrderComplete = (newOrder) => {
     setOrders(prev => [newOrder, ...prev]);
-    setCartItems([]);
+    // A "Buy Now" order only clears the buy-now item, never the shopper's cart
+    if (isBuyNowCheckout) clearBuyNow();
+    else setCartItems([]);
     showToast(`Order ${newOrder.orderId} placed`);
   };
 
@@ -954,7 +964,8 @@ function AppContent() {
             path="/checkout"
             element={
               <CheckoutPage
-                cartItems={cartItems}
+                cartItems={isBuyNowCheckout ? buyNowItems : cartItems}
+                buyNow={isBuyNowCheckout}
                 currentUser={currentUser}
                 onOrderComplete={handleOrderComplete}
               />
