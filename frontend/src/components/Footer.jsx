@@ -9,6 +9,7 @@ const HELP_LINKS = [
   { to: '/shipping', label: 'Shipping Policy' },
   { to: '/refunds', label: 'Returns & Refunds' },
   { to: '/track', label: 'Track order' },
+  { to: '/recycle', label: 'Old-clothes exchange' },
   { to: '/orders', label: 'My orders' },
   { to: '/contact', label: 'Contact us' },
   { to: '/terms', label: 'Terms & Conditions' },

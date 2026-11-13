@@ -72,6 +72,68 @@ function OrderWhatsappActions({ order }) {
   );
 }
 
+// Old-clothes exchange: shown when the customer opted in, or once we have collected.
+// "Collected" (with the weight) gives the customer ₹40 off their next order.
+function ExchangeBox({ order }) {
+  const [ex, setEx] = useState(order.exchange || {});
+  const [kg, setKg] = useState(ex.kg ? String(ex.kg) : '');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  if (!ex.optedIn && !ex.collected) return null;
+
+  const save = async (collected) => {
+    setBusy(true);
+    setError('');
+    try {
+      const res = await fetch(`${BASE_URL}/orders/${encodeURIComponent(order.orderId)}/exchange`, {
+        method: 'PUT',
+        headers: adminHeaders(true),
+        credentials: 'include',
+        body: JSON.stringify(collected ? { collected: true, kg: Number(kg) } : { collected: false })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) throw new Error(data.message || 'Could not save.');
+      setEx(data.order.exchange || {});
+      if (!collected) setKg('');
+    } catch (err) {
+      setError(err.message || 'Could not save.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-sm">
+      {ex.collected ? (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-emerald-900">
+            ♻ Old clothes collected: <span className="font-semibold">{ex.kg} kg</span>
+            {ex.redeemedBy ? <span className="text-emerald-800/80"> · ₹40 credit used on {ex.redeemedBy}</span> : <span className="text-emerald-800/80"> · ₹40 off their next order</span>}
+          </p>
+          {!ex.redeemedBy && (
+            <button type="button" onClick={() => save(false)} disabled={busy} className={`${btn.ghost} !min-h-8 !px-2 text-xs`}>Undo</button>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <p className="font-medium text-emerald-900">♻ Customer will hand over old clothes at delivery. Collect them, weigh them, then mark here:</p>
+          <div className="flex items-center gap-2">
+            <input
+              type="number" inputMode="decimal" min="0.1" max="25" step="0.1" value={kg}
+              onChange={(e) => setKg(e.target.value)} placeholder="kg"
+              aria-label="Weight collected in kg" className={`${input} w-24`}
+            />
+            <button type="button" onClick={() => save(true)} disabled={busy || !(Number(kg) > 0)} className={btn.primary}>
+              {busy ? 'Saving…' : 'Collected'}
+            </button>
+          </div>
+        </div>
+      )}
+      {error && <p className="mt-1 text-xs text-red-700" role="alert">{error}</p>}
+    </div>
+  );
+}
+
 async function copyText(text) {
   try {
     await navigator.clipboard.writeText(text);
@@ -145,6 +207,7 @@ function OrderCard({ order, onUpdateOrderStatus }) {
             {order.source && <Pill tone="navy" title="Where this customer came from">From: {order.source}</Pill>}
             {order.resellerCode && <Pill tone="neutral" title="Reseller code used on this order">Reseller: {order.resellerCode}</Pill>}
             {order.isGuest && <Pill tone="neutral">Guest checkout</Pill>}
+            {order.exchange?.optedIn && <Pill tone="green" title="Customer will hand over old clothes at delivery">♻ Exchange</Pill>}
           </div>
         </div>
 
@@ -188,6 +251,8 @@ function OrderCard({ order, onUpdateOrderStatus }) {
             );
           })}
         </ul>
+
+        <ExchangeBox order={order} />
 
         {/* Total */}
         <div className="flex items-end justify-between gap-3">

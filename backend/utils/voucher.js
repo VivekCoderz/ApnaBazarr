@@ -10,6 +10,7 @@ const { isPanipatPincode } = require('./shipping');
 const PANIPAT_VOUCHER_CODE = 'PANIPAT30';
 const PANIPAT_VOUCHER_AMOUNT = 30;
 const PANIPAT_VOUCHER_MIN_SUBTOTAL = 199;
+const PANIPAT_VOUCHER_LABEL = 'First order in Panipat';
 
 const last10 = (value) => String(value || '').replace(/\D/g, '').slice(-10);
 
@@ -45,13 +46,14 @@ async function panipatVoucher({ pincode, subtotal, phone, email } = {}) {
   if (!voucherRuleMet(pincode, subtotal)) return null;
   if (last10(phone).length !== 10) return null;
   if (await hasOrderedBefore({ phone, email })) return null;
-  return { code: PANIPAT_VOUCHER_CODE, amount: PANIPAT_VOUCHER_AMOUNT };
+  return { code: PANIPAT_VOUCHER_CODE, amount: PANIPAT_VOUCHER_AMOUNT, label: PANIPAT_VOUCHER_LABEL };
 }
 
 module.exports = {
   PANIPAT_VOUCHER_CODE,
   PANIPAT_VOUCHER_AMOUNT,
   PANIPAT_VOUCHER_MIN_SUBTOTAL,
+  PANIPAT_VOUCHER_LABEL,
   voucherRuleMet,
   voucherNudgeFor,
   hasOrderedBefore,

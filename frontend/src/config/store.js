@@ -18,6 +18,12 @@ export const COD_MAX_AMOUNT = 3000;
 export const PANIPAT_VOUCHER_CODE = 'PANIPAT30';
 export const PANIPAT_VOUCHER_AMOUNT = 30;
 export const PANIPAT_VOUCHER_MIN = 199;
+// Old-clothes exchange (backend/utils/exchange.js): hand over old clothes / an old mat when we
+// deliver in Panipat, get ₹40 off the next order. Display only; the server applies it.
+export const EXCHANGE_CODE = 'EXCHANGE40';
+export const EXCHANGE_CREDIT = 40;
+export const voucherLabel = (code, label) =>
+  label || (code === EXCHANGE_CODE ? 'Old-clothes exchange credit' : 'First order in Panipat');
 
 export const WHATSAPP_NUMBER = '919306810726';
 export const PHONE_DISPLAY = '+91 93068 10726';

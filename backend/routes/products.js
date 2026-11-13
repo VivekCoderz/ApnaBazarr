@@ -48,11 +48,29 @@ async function isAdminRequest(req) {
 // to another shop or fake its rating.
 const WRITABLE_FIELDS = ['name', 'category', 'gender', 'price', 'originalPrice', 'costPrice', 'discount', 'badge', 'stock',
   'image', 'description', 'tags', 'isCustomizable', 'customizationType', 'customizationPrompt', 'sizes', 'colors', 'colorImages', 'images',
-  'inStock', 'isActive', 'weight', 'length', 'width', 'height'];
+  'inStock', 'isActive', 'weight', 'length', 'width', 'height', 'trace'];
+
+// "Where this mat comes from" fields (QR page /trace/:id), as short plain text / numbers
+function cleanTrace(raw) {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const text = (v, n) => (typeof v === 'string' ? v.trim().slice(0, n) : '');
+  const num = (v, max) => { const x = Number(v); return Number.isFinite(x) && x >= 0 ? Math.min(x, max) : 0; };
+  return {
+    maker: text(raw.maker, 120),
+    origin: text(raw.origin, 120) || 'Panipat, Haryana',
+    material: text(raw.material, 200),
+    recycledPercent: Math.round(num(raw.recycledPercent, 100)),
+    savedKg: Math.round(num(raw.savedKg, 20) * 100) / 100,
+    care: text(raw.care, 500)
+  };
+}
+const traceOut = (p) => cleanTrace(p.trace && p.trace.toObject ? p.trace.toObject() : (p.trace || {}));
 
 function pickWritable(body = {}) {
   const out = {};
   WRITABLE_FIELDS.forEach(f => { if (body[f] !== undefined) out[f] = body[f]; });
+  if (out.trace !== undefined) out.trace = cleanTrace(out.trace);
+  if (out.trace === undefined) delete out.trace;
   return out;
 }
 
@@ -122,6 +140,7 @@ router.get('/', async (req, res) => {
         isCustomizable: p.isCustomizable,
         customizationType: p.customizationType,
         customizationPrompt: p.customizationPrompt,
+      trace: traceOut(p),
         shipping: shippingPreview(p),
         seller: p.seller ? {
           id: p.seller._id,
@@ -178,7 +197,8 @@ router.get('/seller/my-products', auth, async (req, res) => {
       isActive: p.isActive !== false,
       isCustomizable: p.isCustomizable,
       customizationType: p.customizationType,
-      customizationPrompt: p.customizationPrompt
+      customizationPrompt: p.customizationPrompt,
+      trace: traceOut(p)
     }));
     
     res.json({ success: true, count: formatted.length, data: formatted });
@@ -242,6 +262,7 @@ router.get('/:id', async (req, res) => {
       isCustomizable: product.isCustomizable,
       customizationType: product.customizationType,
       customizationPrompt: product.customizationPrompt,
+      trace: traceOut(product),
       shipping: shippingPreview(product),
       seller: product.seller ? {
         id: product.seller._id,
@@ -273,6 +294,7 @@ router.post('/', auth, async (req, res) => {
       name, category, gender, price, originalPrice, costPrice, discount, badge, stock, image, description, tags, inStock: true,
       isActive: isActive !== false,
       isCustomizable, customizationType, customizationPrompt, sizes, colors, colorImages, images,
+      trace: cleanTrace(req.body.trace),
       seller: req.user.role === 'seller' ? req.user._id : undefined
     });
     const formatted = {
@@ -300,6 +322,7 @@ router.post('/', auth, async (req, res) => {
       isCustomizable: newProduct.isCustomizable,
       customizationType: newProduct.customizationType,
       customizationPrompt: newProduct.customizationPrompt,
+      trace: traceOut(newProduct),
       shipping: shippingPreview(newProduct)
     };
     res.status(201).json({ success: true, data: formatted });
@@ -354,6 +377,7 @@ router.put('/:id', auth, async (req, res) => {
       isCustomizable: updated.isCustomizable,
       customizationType: updated.customizationType,
       customizationPrompt: updated.customizationPrompt,
+      trace: traceOut(updated),
       shipping: shippingPreview(updated)
     };
     res.json({ success: true, data: formatted });

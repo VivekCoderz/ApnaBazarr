@@ -19,9 +19,11 @@ router.post('/calculate-shipping', limitVoucherCheck, orderController.getShippin
 router.get('/', auth, orderController.getOrders);
 // Public guest tracking; must stay above '/:orderId'
 router.get('/track', limiters.orderTrack, orderController.trackOrder);
+router.get('/impact', orderController.getImpact);
 router.get('/seller/my-orders', auth, orderController.getSellerOrders);
 router.post('/offline', auth, orderController.createOfflineOrder);
 router.get('/:orderId/review-links', auth, adminOnly, orderController.getReviewLinks);
+router.put('/:orderId/exchange', auth, adminOnly, orderController.markExchange);
 router.get('/:orderId', auth, orderController.getOrderById);
 router.put('/:orderId/status', auth, orderController.updateOrderStatus);
 

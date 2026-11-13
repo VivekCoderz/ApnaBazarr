@@ -5,6 +5,7 @@ import { btn, input } from './adminStyles';
 import { cloudinaryImage, isComingSoon } from '../../utils/format';
 import { categoryLabel } from '../../config/store';
 import { rupees } from './orderUtils';
+import QrLabelButton from './QrLabelButton';
 
 const isHidden = (p) => p.isActive === false;
 const isOut = (p) => p.inStock === false || p.stock <= 0;
@@ -46,7 +47,7 @@ function ProductRow({ p, onEdit, onToggleStock, onToggleActive, onDeleteProduct 
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-1.5 sm:flex sm:shrink-0">
+      <div className="grid grid-cols-5 gap-1.5 sm:flex sm:shrink-0">
         {onEdit && (
           <button type="button" onClick={() => onEdit(p)} className={`${smallBtn} border-line bg-white text-ink hover:bg-slate-50`}>
             <Pencil className="h-3.5 w-3.5" /> Edit
@@ -70,6 +71,7 @@ function ProductRow({ p, onEdit, onToggleStock, onToggleActive, onDeleteProduct 
         >
           {p.inStock !== false ? 'In stock' : 'Sold out'}
         </button>
+        <QrLabelButton product={p} className={`${smallBtn} border-line bg-white text-ink hover:bg-slate-50`} />
         <button type="button" onClick={() => onDeleteProduct(p.id)} title="Delete product" aria-label="Delete product" className={`${smallBtn} border-line bg-white text-slate-500 hover:border-red-200 hover:text-red-600`}>
           <Trash2 className="h-4 w-4" />
         </button>

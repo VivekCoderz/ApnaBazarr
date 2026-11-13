@@ -23,6 +23,15 @@ const productSchema = new mongoose.Schema({
   inStock: { type: Boolean, default: true },
   // false = hidden from the storefront (off-season / off-brand). Missing counts as active.
   isActive: { type: Boolean, default: true },
+  // "Where this mat comes from" (QR traceability page /trace/:id). All optional.
+  trace: {
+    maker: { type: String, default: '' },          // e.g. "Family weaving unit, Panipat"
+    origin: { type: String, default: 'Panipat, Haryana' },
+    material: { type: String, default: '' },       // e.g. "Microfiber, anti-slip back"
+    recycledPercent: { type: Number, default: 0, min: 0, max: 100 },
+    savedKg: { type: Number, default: 0, min: 0 }, // textile kept out of landfill per piece
+    care: { type: String, default: '' }
+  },
   isCustomizable: { type: Boolean, default: false },
   customizationType: { type: String, enum: ['text', 'image', 'both', 'none'], default: 'none' },
   customizationPrompt: { type: String, default: '' },

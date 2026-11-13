@@ -20,7 +20,11 @@ const { onlineDiscount } = require('../utils/payment');
 const { optionalUser } = require('../middlewares/auth');
 const { reviewLink } = require('../utils/reviewToken');
 const { rememberOrderAddress } = require('../utils/address');
-const { panipatVoucher, hasOrderedBefore, voucherNudgeFor, voucherRuleMet, last10, PANIPAT_VOUCHER_CODE, PANIPAT_VOUCHER_AMOUNT } = require('../utils/voucher');
+const { hasOrderedBefore, voucherNudgeFor, voucherRuleMet, last10, PANIPAT_VOUCHER_CODE, PANIPAT_VOUCHER_AMOUNT } = require('../utils/voucher');
+const { orderVoucher, exchangeCredit, claimExchangeCredit, releaseExchangeCredit, cleanKg, exchangeImpact, EXCHANGE_CODE, EXCHANGE_CREDIT } = require('../utils/exchange');
+
+// Customer ticked "I'll hand over old clothes at delivery" (Panipat only: we deliver there ourselves)
+const exchangeOptIn = (body, pincode) => body.exchangeOptIn === true && isPanipatPincode(pincode);
 
 const GUEST_EMAIL = 'guest@apnabazarr.com';
 
@@ -232,27 +236,31 @@ module.exports.createOrder = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Minimum order amount of ₹100 is required.' });
     }
 
-    // PANIPAT30: decided here from the address and order history, never sent by the browser
+    // PANIPAT30 / exchange credit: decided here from the address and order history, never sent by the browser
     const owner = await orderOwner(req, userEmail);
-    const voucher = await panipatVoucher({
+    const orderId = await newOrderId();
+    let voucher = await orderVoucher({
       pincode: shippingAddress.pincode,
       subtotal: totalItemCost,
       phone: shippingAddress.phone,
       email: owner.isGuest ? '' : owner.userEmail
     });
+    // An exchange credit is used once: claim it for this order first (null if another order just took it)
+    if (voucher && voucher.code === EXCHANGE_CODE && !(await claimExchangeCredit(voucher.sourceOrderId, orderId))) voucher = null;
     const voucherDiscount = voucher ? voucher.amount : 0;
     const calculatedTotal = totalItemCost + totalShipping - voucherDiscount;
 
     // COD is open to everyone, up to a per-order limit (checked on what the customer pays)
     const codError = codLimitError(calculatedTotal);
     if (codError) {
+      if (voucher && voucher.code === EXCHANGE_CODE) await releaseExchangeCredit(voucher.sourceOrderId, orderId);
       return res.status(400).json({ success: false, message: codError });
     }
 
     const resellerFields = await resolveResellerForOrder(resellerCode, owner.userEmail, formattedItems);
 
     const newOrder = await Order.create({
-      orderId: await newOrderId(),
+      orderId,
       ...owner,
       items: formattedItems,
       ...resellerFields,
@@ -264,7 +272,11 @@ module.exports.createOrder = async (req, res) => {
       totalAmount: calculatedTotal, // items + shipping - voucher
       voucherCode: voucher ? voucher.code : '',
       voucherDiscount,
+      exchange: { optedIn: exchangeOptIn(req.body, shippingAddress.pincode) },
       estimatedDelivery: estimatedDeliveryStr
+    }).catch(async (err) => {
+      if (voucher && voucher.code === EXCHANGE_CODE) await releaseExchangeCredit(voucher.sourceOrderId, orderId);
+      throw err;
     });
     notifyNewOrder(newOrder);
     rememberAddressForViewer(req, shippingAddress);
@@ -342,7 +354,7 @@ module.exports.createRazorpayOrder = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Minimum order amount of ₹100 is required.' });
     }
     const voucher = phone.length === 10
-      ? await panipatVoucher({ pincode: deliveryPincode, subtotal: itemCost, phone, email: await viewerEmail(req) })
+      ? await orderVoucher({ pincode: deliveryPincode, subtotal: itemCost, phone, email: await viewerEmail(req) })
       : null;
     const voucherDiscount = voucher ? voucher.amount : 0;
     const orderTotal = grossTotal - voucherDiscount;
@@ -360,7 +372,8 @@ module.exports.createRazorpayOrder = async (req, res) => {
         onlineDiscount: String(discount),
         voucherCode: voucher ? voucher.code : '',
         voucherDiscount: String(voucherDiscount),
-        voucherPhone: voucher ? phone : ''
+        voucherPhone: voucher ? phone : '',
+        voucherSource: voucher && voucher.sourceOrderId ? voucher.sourceOrderId : ''
       }
     };
 
@@ -371,7 +384,7 @@ module.exports.createRazorpayOrder = async (req, res) => {
       amount: order.amount,
       orderTotal,
       onlineDiscount: discount,
-      voucher: voucher || null,
+      voucher: voucher ? { code: voucher.code, amount: voucher.amount, label: voucher.label } : null,
       key: razorpayKeyId
     });
   } catch (error) {
@@ -429,9 +442,11 @@ module.exports.verifyRazorpayPayment = async (req, res) => {
     // this order is for the same phone, a Panipat pincode and items of ₹199+; otherwise the
     // total has no voucher and the amount check below rejects a mismatched payment.
     // An order created before vouchers existed has no voucher notes, so no voucher.
+    // An EXCHANGE40 credit is honoured the same way (granted in the notes for this phone).
     const notes = paidOrder.notes || {};
-    const notedVoucher = notes.voucherCode === PANIPAT_VOUCHER_CODE && Number(notes.voucherDiscount) === PANIPAT_VOUCHER_AMOUNT
-      && last10(notes.voucherPhone).length === 10 && last10(notes.voucherPhone) === last10(shippingAddress.phone);
+    const samePhone = last10(notes.voucherPhone).length === 10 && last10(notes.voucherPhone) === last10(shippingAddress.phone);
+    const notedPanipat = samePhone && notes.voucherCode === PANIPAT_VOUCHER_CODE && Number(notes.voucherDiscount) === PANIPAT_VOUCHER_AMOUNT;
+    const notedExchange = samePhone && notes.voucherCode === EXCHANGE_CODE && Number(notes.voucherDiscount) === EXCHANGE_CREDIT && Boolean(notes.voucherSource);
     // Same online-payment discount createRazorpayOrder took off the charge. A Razorpay order
     // created before the discount existed (no onlineDiscount note, full amount) is still
     // honoured at full price so a customer paying during the deploy isn't left without an order.
@@ -439,7 +454,8 @@ module.exports.verifyRazorpayPayment = async (req, res) => {
     const priceCart = (formatted) => {
       const itemCost = formatted.reduce((acc, item) => acc + (item.price * item.quantity), 0);
       const shippingTotal = formatted.reduce((acc, item) => acc + item.shippingCharges, 0);
-      const voucherDiscount = notedVoucher && voucherRuleMet(shippingAddress.pincode, itemCost) ? PANIPAT_VOUCHER_AMOUNT : 0;
+      const voucherDiscount = notedPanipat && voucherRuleMet(shippingAddress.pincode, itemCost) ? PANIPAT_VOUCHER_AMOUNT
+        : notedExchange && itemCost > EXCHANGE_CREDIT ? EXCHANGE_CREDIT : 0;
       const total = itemCost + shippingTotal - voucherDiscount;
       const legacyFullPrice = notes.onlineDiscount === undefined
         && paidOrder.amount === Math.round(total * 100);
@@ -463,9 +479,13 @@ module.exports.verifyRazorpayPayment = async (req, res) => {
 
     const owner = await orderOwner(req, email);
     const resellerFields = await resolveResellerForOrder(resellerCode, owner.userEmail, formattedItems);
+    const orderId = await newOrderId();
+    const usedExchange = voucherDiscount > 0 && notedExchange;
+    // Already paid with the credit: mark it used (if it was used meanwhile, the order still saves)
+    if (usedExchange) await claimExchangeCredit(notes.voucherSource, orderId);
 
     const newOrder = await Order.create({
-      orderId: await newOrderId(),
+      orderId,
       ...owner,
       items: formattedItems,
       ...resellerFields,
@@ -476,8 +496,9 @@ module.exports.verifyRazorpayPayment = async (req, res) => {
       orderStatus: 'Order Placed',
       totalAmount: amountDue, // what the customer paid (items + shipping - voucher - onlineDiscount)
       onlineDiscount: discount,
-      voucherCode: voucherDiscount > 0 ? PANIPAT_VOUCHER_CODE : '',
+      voucherCode: voucherDiscount > 0 ? (usedExchange ? EXCHANGE_CODE : PANIPAT_VOUCHER_CODE) : '',
       voucherDiscount,
+      exchange: { optedIn: exchangeOptIn(req.body, shippingAddress.pincode) },
       estimatedDelivery: estimatedDeliveryStr,
       paymentId: razorpay_payment_id,
       razorpayOrderId: razorpay_order_id
@@ -587,16 +608,19 @@ module.exports.getShippingCalculation = async (req, res) => {
     let voucherNudge = 0;
     const pin = String(deliveryPincode || '').trim();
     const phone = last10(typeof req.body.phone === 'string' ? req.body.phone : '');
+    const itemCost = formattedItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
     if (isPanipatPincode(pin)) {
-      const itemCost = formattedItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
       const email = phone.length === 10 ? await viewerEmail(req) : '';
       if (voucherRuleMet(pin, itemCost)) {
-        if (phone.length === 10) voucher = await panipatVoucher({ pincode: pin, subtotal: itemCost, phone, email });
+        if (phone.length === 10) voucher = await orderVoucher({ pincode: pin, subtotal: itemCost, phone, email });
       } else {
         voucherNudge = voucherNudgeFor(pin, itemCost);
         if (voucherNudge && phone.length === 10 && await hasOrderedBefore({ phone, email })) voucherNudge = 0;
       }
     }
+    // Exchange credit (any pincode): yes/no for this phone only
+    if (!voucher && phone.length === 10 && itemCost > EXCHANGE_CREDIT) voucher = await exchangeCredit(phone);
+    if (voucher) voucher = { code: voucher.code, amount: voucher.amount, label: voucher.label };
 
     return res.json({
       success: true,
@@ -767,5 +791,51 @@ module.exports.getReviewLinks = async (req, res) => {
   } catch (error) {
     console.error('Review links error:', error);
     res.status(500).json({ success: false, message: 'Could not create review links.' });
+  }
+};
+
+// Admin: we picked up the customer's old clothes at delivery (or undo it). Body: { collected, kg }.
+// Collecting earns the customer one EXCHANGE40 credit for their next order; a credit that has
+// already been used can't be undone.
+module.exports.markExchange = async (req, res) => {
+  try {
+    const order = await Order.findOne({ orderId: req.params.orderId });
+    if (!order) return res.status(404).json({ success: false, message: 'Order not found.' });
+    if (req.body.collected === false) {
+      if (order.exchange?.redeemedBy) {
+        return res.status(400).json({ success: false, message: `The credit was already used on order ${order.exchange.redeemedBy}.` });
+      }
+      order.exchange = { optedIn: Boolean(order.exchange?.optedIn), collected: false, kg: 0, redeemedBy: '' };
+    } else {
+      const kg = cleanKg(req.body.kg);
+      if (kg === null) return res.status(400).json({ success: false, message: 'Enter the weight collected in kg (0.1 to 25).' });
+      order.exchange = {
+        optedIn: Boolean(order.exchange?.optedIn),
+        collected: true,
+        collectedAt: order.exchange?.collectedAt || new Date(),
+        kg,
+        redeemedBy: order.exchange?.redeemedBy || ''
+      };
+    }
+    await order.save();
+    impactCache.data = null; // /recycle shows the new total straight away
+    res.json({ success: true, order });
+  } catch (error) {
+    console.error('Mark exchange error:', error);
+    res.status(500).json({ success: false, message: 'Server error saving the exchange.' });
+  }
+};
+
+// Public: total old clothes collected so far (for the /recycle page). Cached for 10 minutes.
+let impactCache = { at: 0, data: null };
+module.exports.getImpact = async (req, res) => {
+  try {
+    if (!impactCache.data || Date.now() - impactCache.at > 10 * 60 * 1000) {
+      impactCache = { at: Date.now(), data: await exchangeImpact() };
+    }
+    res.json({ success: true, ...impactCache.data });
+  } catch (error) {
+    console.error('Impact error:', error);
+    res.status(500).json({ success: false, message: 'Could not load impact numbers.' });
   }
 };

@@ -13,7 +13,7 @@ import {
 import AddressForm, { inputClass, labelClass, FieldError } from '../components/checkout/AddressForm';
 import AddressPicker from '../components/checkout/AddressPicker';
 import { formatPrice } from '../utils/format';
-import { COD_MAX_AMOUNT, whatsappUrl, onlineDiscountFor, hasFreeDeliveryTag, isPanipatPincode, PANIPAT_VOUCHER_AMOUNT, PANIPAT_VOUCHER_CODE } from '../config/store';
+import { COD_MAX_AMOUNT, whatsappUrl, onlineDiscountFor, hasFreeDeliveryTag, isPanipatPincode, PANIPAT_VOUCHER_AMOUNT, PANIPAT_VOUCHER_CODE, EXCHANGE_CREDIT, voucherLabel } from '../config/store';
 import FreeDeliveryProgress from '../components/FreeDeliveryProgress';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -73,7 +73,7 @@ function VoucherNote({ voucher, nudge }) {
   if (voucher?.amount > 0) {
     return (
       <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800 ring-1 ring-emerald-200">
-        {voucher.code} applied · {formatPrice(voucher.amount)} off your first order in Panipat
+        {voucher.code} applied · {formatPrice(voucher.amount)} off ({voucherLabel(voucher.code, voucher.label).toLowerCase()})
       </p>
     );
   }
@@ -242,6 +242,8 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser, 
   // COD first (trust first). Switched to online automatically when the order is above the COD limit.
   const [paymentMethod, setPaymentMethod] = useState('COD');
   const [placedOrder, setPlacedOrder] = useState(null);
+  // "I'll hand over old clothes at delivery" (Panipat only; ₹40 off the next order once collected)
+  const [exchangeOptIn, setExchangeOptIn] = useState(false);
 
   // Shipping quote from the server for the address pincode (free in Panipat); refreshed
   // again when the address is submitted. Until a full pincode is typed, the saved one is used.
@@ -460,7 +462,8 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser, 
                   saveAddress: wantSave,
                   totalAmount: payable,
                   resellerCode: getReferral(),
-                  source: getSource()
+                  source: getSource(),
+                  exchangeOptIn: exchangeOptIn && isPanipatPincode(address.pincode.trim())
                 }),
               });
               const verifyResult = await safeParseJSON(verifyRes);
@@ -506,6 +509,7 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser, 
             totalAmount: total,
             resellerCode: getReferral(),
             source: getSource(),
+            exchangeOptIn: exchangeOptIn && isPanipatPincode(address.pincode.trim()),
           }),
         });
         const result = await safeParseJSON(res);
@@ -617,7 +621,7 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser, 
                 </div>
                 {voucherAmount > 0 && (
                   <div className="flex justify-between gap-3">
-                    <span className="text-emerald-700"><span className="font-bold">{voucher.code}</span> · First order in Panipat</span>
+                    <span className="text-emerald-700"><span className="font-bold">{voucher.code}</span> · {voucherLabel(voucher.code, voucher.label)}</span>
                     <span className="font-semibold text-emerald-700">−{formatPrice(voucherAmount)}</span>
                   </div>
                 )}
@@ -634,6 +638,16 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser, 
                 <VoucherNote voucher={voucher} nudge={voucherNudge} />
                 <FreeDeliveryProgress subtotal={subtotal} compact freeByOffer={cartItems.some(hasFreeDeliveryTag)} pincode={address.pincode.trim()} />
               </div>
+
+              {isPanipatPincode(addressPincode) && (
+                <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm">
+                  <input type="checkbox" className="mt-0.5 h-4 w-4 accent-emerald-700" checked={exchangeOptIn} onChange={(e) => setExchangeOptIn(e.target.checked)} />
+                  <span>
+                    <span className="block font-semibold text-emerald-900">♻ I'll hand over old clothes or an old mat at delivery</span>
+                    <span className="block text-emerald-900/80">We send them for recycling in Panipat, and you get {formatPrice(EXCHANGE_CREDIT)} off your next order. <Link to="/recycle" className="font-semibold underline">How it works</Link></span>
+                  </span>
+                </label>
+              )}
 
               <div className="space-y-3" role="radiogroup" aria-label="Payment method">
                 <button
@@ -719,7 +733,7 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser, 
 
               <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-sm text-left space-y-1 max-w-md mx-auto">
                 {placedOrder.voucherDiscount > 0 && (
-                  <div className="flex justify-between gap-3"><span className="text-slate-500">{placedOrder.voucherCode || PANIPAT_VOUCHER_CODE} · First order in Panipat</span><span className="font-semibold text-emerald-700">−{formatPrice(placedOrder.voucherDiscount)}</span></div>
+                  <div className="flex justify-between gap-3"><span className="text-slate-500">{placedOrder.voucherCode || PANIPAT_VOUCHER_CODE} · {voucherLabel(placedOrder.voucherCode)}</span><span className="font-semibold text-emerald-700">−{formatPrice(placedOrder.voucherDiscount)}</span></div>
                 )}
                 {placedOrder.onlineDiscount > 0 && (
                   <div className="flex justify-between"><span className="text-slate-500">Online payment discount</span><span className="font-semibold text-emerald-700">−{formatPrice(placedOrder.onlineDiscount)}</span></div>
@@ -728,6 +742,11 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser, 
                 <div className="flex justify-between"><span className="text-slate-500">Payment</span><span className="font-semibold">{placedOrder.paymentMethod === 'COD' ? 'Cash on Delivery' : 'Online (paid)'}</span></div>
                 <div className="flex justify-between gap-3"><span className="text-slate-500 shrink-0">Address</span><span className="font-semibold text-right">{placedOrder.shippingAddress?.city}, {placedOrder.shippingAddress?.pincode}</span></div>
               </div>
+              {placedOrder.exchange?.optedIn && (
+                <p className="mx-auto max-w-md rounded-2xl bg-emerald-50 px-4 py-3 text-sm text-emerald-900 ring-1 ring-emerald-200">
+                  ♻ Keep your old clothes ready in a bag. Once we pick them up, your next order gets {formatPrice(EXCHANGE_CREDIT)} off automatically.
+                </p>
+              )}
 
               {placedOrder.paymentMethod === 'COD' && (
                 <p className="text-base font-semibold text-slate-800 max-w-md mx-auto">

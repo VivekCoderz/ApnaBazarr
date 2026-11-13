@@ -57,9 +57,28 @@ function emptyForm() {
     colors: '',
     isCustomizable: false,
     customizationType: 'text',
-    customizationPrompt: ''
+    customizationPrompt: '',
+    trace: emptyTrace()
   };
 }
+
+// "Where this mat comes from" (shown on the QR page /trace/:id)
+function emptyTrace() {
+  return { maker: '', origin: 'Panipat, Haryana', material: '', recycledPercent: '', savedKg: '', care: '' };
+}
+const traceFromProduct = (t = {}) => ({
+  maker: t.maker || '',
+  origin: t.origin || 'Panipat, Haryana',
+  material: t.material || '',
+  recycledPercent: t.recycledPercent ? String(t.recycledPercent) : '',
+  savedKg: t.savedKg ? String(t.savedKg) : '',
+  care: t.care || ''
+});
+const traceForSave = (t) => ({
+  ...t,
+  recycledPercent: Number(t.recycledPercent) || 0,
+  savedKg: Number(t.savedKg) || 0
+});
 
 function formFromProduct(p) {
   const images = (p.images || []).filter(img => img && img !== p.image);
@@ -80,7 +99,8 @@ function formFromProduct(p) {
     colors: (p.colors || []).join(', '),
     isCustomizable: Boolean(p.isCustomizable),
     customizationType: p.customizationType && p.customizationType !== 'none' ? p.customizationType : 'text',
-    customizationPrompt: p.customizationPrompt || ''
+    customizationPrompt: p.customizationPrompt || '',
+    trace: traceFromProduct(p.trace)
   };
 }
 
@@ -142,6 +162,7 @@ export default function ProductForm({ product, onSubmit, onCancel }) {
   const [successToast, setSuccessToast] = useState('');
 
   const set = (patch) => setForm(prev => ({ ...prev, ...patch }));
+  const setTrace = (patch) => setForm(prev => ({ ...prev, trace: { ...prev.trace, ...patch } }));
 
   const cost = parseFloat(form.costPrice) || 0;
   const sell = parseFloat(form.price) || 0;
@@ -218,6 +239,7 @@ export default function ProductForm({ product, onSubmit, onCancel }) {
         sizes,
         colors,
         colorImages,
+        trace: traceForSave(form.trace),
         ...customization
       };
       if (form.costPrice !== '') fields.costPrice = parseFloat(form.costPrice);
@@ -250,6 +272,7 @@ export default function ProductForm({ product, onSubmit, onCancel }) {
       images,
       inStock: true,
       stock: parseInt(form.stock, 10) || 50,
+      trace: traceForSave(form.trace),
       ...customization
     };
     onSubmit(createdItem);
@@ -469,6 +492,36 @@ export default function ProductForm({ product, onSubmit, onCancel }) {
             </div>
           </div>
         )}
+      </Section>
+
+      <Section title="Where it comes from (QR page)">
+        <p className="-mt-2 text-xs text-slate-500">Shown when a customer scans the QR code on the mat. Leave blank what you don't know; only write what is true.</p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label className="block text-sm">
+            <span className="mb-1 block text-xs font-medium text-slate-600">Made by</span>
+            <input value={form.trace.maker} onChange={(e) => setTrace({ maker: e.target.value })} placeholder="e.g. Family weaving unit, Panipat" className={input} />
+          </label>
+          <label className="block text-sm">
+            <span className="mb-1 block text-xs font-medium text-slate-600">Made in</span>
+            <input value={form.trace.origin} onChange={(e) => setTrace({ origin: e.target.value })} className={input} />
+          </label>
+          <label className="block text-sm sm:col-span-2">
+            <span className="mb-1 block text-xs font-medium text-slate-600">Material</span>
+            <input value={form.trace.material} onChange={(e) => setTrace({ material: e.target.value })} placeholder="e.g. Microfiber top, anti-slip rubber back" className={input} />
+          </label>
+          <label className="block text-sm">
+            <span className="mb-1 block text-xs font-medium text-slate-600">Recycled content (%)</span>
+            <input type="number" min="0" max="100" value={form.trace.recycledPercent} onChange={(e) => setTrace({ recycledPercent: e.target.value })} placeholder="0" className={input} />
+          </label>
+          <label className="block text-sm">
+            <span className="mb-1 block text-xs font-medium text-slate-600">Textile saved per piece (kg)</span>
+            <input type="number" min="0" max="20" step="0.05" value={form.trace.savedKg} onChange={(e) => setTrace({ savedKg: e.target.value })} placeholder="0" className={input} />
+          </label>
+          <label className="block text-sm sm:col-span-2">
+            <span className="mb-1 block text-xs font-medium text-slate-600">Care guide</span>
+            <textarea rows={2} value={form.trace.care} onChange={(e) => setTrace({ care: e.target.value })} placeholder="e.g. Machine wash cold, dry in shade, don't iron the rubber back" className={`${input} py-2`} />
+          </label>
+        </div>
       </Section>
 
       <div className="sticky bottom-[calc(4rem+env(safe-area-inset-bottom))] z-10 flex gap-2 rounded-lg border border-line bg-white/95 p-2 shadow-lift md:bottom-2">

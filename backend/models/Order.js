@@ -56,6 +56,16 @@ const orderSchema = new mongoose.Schema({
   // Automatic first-order voucher (backend/utils/voucher.js), e.g. 'PANIPAT30' / 30; '' / 0 when none
   voucherCode: { type: String, default: '' },
   voucherDiscount: { type: Number, default: 0 },
+  // Old-clothes take-back (utils/exchange.js). optedIn: customer will hand over old clothes at
+  // delivery; collected/kg: set by the admin when we actually pick them up (earns one ₹40
+  // credit); redeemedBy: the later order that used that credit.
+  exchange: {
+    optedIn: { type: Boolean, default: false },
+    collected: { type: Boolean, default: false },
+    collectedAt: { type: Date },
+    kg: { type: Number, default: 0 },
+    redeemedBy: { type: String, default: '' }
+  },
   estimatedDelivery: { type: String },
   paymentId: { type: String },
   razorpayOrderId: { type: String },
