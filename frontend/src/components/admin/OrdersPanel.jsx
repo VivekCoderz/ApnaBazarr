@@ -116,14 +116,14 @@ function ExchangeBox({ order }) {
         </div>
       ) : (
         <div className="space-y-2">
-          <p className="font-medium text-emerald-900">♻ Customer will hand over old clothes at delivery. Collect them, weigh them, then mark here:</p>
+          <p className="font-medium text-emerald-900">♻ Customer will hand over old clothes at delivery. Collect them (at least 1 kg), weigh them, then mark here:</p>
           <div className="flex items-center gap-2">
             <input
-              type="number" inputMode="decimal" min="0.1" max="25" step="0.1" value={kg}
+              type="number" inputMode="decimal" min="1" max="25" step="0.1" value={kg}
               onChange={(e) => setKg(e.target.value)} placeholder="kg"
               aria-label="Weight collected in kg" className={`${input} w-24`}
             />
-            <button type="button" onClick={() => save(true)} disabled={busy || !(Number(kg) > 0)} className={btn.primary}>
+            <button type="button" onClick={() => save(true)} disabled={busy || !(Number(kg) >= 1)} className={btn.primary}>
               {busy ? 'Saving…' : 'Collected'}
             </button>
           </div>

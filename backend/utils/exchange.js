@@ -14,6 +14,9 @@ const EXCHANGE_CODE = 'EXCHANGE40';
 const EXCHANGE_CREDIT = 40;
 const EXCHANGE_LABEL = 'Old-clothes exchange credit';
 const MAX_KG = 25;
+// Earn: at least 1 kg handed over. Use: on a next order with items worth ₹199 or more.
+const EXCHANGE_MIN_KG = 1;
+const EXCHANGE_MIN_ORDER = 199;
 
 // Orders delivered to this phone (bare 10 digits, or spaced / +91 forms)
 function phoneFilter(phone) {
@@ -55,10 +58,10 @@ async function releaseExchangeCredit(sourceOrderId, newOrderId) {
   await Order.updateOne({ orderId: sourceOrderId, 'exchange.redeemedBy': newOrderId }, { $set: { 'exchange.redeemedBy': '' } });
 }
 
-// Weight typed by the admin: 0.1–25 kg, one decimal, or null
+// Weight typed by the admin: 1–25 kg (one decimal), or null
 function cleanKg(raw) {
   const kg = Math.round(Number(raw) * 10) / 10;
-  return kg >= 0.1 && kg <= MAX_KG ? kg : null;
+  return kg >= EXCHANGE_MIN_KG && kg <= MAX_KG ? kg : null;
 }
 
 // Public impact numbers for the /recycle page
@@ -75,7 +78,7 @@ async function exchangeImpact() {
 async function orderVoucher({ pincode, subtotal, phone, email } = {}) {
   const first = await panipatVoucher({ pincode, subtotal, phone, email });
   if (first) return first;
-  if (!(Number(subtotal) > EXCHANGE_CREDIT)) return null;
+  if (!(Number(subtotal) >= EXCHANGE_MIN_ORDER)) return null;
   return exchangeCredit(phone);
 }
 
@@ -83,6 +86,8 @@ module.exports = {
   orderVoucher,
   EXCHANGE_CODE,
   EXCHANGE_CREDIT,
+  EXCHANGE_MIN_KG,
+  EXCHANGE_MIN_ORDER,
   EXCHANGE_LABEL,
   exchangeCredit,
   claimExchangeCredit,

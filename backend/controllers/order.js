@@ -21,7 +21,7 @@ const { optionalUser } = require('../middlewares/auth');
 const { reviewLink } = require('../utils/reviewToken');
 const { rememberOrderAddress } = require('../utils/address');
 const { hasOrderedBefore, voucherNudgeFor, voucherRuleMet, last10, PANIPAT_VOUCHER_CODE, PANIPAT_VOUCHER_AMOUNT } = require('../utils/voucher');
-const { orderVoucher, exchangeCredit, claimExchangeCredit, releaseExchangeCredit, cleanKg, exchangeImpact, EXCHANGE_CODE, EXCHANGE_CREDIT } = require('../utils/exchange');
+const { orderVoucher, exchangeCredit, claimExchangeCredit, releaseExchangeCredit, cleanKg, exchangeImpact, EXCHANGE_CODE, EXCHANGE_CREDIT, EXCHANGE_MIN_ORDER } = require('../utils/exchange');
 
 // Customer ticked "I'll hand over old clothes at delivery" (Panipat only: we deliver there ourselves)
 const exchangeOptIn = (body, pincode) => body.exchangeOptIn === true && isPanipatPincode(pincode);
@@ -455,7 +455,7 @@ module.exports.verifyRazorpayPayment = async (req, res) => {
       const itemCost = formatted.reduce((acc, item) => acc + (item.price * item.quantity), 0);
       const shippingTotal = formatted.reduce((acc, item) => acc + item.shippingCharges, 0);
       const voucherDiscount = notedPanipat && voucherRuleMet(shippingAddress.pincode, itemCost) ? PANIPAT_VOUCHER_AMOUNT
-        : notedExchange && itemCost > EXCHANGE_CREDIT ? EXCHANGE_CREDIT : 0;
+        : notedExchange && itemCost >= EXCHANGE_MIN_ORDER ? EXCHANGE_CREDIT : 0;
       const total = itemCost + shippingTotal - voucherDiscount;
       const legacyFullPrice = notes.onlineDiscount === undefined
         && paidOrder.amount === Math.round(total * 100);
@@ -619,7 +619,7 @@ module.exports.getShippingCalculation = async (req, res) => {
       }
     }
     // Exchange credit (any pincode): yes/no for this phone only
-    if (!voucher && phone.length === 10 && itemCost > EXCHANGE_CREDIT) voucher = await exchangeCredit(phone);
+    if (!voucher && phone.length === 10 && itemCost >= EXCHANGE_MIN_ORDER) voucher = await exchangeCredit(phone);
     if (voucher) voucher = { code: voucher.code, amount: voucher.amount, label: voucher.label };
 
     return res.json({
@@ -808,7 +808,7 @@ module.exports.markExchange = async (req, res) => {
       order.exchange = { optedIn: Boolean(order.exchange?.optedIn), collected: false, kg: 0, redeemedBy: '' };
     } else {
       const kg = cleanKg(req.body.kg);
-      if (kg === null) return res.status(400).json({ success: false, message: 'Enter the weight collected in kg (0.1 to 25).' });
+      if (kg === null) return res.status(400).json({ success: false, message: 'At least 1 kg is needed for the ₹40 credit. Enter the weight in kg (1 to 25).' });
       order.exchange = {
         optedIn: Boolean(order.exchange?.optedIn),
         collected: true,

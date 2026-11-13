@@ -13,7 +13,7 @@ import {
 import AddressForm, { inputClass, labelClass, FieldError } from '../components/checkout/AddressForm';
 import AddressPicker from '../components/checkout/AddressPicker';
 import { formatPrice } from '../utils/format';
-import { COD_MAX_AMOUNT, whatsappUrl, onlineDiscountFor, hasFreeDeliveryTag, isPanipatPincode, PANIPAT_VOUCHER_AMOUNT, PANIPAT_VOUCHER_CODE, EXCHANGE_CREDIT, voucherLabel } from '../config/store';
+import { COD_MAX_AMOUNT, whatsappUrl, onlineDiscountFor, hasFreeDeliveryTag, isPanipatPincode, PANIPAT_VOUCHER_AMOUNT, PANIPAT_VOUCHER_CODE, EXCHANGE_CREDIT, EXCHANGE_MIN_ORDER, voucherLabel } from '../config/store';
 import FreeDeliveryProgress from '../components/FreeDeliveryProgress';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -644,7 +644,7 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser, 
                   <input type="checkbox" className="mt-0.5 h-4 w-4 accent-emerald-700" checked={exchangeOptIn} onChange={(e) => setExchangeOptIn(e.target.checked)} />
                   <span>
                     <span className="block font-semibold text-emerald-900">♻ I'll hand over old clothes or an old mat at delivery</span>
-                    <span className="block text-emerald-900/80">We send them for recycling in Panipat, and you get {formatPrice(EXCHANGE_CREDIT)} off your next order. <Link to="/recycle" className="font-semibold underline">How it works</Link></span>
+                    <span className="block text-emerald-900/80">At least 1 kg. We send them for recycling in Panipat, and you get {formatPrice(EXCHANGE_CREDIT)} off your next order of {formatPrice(EXCHANGE_MIN_ORDER)}+. <Link to="/recycle" className="font-semibold underline">How it works</Link></span>
                   </span>
                 </label>
               )}
@@ -744,7 +744,7 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser, 
               </div>
               {placedOrder.exchange?.optedIn && (
                 <p className="mx-auto max-w-md rounded-2xl bg-emerald-50 px-4 py-3 text-sm text-emerald-900 ring-1 ring-emerald-200">
-                  ♻ Keep your old clothes ready in a bag. Once we pick them up, your next order gets {formatPrice(EXCHANGE_CREDIT)} off automatically.
+                  ♻ Keep your old clothes ready in a bag. Once we pick them up (at least 1 kg), your next order of {formatPrice(EXCHANGE_MIN_ORDER)}+ gets {formatPrice(EXCHANGE_CREDIT)} off automatically.
                 </p>
               )}
 

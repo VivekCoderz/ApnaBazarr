@@ -4,7 +4,7 @@ import { Section } from '../components/ui/Container';
 import SectionHeader from '../components/ui/SectionHeader';
 import Button from '../components/ui/Button';
 import { formatPrice } from '../utils/format';
-import { EXCHANGE_CREDIT } from '../config/store';
+import { EXCHANGE_CREDIT, EXCHANGE_MIN_ORDER } from '../config/store';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const DEFAULT_TITLE = 'Dhagaro — Panipat se Seedha, Aapke Ghar Tak';
@@ -13,15 +13,15 @@ const DEFAULT_TITLE = 'Dhagaro — Panipat se Seedha, Aapke Ghar Tak';
 // and the QR code on each mat. Impact numbers come from real collections only.
 const STEPS = [
   { icon: Shirt, title: 'Tick the box at checkout', text: 'Ordering to a Panipat address? Tick "I\'ll hand over old clothes" on the payment step.' },
-  { icon: Truck, title: 'Hand them over at delivery', text: 'Keep clean old clothes, bedsheets, towels or an old mat ready in a bag. We collect them when we deliver.' },
-  { icon: BadgePercent, title: `${formatPrice(EXCHANGE_CREDIT)} off your next order`, text: 'Once collected, your next order with the same phone number gets the discount automatically. No code needed.' }
+  { icon: Truck, title: 'Hand them over at delivery', text: 'Keep at least 1 kg (about 3–4 pieces) of clean old clothes, bedsheets, towels or an old mat ready in a bag. We collect them when we deliver.' },
+  { icon: BadgePercent, title: `${formatPrice(EXCHANGE_CREDIT)} off your next order`, text: `Once collected, your next order of ${formatPrice(EXCHANGE_MIN_ORDER)} or more with the same phone number gets the discount automatically. No code needed.` }
 ];
 
 const FAQ = [
   ['What can I give?', 'Any clean, dry textile: old clothes, bedsheets, towels, curtains or a used mat. No wet, oily or dirty items.'],
   ['Where does it go?', 'Panipat is known as the textile-recycling capital of the world. We hand what we collect to local recycling units, where it is turned back into yarn and new textiles.'],
   ['Is it only for Panipat?', 'Yes, for now. We deliver in Panipat ourselves, so we can collect at your door. More cities will follow.'],
-  ['How many times can I use it?', `Every collection earns one ${formatPrice(EXCHANGE_CREDIT)} credit, used on your next order.`]
+  ['How many times can I use it?', `Every collection of 1 kg or more earns one ${formatPrice(EXCHANGE_CREDIT)} credit, used on your next order of ${formatPrice(EXCHANGE_MIN_ORDER)} or more.`]
 ];
 
 function useImpact() {
@@ -54,7 +54,7 @@ export default function RecyclePage() {
           <h1 className="text-2xl font-semibold leading-tight tracking-tight text-ink sm:text-3xl">Old clothes in, new mats out</h1>
           <p className="text-[15px] leading-relaxed text-slate-600 sm:text-base">
             Panipat is known as the textile-recycling capital of the world. Dhagaro is built right here, so we are
-            closing the loop: give us your old clothes when we deliver, and get {formatPrice(EXCHANGE_CREDIT)} off your next order.
+            closing the loop: give us your old clothes when we deliver, and get {formatPrice(EXCHANGE_CREDIT)} off your next order of {formatPrice(EXCHANGE_MIN_ORDER)}+.
           </p>
           {impact && impact.collections > 0 && (
             <div className="mx-auto grid max-w-sm grid-cols-2 gap-3 pt-2">

@@ -22,6 +22,8 @@ export const PANIPAT_VOUCHER_MIN = 199;
 // deliver in Panipat, get ₹40 off the next order. Display only; the server applies it.
 export const EXCHANGE_CODE = 'EXCHANGE40';
 export const EXCHANGE_CREDIT = 40;
+export const EXCHANGE_MIN_KG = 1;
+export const EXCHANGE_MIN_ORDER = 199;
 export const voucherLabel = (code, label) =>
   label || (code === EXCHANGE_CODE ? 'Old-clothes exchange credit' : 'First order in Panipat');
 
