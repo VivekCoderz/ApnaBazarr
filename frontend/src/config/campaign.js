@@ -69,6 +69,17 @@ export const SLIDE_OFFER = {
   cta: { label: 'Shop now', to: '/shop' }
 };
 
+// Old-clothes exchange (Panipat pilot, see /recycle and backend/utils/exchange.js)
+export const SLIDE_EXCHANGE = {
+  id: 'exchange',
+  kind: 'exchange',
+  theme: 'navy',
+  kicker: 'New · Panipat only',
+  headline: 'Give your old clothes, get ₹40 off',
+  subline: 'Hand over 1 kg+ when we deliver. Your next ₹199+ order is ₹40 off.',
+  cta: { label: 'How it works', to: '/recycle' }
+};
+
 export const SLIDE_WAITLIST = {
   id: 'waitlist',
   kind: 'waitlist',
@@ -147,6 +158,7 @@ export const CAMPAIGNS = [
         subline: 'Pebble, microfiber and sherpa bath mats. Cash on delivery.',
         cta: { label: 'Shop all products', to: '/shop' }
       },
+      SLIDE_EXCHANGE,
       ...SCENE_SLIDES,
     ]
   }
@@ -175,11 +187,12 @@ const DEFAULT_CAMPAIGN = {
       subline: 'Bath mats straight from Panipat, with bedsheets and towels coming soon. Pay cash on delivery.',
       cta: { label: 'Shop all products', to: '/shop' }
     },
+    SLIDE_EXCHANGE,
     ...SCENE_SLIDES,
   ]
 };
 
-export const DEFAULT_ANNOUNCEMENT_EXTRA = '7-day easy returns';
+export const DEFAULT_ANNOUNCEMENT_EXTRA = 'Old clothes = ₹40 off in Panipat';
 
 // A CTA must lead to at least this many live products, otherwise it falls back to /shop
 const MIN_PRODUCTS_FOR_CTA = 4;

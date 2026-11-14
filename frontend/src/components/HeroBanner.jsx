@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight, ChevronLeft, ChevronRight, MessageCircle, Pause, Play,
-  Layers, BedDouble, Sofa, UserPlus, Share2, Wallet
+  Layers, BedDouble, Sofa, UserPlus, Share2, Wallet, Shirt, Recycle, BadgePercent
 } from 'lucide-react';
 import { getHeroSlides, AUTOPLAY_MS } from '../config/campaign';
 import { formatPrice, displayName, discountPercent, localImage } from '../utils/format';
@@ -129,6 +129,11 @@ const WAITLIST_ROWS = [
   { icon: BedDouble, label: 'Bedsheets', note: 'Coming soon' },
   { icon: Sofa, label: 'Cushion & sofa covers', note: 'Coming soon' }
 ];
+const EXCHANGE_ROWS = [
+  { icon: Shirt, label: 'Old clothes, 1 kg or more', note: 'At delivery' },
+  { icon: Recycle, label: 'Recycled in Panipat', note: 'Nothing wasted' },
+  { icon: BadgePercent, label: '₹40 off your next order', note: 'On ₹199+' }
+];
 const RESELLER_ROWS = [
   { icon: UserPlus, label: 'Join free', note: 'No fees, no stock' },
   { icon: Share2, label: 'Share on WhatsApp', note: 'Your own links' },
@@ -144,6 +149,7 @@ function SidePanel({ slide, eager, loading, current, near }) {
   if (slide.kind === 'offer') return <OfferPanel />;
   if (slide.kind === 'waitlist') return <ListPanel title="New stock from Panipat" rows={WAITLIST_ROWS} />;
   if (slide.kind === 'reseller') return <ListPanel title="How it works" rows={RESELLER_ROWS} />;
+  if (slide.kind === 'exchange') return <ListPanel title="Old-clothes exchange · Panipat" rows={EXCHANGE_ROWS} />;
   return null;
 }
 

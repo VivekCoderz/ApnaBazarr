@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import HeroBanner from '../components/HeroBanner';
 import TrustStrip from '../components/TrustStrip';
+import ExchangeBand from '../components/ExchangeBand';
 import CategoryShowcase from '../components/CategoryShowcase';
 import AlmirahShowcase from '../components/AlmirahShowcase';
 import WaitlistBand from '../components/WaitlistBand';
@@ -181,6 +182,9 @@ export default function HomePage({
   return (
     <div>
       <HeroBanner products={products} loading={loading} />
+
+      {/* Old-clothes exchange: always visible on the first screen */}
+      <ExchangeBand />
 
       {/* Trust promises, directly under the carousel */}
       <div className="border-b border-line bg-white">
