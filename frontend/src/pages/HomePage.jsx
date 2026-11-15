@@ -6,6 +6,7 @@ import {
 import HeroBanner from '../components/HeroBanner';
 import TrustStrip from '../components/TrustStrip';
 import ExchangeBand from '../components/ExchangeBand';
+import FounderNote from '../components/FounderNote';
 import CategoryShowcase from '../components/CategoryShowcase';
 import AlmirahShowcase from '../components/AlmirahShowcase';
 import WaitlistBand from '../components/WaitlistBand';
@@ -237,6 +238,9 @@ export default function HomePage({
           cartItems={cartItems}
         />
       )}
+
+      {/* The person behind the brand (trust for a new store) */}
+      <FounderNote />
 
       {/* Story: why we are cheaper */}
       <Section aria-labelledby="home-story-title">

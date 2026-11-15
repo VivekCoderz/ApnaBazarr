@@ -495,6 +495,16 @@ export default function ProductDetailPage({
         </dl>
       )
     },
+    (product.trace?.material || product.trace?.care) && {
+      title: 'Material & care',
+      body: (
+        <div className="space-y-2">
+          {product.trace.material && <p><span className="font-semibold text-ink">Material:</span> {product.trace.material}</p>}
+          {product.trace.care && <p><span className="font-semibold text-ink">Care:</span> {product.trace.care}</p>}
+          <p><span className="font-semibold text-ink">Made in:</span> {product.trace.origin || 'Panipat, Haryana'}</p>
+        </div>
+      )
+    },
     {
       title: 'Delivery',
       body: (
