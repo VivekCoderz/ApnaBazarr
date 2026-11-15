@@ -77,16 +77,16 @@ router.get('/summary', auth, adminOnly, async (req, res) => {
     const prod = {};
     rows.forEach(r => {
       if (!r.productId) return;
-      const p = prod[r.productId] || (prod[r.productId] = { views: 0, people: new Set(), carts: 0 });
+      const p = prod[r.productId] || (prod[r.productId] = { views: 0, people: new Set(), carts: new Set() });
       if (r.type === 'product') { p.views++; p.people.add(r.vid); }
-      if (r.type === 'add_to_cart') p.carts++;
+      if (r.type === 'add_to_cart') p.carts.add(r.vid); // people who added it, not button taps
     });
     const ids = Object.keys(prod);
     const names = ids.length ? await Product.find({ _id: { $in: ids } }).select('name image price').lean() : [];
     const byId = Object.fromEntries(names.map(n => [String(n._id), n]));
     const products = ids.map(id => ({
       id, name: byId[id]?.name || 'Removed product', image: byId[id]?.image || '', price: byId[id]?.price || 0,
-      views: prod[id].views, people: prod[id].people.size, carts: prod[id].carts
+      views: prod[id].views, people: prod[id].people.size, carts: prod[id].carts.size
     })).sort((a, b) => b.people - a.people || b.views - a.views).slice(0, 20);
 
     // Sources: visitors per channel (the first part of "fb_profile / ...")

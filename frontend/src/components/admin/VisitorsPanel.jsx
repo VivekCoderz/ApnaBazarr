@@ -176,7 +176,7 @@ export default function VisitorsPanel() {
                       {p.image ? <img src={p.image} alt="" className="h-10 w-10 shrink-0 rounded border border-line object-cover" /> : <div className="h-10 w-10 shrink-0 rounded bg-slate-100" />}
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-medium text-ink">{p.name}</p>
-                        <p className="text-xs text-slate-500">{rupees(p.price)} · {p.views} views · {p.carts} added to cart</p>
+                        <p className="text-xs text-slate-500">{rupees(p.price)} · {p.views} views · {p.carts} {p.carts === 1 ? 'person' : 'people'} added to cart</p>
                       </div>
                       <span className="shrink-0 text-right text-sm font-semibold tabular-nums text-ink">{p.people}<span className="block text-[11px] font-normal text-slate-500">people</span></span>
                     </li>
