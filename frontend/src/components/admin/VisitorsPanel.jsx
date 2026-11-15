@@ -12,6 +12,7 @@ const SOURCE_NAMES = {
   fb_marketplace: 'FB Marketplace', facebook: 'Facebook (other)', instagram: 'Instagram', google: 'Google', qr: 'QR label on mat',
   reseller: 'Reseller link', linkedin: 'LinkedIn'
 };
+const sourceName = (s) => SOURCE_NAMES[s] || (s.startsWith('reseller-') ? `Reseller ${s.slice(9).toUpperCase()}` : s);
 const PAGE_NAMES = { '/': 'Home', '/shop': 'Shop', '/cart': 'Cart', '/checkout': 'Checkout', '/recycle': 'Exchange page', '/track': 'Track order' };
 const pageName = (p) => PAGE_NAMES[p] || (p.startsWith('/product/') ? 'A product page' : p.startsWith('/trace/') ? 'QR page (scanned)' : p);
 
@@ -58,7 +59,7 @@ function PersonRow({ p }) {
           <span className="ml-auto text-xs text-slate-500">{open ? 'Hide' : 'Journey ›'}</span>
         </div>
         <p className="mt-0.5 text-xs text-slate-600">
-          Came <b>{p.visits}×</b> · {p.pages} pages · from {SOURCE_NAMES[p.source] || p.source} · {p.device} · first {when(p.firstSeen)} · last {when(p.lastSeen)}
+          Came <b>{p.visits}×</b> · {p.pages} pages · from {sourceName(p.source)} · {p.device} · first {when(p.firstSeen)} · last {when(p.lastSeen)}
         </p>
         {p.viewed.length > 0 && <p className="mt-0.5 text-xs text-slate-600">Looked at: {p.viewed.join(', ')}</p>}
         {p.carted.length > 0 && <p className="text-xs text-slate-600">Cart: {p.carted.join(', ')}</p>}
@@ -191,7 +192,7 @@ export default function VisitorsPanel() {
                 <ul className="space-y-2.5">
                   {data.sources.map(s => (
                     <li key={s.source}>
-                      <div className="mb-1 flex justify-between text-sm"><span className="text-ink">{SOURCE_NAMES[s.source] || s.source}</span><span className="tabular-nums text-slate-600">{s.visitors}</span></div>
+                      <div className="mb-1 flex justify-between text-sm"><span className="text-ink">{sourceName(s.source)}</span><span className="tabular-nums text-slate-600">{s.visitors}</span></div>
                       <Bar value={s.visitors} max={maxSrc} tone="bg-brand-cta" />
                     </li>
                   ))}

@@ -28,7 +28,8 @@ export function captureSource(search, referrer = document.referrer) {
   if (!src && q.get('fbclid')) src = 'facebook';
   if (!src && q.get('igshid')) src = 'instagram';
   if (!src && q.get('gclid')) src = 'google ads';
-  if (!src && q.get('ref')) src = 'reseller';
+  // Reseller link: keep the code so the admin sees whose link it was (e.g. reseller-dilip7681)
+  if (!src && q.get('ref')) src = `reseller-${clean(q.get('ref')).replace(/[^a-z0-9]/g, '').slice(0, 20)}`;
   if (!src) src = fromReferrer(referrer);
   if (!src) return; // direct visit: keep whatever brought them before
   try {
