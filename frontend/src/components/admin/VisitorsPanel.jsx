@@ -5,6 +5,7 @@ import { BASE_URL, adminHeaders } from './adminApi';
 import { btn } from './adminStyles';
 import { rupees } from './orderUtils';
 
+const LIVE_MS = 15000;
 const RANGES = [{ id: 1, label: 'Today' }, { id: 7, label: '7 days' }, { id: 30, label: '30 days' }];
 const SOURCE_NAMES = {
   direct: 'Direct / typed link', fb_profile: 'FB profile', fb_story: 'FB story', fb_page: 'FB Page', fb_groups: 'FB groups',
@@ -89,11 +90,19 @@ export default function VisitorsPanel() {
       .then(async (res) => {
         const json = await res.json().catch(() => ({}));
         if (!res.ok || !json.success) throw new Error(json.message || 'Could not load visitor numbers.');
-        if (alive) setResult({ key, data: json, error: '' });
+        if (alive) setResult({ key, data: json, error: '', at: new Date() });
       })
-      .catch((e) => { if (alive) setResult(prev => ({ key, data: prev.data, error: e.message })); });
+      .catch((e) => { if (alive) setResult(prev => ({ key, data: prev.data, error: e.message, at: prev.at })); });
     return () => { alive = false; };
   }, [days, nonce, key]);
+
+  // Live: reload every 15 s while this tab is on screen, and at once when it comes back
+  useEffect(() => {
+    const tick = () => { if (document.visibilityState === 'visible') setNonce(n => n + 1); };
+    const timer = setInterval(tick, LIVE_MS);
+    document.addEventListener('visibilitychange', tick);
+    return () => { clearInterval(timer); document.removeEventListener('visibilitychange', tick); };
+  }, []);
 
   const maxDay = data ? Math.max(1, ...data.daily.map(d => d.visitors)) : 1;
   const maxSrc = data ? Math.max(1, ...data.sources.map(s => s.visitors)) : 1;
@@ -102,6 +111,13 @@ export default function VisitorsPanel() {
   return (
     <div className="space-y-4">
       <PanelHeader title="Visitors" note="Who visits the store and what they look at. Anonymous: no names or numbers are recorded.">
+        <span className="inline-flex items-center gap-1.5 text-xs text-slate-500">
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
+            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
+          </span>
+          Live{result.at ? ` · updated ${result.at.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', second: '2-digit' })}` : ''}
+        </span>
         <button type="button" onClick={() => setNonce(n => n + 1)} className={btn.outline} disabled={loading}>
           <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} /> Refresh
         </button>
