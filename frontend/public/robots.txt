@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /seller
+Disallow: /register-seller
+Disallow: /cart
+Disallow: /checkout
+Disallow: /profile
+Disallow: /orders
+Disallow: /settings
+Disallow: /wishlist
+Disallow: /feedback
+Disallow: /api/
+
+Sitemap: https://dhagaro.vercel.app/sitemap.xml

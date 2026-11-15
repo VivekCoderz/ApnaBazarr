@@ -111,7 +111,7 @@ export default function Footer({ products = [] }) {
 
         {/* Bottom bar */}
         <div className="flex flex-col gap-4 pt-6 text-xs text-white/60 sm:flex-row sm:items-center sm:justify-between">
-          <p>© 2026 <span className="font-semibold text-white/80">Dhagaro</span>, Panipat.</p>
+          <p>© 2026 <span className="font-semibold text-white/80">Dhagaro</span>, Panipat. MSME (Udyam) registered: UDYAM-HR-14-0100594</p>
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 rounded bg-white/10 px-2.5 py-1 font-semibold text-white/90">
               <Banknote className="h-3.5 w-3.5 text-brand-orange" aria-hidden="true" /> Cash on Delivery up to {formatPrice(COD_MAX_AMOUNT)}

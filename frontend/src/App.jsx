@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useCallback, useMemo, useRef, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Link, Navigate, useNavigate, useLocation, useNavigationType } from 'react-router-dom';
 import { SELLER_MARKETPLACE_ENABLED } from './config/store';
 
@@ -53,6 +53,9 @@ import { recordInterest } from './utils/personalize';
 import { prefersReducedMotion } from './components/ui/motion';
 
 import { Check, ShieldCheck } from 'lucide-react';
+import { applySeo } from './utils/seo';
+
+const NOINDEX_PATHS = ['/admin', '/seller', '/register-seller', '/cart', '/checkout', '/profile', '/orders', '/settings', '/wishlist', '/feedback'];
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const getCookie = (name) => {
@@ -169,6 +172,12 @@ function AppContent() {
   // Anonymous visitor analytics (admin → Visitors): one page view per page opened
   useEffect(() => {
     track('page');
+  }, [pathname]);
+
+  // Default title/description/canonical for every page; pages with their own SEO
+  // (useSeo) override it, since layout effects run before the pages' effects
+  useLayoutEffect(() => {
+    applySeo({ path: pathname, noindex: NOINDEX_PATHS.some(p => pathname.startsWith(p)) });
   }, [pathname]);
 
   // New page: start at the top. Back/forward: return to where the visitor was

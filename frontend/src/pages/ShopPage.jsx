@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ChevronRight, MessageCircle, X, Search } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
@@ -11,6 +11,7 @@ import SectionHeader from '../components/ui/SectionHeader';
 import Button from '../components/ui/Button';
 import CategoryGlyph from '../components/ui/CategoryGlyph';
 import { categoryLabel, categoryTiles, notifyMeUrl } from '../config/store';
+import { useSeo } from '../utils/seo';
 
 const GRID_CLASS = 'grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 lg:grid-cols-4';
 // Below this many results the page also shows categories + waitlist so it never looks empty
@@ -88,15 +89,17 @@ export default function ShopPage({ products, loading = false, onAddToCart, onQui
 
   const sellerInfo = products.find(p => p.seller && String(p.seller.id) === String(sellerId))?.seller || null;
 
-  useEffect(() => {
-    if (sellerInfo) document.title = `${sellerInfo.shopName} — Dhagaro`;
-    else if (searchQuery) document.title = `Search: ${searchQuery} — Dhagaro`;
-    else if (selectedCategory !== 'All') document.title = `${categoryLabel(selectedCategory)} — Dhagaro`;
-    else document.title = 'Shop All Products — Dhagaro';
-    return () => {
-      document.title = 'Dhagaro — Panipat se Seedha, Aapke Ghar Tak';
-    };
-  }, [sellerInfo, searchQuery, selectedCategory]);
+  useSeo({
+    title: sellerInfo ? `${sellerInfo.shopName} | Dhagaro`
+      : searchQuery ? `Search: ${searchQuery} | Dhagaro`
+      : selectedCategory !== 'All' ? `${categoryLabel(selectedCategory)} Online from Panipat | Dhagaro`
+      : 'Shop Bath Mats & Home Textiles Online | Dhagaro',
+    description: selectedCategory !== 'All'
+      ? `Shop ${categoryLabel(selectedCategory).toLowerCase()} straight from Panipat at factory prices. Cash on delivery, free delivery in Panipat and 7-day easy returns.`
+      : 'Bath mats from ₹129 and more home textiles straight from Panipat. Cash on delivery, free delivery in Panipat and 7-day easy returns.',
+    path: selectedCategory !== 'All' && !searchQuery ? `/shop?category=${encodeURIComponent(selectedCategory)}` : '/shop',
+    noindex: Boolean(searchQuery || sellerInfo)
+  });
 
   const setParam = (key, value) => {
     const next = new URLSearchParams(searchParams);

@@ -154,7 +154,7 @@ export default async function handler(req, res) {
   <channel>
     <title>${BRAND}</title>
     <link>${SITE_URL}</link>
-    <description>Home textiles from Panipat and women's suit sets, with cash on delivery.</description>${items}
+    <description>Bath mats and home textiles straight from Panipat, with cash on delivery.</description>${items}
   </channel>
 </rss>
 `;

@@ -3,10 +3,12 @@ import { Link } from 'react-router-dom';
 import { IndianRupee, Share2, Copy, Check, Wallet, Package, TrendingUp, Clock, Loader2, AlertCircle, Users, Truck, Sparkles } from 'lucide-react';
 import { whatsappShareUrl, productShareLink } from '../utils/referral';
 import { cloudinaryImage } from '../utils/format';
+import { useSeo } from '../utils/seo';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 export default function ResellerPage({ currentUser, products = [], onAuthSuccess, onOpenAuth }) {
+  useSeo({ title: 'Become a Dhagaro Reseller: Earn from Home | Dhagaro', description: 'Join the Dhagaro reseller program free. Share bath mats from Panipat with your contacts and earn a commission on every order, paid to your UPI.', path: '/reseller' });
   const [dashboard, setDashboard] = useState(null);
   const [upiId, setUpiId] = useState('');
   const [phone, setPhone] = useState(currentUser?.phone || '');

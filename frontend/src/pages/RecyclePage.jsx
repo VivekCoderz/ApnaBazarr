@@ -5,9 +5,9 @@ import SectionHeader from '../components/ui/SectionHeader';
 import Button from '../components/ui/Button';
 import { formatPrice } from '../utils/format';
 import { EXCHANGE_CREDIT, EXCHANGE_MIN_ORDER } from '../config/store';
+import { useSeo } from '../utils/seo';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-const DEFAULT_TITLE = 'Dhagaro — Panipat se Seedha, Aapke Ghar Tak';
 
 // /recycle: the old-clothes exchange (pilot in Panipat), the recycled range we are building,
 // and the QR code on each mat. Impact numbers come from real collections only.
@@ -39,10 +39,11 @@ function useImpact() {
 
 export default function RecyclePage() {
   const impact = useImpact();
-  useEffect(() => {
-    document.title = 'Old clothes in, new mats out — Dhagaro';
-    return () => { document.title = DEFAULT_TITLE; };
-  }, []);
+  useSeo({
+    title: 'Old Clothes Exchange in Panipat: Get ₹40 Off | Dhagaro',
+    description: 'Hand over 1 kg+ of old clothes when we deliver in Panipat. We send them for recycling and your next ₹199+ order is ₹40 off.',
+    path: '/recycle'
+  });
 
   return (
     <>

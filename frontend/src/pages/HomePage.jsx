@@ -20,6 +20,7 @@ import TiltCard from '../components/ui/TiltCard';
 import { whatsappUrl, PHONE_DISPLAY, EMAIL } from '../config/store';
 import { getActiveCampaign, sortForHomeGrid } from '../config/campaign';
 import { rankForVisitor } from '../utils/personalize';
+import { useSeo } from '../utils/seo';
 
 const PAGE_SIZE = 12;
 // Below this many live products the homepage also shows the "new stock" WhatsApp waitlist
@@ -181,6 +182,11 @@ export default function HomePage({
   cartItems = []
 }) {
   const isTabletUp = useMinWidth(768);
+  useSeo({
+    title: 'Dhagaro | Bath Mats Online from Panipat, ₹129 · Cash on Delivery',
+    description: 'Soft, absorbent bath mats straight from Panipat makers, from ₹129. Cash on delivery, free delivery in Panipat, ₹499+ free delivery across India and 7-day easy returns.',
+    path: '/'
+  });
   return (
     <div>
       <HeroBanner products={products} loading={loading} />

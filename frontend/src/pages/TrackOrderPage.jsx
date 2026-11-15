@@ -7,9 +7,9 @@ import Button from '../components/ui/Button';
 import WhatsAppIcon from '../components/ui/WhatsAppIcon';
 import { whatsappUrl } from '../config/store';
 import { formatPrice, displayName, cloudinaryImage } from '../utils/format';
+import { useSeo } from '../utils/seo';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-const DEFAULT_TITLE = 'Dhagaro — Panipat se Seedha, Aapke Ghar Tak';
 
 // Same order as the backend Order.orderStatus enum
 const STEPS = ['Order Placed', 'Processing', 'Packed', 'Shipped', 'Out for Delivery', 'Delivered'];
@@ -168,10 +168,7 @@ export default function TrackOrderPage() {
   const [loading, setLoading] = useState(() => Boolean(searchParams.get('id') && searchParams.get('phone')));
   const autoSubmitted = useRef(false);
 
-  useEffect(() => {
-    document.title = 'Track your order — Dhagaro';
-    return () => { document.title = DEFAULT_TITLE; };
-  }, []);
+  useSeo({ title: 'Track Your Order | Dhagaro', description: 'Track your Dhagaro order with your order ID and phone number. See when it is packed, shipped and out for delivery.', path: '/track' });
 
   const showResult = (result) => {
     setOrder(result.order || null);

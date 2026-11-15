@@ -6,9 +6,9 @@ import Button from '../components/ui/Button';
 import { formatPrice, displayName, cloudinaryImage, isOrderable } from '../utils/format';
 import { startBuyNow } from '../utils/buyNow';
 import { EXCHANGE_CREDIT, EXCHANGE_MIN_ORDER } from '../config/store';
+import { useSeo } from '../utils/seo';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-const DEFAULT_TITLE = 'Dhagaro — Panipat se Seedha, Aapke Ghar Tak';
 
 // "Where this mat comes from": the page the QR code on each mat opens (/trace/:id).
 // Shows only what the admin filled in for the product (nothing is made up), plus care,
@@ -40,10 +40,11 @@ export default function TracePage() {
   }, [id]);
 
   const product = state.product;
-  useEffect(() => {
-    document.title = product ? `Where ${displayName(product.name)} comes from — Dhagaro` : 'Made in Panipat — Dhagaro';
-    return () => { document.title = DEFAULT_TITLE; };
-  }, [product]);
+  useSeo({
+    title: product ? `Where ${displayName(product.name)} comes from | Dhagaro` : 'Made in Panipat | Dhagaro',
+    description: 'Made in Panipat: where this Dhagaro mat comes from, what it is made of and how to care for it.',
+    noindex: true
+  });
 
   if (state.loading) {
     return <Section tone="cream" containerClass="max-w-xl"><p className="py-16 text-center text-slate-500">Loading…</p></Section>;

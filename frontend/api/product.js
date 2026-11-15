@@ -46,13 +46,77 @@ export default async function handler(req, res) {
   }
 
   const title = `${product.name} – ₹${product.price} | Dhagaro`;
-  const description =
-    product.originalPrice && product.originalPrice > product.price
-      ? `Only ₹${product.price} (MRP ₹${product.originalPrice}). Straight from Panipat to your home. Cash on delivery available.`
-      : `Only ₹${product.price}. Straight from Panipat to your home. Cash on delivery available.`;
+  // First sentence of the description, cut at a word boundary (never mid-word)
+  const firstLine = (() => {
+    const s = String(product.description || '').split('\n')[0].trim().split(/(?<=\.)\s/)[0];
+    return s.length <= 110 ? s : s.slice(0, 110).replace(/\s+\S*$/, '') + '…';
+  })();
+  const priceLine = product.originalPrice && product.originalPrice > product.price
+    ? `Only ₹${product.price} (MRP ₹${product.originalPrice}).`
+    : `Only ₹${product.price}.`;
+  const description = `${firstLine ? firstLine + ' ' : ''}${priceLine} Straight from Panipat, cash on delivery, 7-day easy returns.`.slice(0, 200);
   const url = `${origin}/product/${product.id}`;
   const image = previewImage(product.image);
   const heroImage = pageImage(product.images && product.images.length > 0 ? product.images[0] : product.image);
+
+  // Google rich results: price, stock, returns, delivery and (only real) ratings
+  const comingSoon = /coming soon/i.test(product.badge || '');
+  const inStock = !comingSoon && product.inStock !== false && !(product.stock <= 0);
+  const freeShipping = product.price >= 499 || (product.tags || []).includes('free-delivery');
+  const ld = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Product',
+        name: product.name,
+        image: (product.images && product.images.length ? product.images : [product.image]).filter(Boolean).slice(0, 6),
+        description: String(product.description || description).slice(0, 1000),
+        sku: String(product.id),
+        brand: { '@type': 'Brand', name: 'Dhagaro' },
+        category: product.category,
+        offers: {
+          '@type': 'Offer',
+          url,
+          priceCurrency: 'INR',
+          price: String(product.price),
+          priceValidUntil: new Date(Date.now() + 90 * 864e5).toISOString().slice(0, 10),
+          itemCondition: 'https://schema.org/NewCondition',
+          availability: comingSoon ? 'https://schema.org/PreOrder' : inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+          seller: { '@type': 'Organization', name: 'Dhagaro' },
+          hasMerchantReturnPolicy: {
+            '@type': 'MerchantReturnPolicy',
+            applicableCountry: 'IN',
+            returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+            merchantReturnDays: 7,
+            returnMethod: 'https://schema.org/ReturnByMail',
+            returnFees: 'https://schema.org/FreeReturn'
+          },
+          shippingDetails: {
+            '@type': 'OfferShippingDetails',
+            shippingDestination: { '@type': 'DefinedRegion', addressCountry: 'IN' },
+            shippingRate: { '@type': 'MonetaryAmount', value: freeShipping ? '0' : '49', currency: 'INR' },
+            deliveryTime: {
+              '@type': 'ShippingDeliveryTime',
+              handlingTime: { '@type': 'QuantitativeValue', minValue: 0, maxValue: 2, unitCode: 'DAY' },
+              transitTime: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 6, unitCode: 'DAY' }
+            }
+          }
+        },
+        ...(product.reviewsCount > 0 && product.rating
+          ? { aggregateRating: { '@type': 'AggregateRating', ratingValue: String(product.rating), reviewCount: String(product.reviewsCount) } }
+          : {})
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: `${origin}/` },
+          { '@type': 'ListItem', position: 2, name: product.category || 'Shop', item: `${origin}/shop?category=${encodeURIComponent(product.category || '')}` },
+          { '@type': 'ListItem', position: 3, name: product.name, item: url }
+        ]
+      }
+    ]
+  };
+  const ldJson = JSON.stringify(ld).replace(/</g, '\\u003c');
 
   const tags = `
     <title>${escapeHtml(title)}</title>
@@ -68,13 +132,16 @@ export default async function handler(req, res) {
     <meta property="product:price:amount" content="${escapeHtml(product.price)}" />
     <meta property="product:price:currency" content="INR" />
     <meta name="twitter:card" content="summary_large_image" />
-    <link rel="canonical" href="${escapeHtml(url)}" />${heroImage ? `
+    <link rel="canonical" href="${escapeHtml(url)}" />
+    <script type="application/ld+json">${ldJson}</script>${heroImage ? `
     <link rel="preload" as="image" href="${escapeHtml(heroImage)}" fetchpriority="high" />` : ''}`;
 
   // Drop the shell's generic title/description/og tags and put the product ones in
   const html = shell
     .replace(/<title>[\s\S]*?<\/title>/, '')
     .replace(/<meta (name="description"|property="og:[^"]*"|name="twitter:[^"]*")[^>]*>\s*/g, '')
+    .replace(/<link rel="canonical"[^>]*>\s*/g, '')
+    .replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>\s*/g, '')
     .replace('</head>', `${tags}\n  </head>`);
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8');

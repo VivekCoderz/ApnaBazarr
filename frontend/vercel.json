@@ -5,6 +5,7 @@
   "rewrites": [
     { "source": "/product/:id", "destination": "/api/product?id=:id" },
     { "source": "/feed.xml", "destination": "/api/google-feed" },
+    { "source": "/sitemap.xml", "destination": "/api/sitemap" },
     { "source": "/((?!api/).*)", "destination": "/" }
   ],
   "headers": [

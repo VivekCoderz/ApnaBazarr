@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BedDouble, Building, Scissors, Dumbbell, Stethoscope, Check, Download, AlertCircle } from 'lucide-react';
 import Container, { Section } from '../components/ui/Container';
@@ -8,9 +8,9 @@ import { buttonClass } from '../components/ui/buttonClass';
 import WhatsAppIcon from '../components/ui/WhatsAppIcon';
 import { whatsappUrl, normalizeIndianPhone, PHONE_DISPLAY, EMAIL } from '../config/store';
 import { cloudinaryImage } from '../utils/format';
+import { useSeo } from '../utils/seo';
 
 const RATE_CARD = '/bulk/Dhagaro-Wholesale-Rate-Card.pdf';
-const DEFAULT_TITLE = 'Dhagaro — Panipat se Seedha, Aapke Ghar Tak';
 const META_DESCRIPTION =
   'Bath mats in bulk for hotels, PGs, salons and gyms. Made in Panipat at wholesale rates, from 10 pieces. Free delivery and a free sample within Panipat.';
 
@@ -156,16 +156,7 @@ function QuoteForm() {
 }
 
 export default function BulkOrdersPage({ products = [] }) {
-  useEffect(() => {
-    document.title = 'Bulk Bath Mats for Hotels, PGs, Salons & Gyms — Dhagaro';
-    const meta = document.querySelector('meta[name="description"]');
-    const previous = meta?.getAttribute('content');
-    if (meta) meta.setAttribute('content', META_DESCRIPTION);
-    return () => {
-      document.title = DEFAULT_TITLE;
-      if (meta && previous) meta.setAttribute('content', previous);
-    };
-  }, []);
+  useSeo({ title: 'Bulk Bath Mats for Hotels, PGs, Salons & Gyms | Dhagaro', description: META_DESCRIPTION, path: '/bulk' });
 
   const productFor = (row) => (row.match ? products.find(p => p.name?.trim() === row.match) : null);
 

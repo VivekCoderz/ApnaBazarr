@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
 import { Shield, FileText, Truck, RefreshCw, Mail, Phone, MapPin, CheckCircle, Send } from 'lucide-react';
+import { useSeo } from '../utils/seo';
+
+const POLICY_SEO = {"terms": ["Terms & Conditions | Dhagaro", "Terms and conditions for shopping at Dhagaro."], "privacy": ["Privacy Policy | Dhagaro", "How Dhagaro collects, uses and protects your information."], "shipping": ["Shipping Policy: Free Delivery in Panipat | Dhagaro", "Dispatch within 2 days. Free delivery in Panipat on every order, free across India on ₹499+, otherwise ₹49. Cash on delivery available."], "refunds": ["Returns & Refunds: 7-Day Easy Returns | Dhagaro", "Damaged, wrong item or wrong size? Return or exchange within 7 days with a free pickup."], "contact": ["Contact Dhagaro: WhatsApp +91 93068 10726", "Talk to Dhagaro on WhatsApp or phone at +91 93068 10726. We are in Panipat, Haryana."]};
 
 export default function PolicyPage({ type }) {
+  const [seoTitle, seoDescription] = POLICY_SEO[type] || POLICY_SEO.contact;
+  useSeo({ title: seoTitle, description: seoDescription, path: `/${type}` });
   const [contactForm, setContactForm] = useState({ name: '', email: '', subject: '', message: '' });
   const [submitted, setSubmitted] = useState(false);
 
