@@ -9,7 +9,8 @@ import HeartIcon from './ui/HeartIcon';
 // Cloudinary resize for card images (4:5); local placeholder photos use their 480px WebP
 const cardImage = (url) =>
   localImage(url, 480) || (url && url.includes('res.cloudinary.com') && url.includes('/upload/')
-    ? url.replace('/upload/', '/upload/w_480,h_600,c_fill,q_auto,f_auto/')
+    // c_limit: the whole photo, never cropped, so the mat's shape and edges stay visible
+    ? url.replace('/upload/', '/upload/w_480,h_600,c_limit,q_auto,f_auto/')
     : url);
 
 // Fade a photo in once it has loaded (CSS: img[data-fade]); no re-render needed
@@ -31,7 +32,7 @@ export default function ProductCard({ product, onToggleWishlist, isWishlisted, c
     <div className="group relative flex h-full flex-col overflow-hidden rounded-lg border border-line bg-white shadow-card transition-[box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:shadow-lift">
       <Link to={href} className="flex h-full flex-col" aria-label={`${name}, ${formatPrice(product.price)}`}>
         {/* Image 4:5 */}
-        <span className="relative block aspect-[4/5] overflow-hidden bg-brand-cream">
+        <span className="relative block aspect-[4/5] overflow-hidden bg-white">
           <img
             src={cardImage(product.image)}
             alt={name}
@@ -43,7 +44,7 @@ export default function ProductCard({ product, onToggleWishlist, isWishlisted, c
             onError={priority ? undefined : markLoaded}
             width="480"
             height="600"
-            className={`h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 ${isOutOfStock && !isComingSoon(product) ? 'opacity-60' : ''}`}
+            className={`h-full w-full object-contain p-1.5 transition-transform duration-500 group-hover:scale-105 ${isOutOfStock && !isComingSoon(product) ? 'opacity-60' : ''}`}
           />
           <span className="absolute left-2.5 top-2.5 flex flex-col items-start gap-1">
             {isOutOfStock ? (

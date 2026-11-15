@@ -525,7 +525,7 @@ export default function ProductDetailPage({
 
           {/* Gallery */}
           <div className="space-y-3 lg:sticky lg:top-36 lg:col-span-6">
-            <div className="relative overflow-hidden rounded-lg bg-brand-cream">
+            <div className="relative overflow-hidden rounded-lg bg-white ring-1 ring-line">
               <img
                 src={cloudinaryImage(imagesList[activeImageIndex] || product.image, 900)}
                 alt={name}
@@ -533,7 +533,7 @@ export default function ProductDetailPage({
                 height="1125"
                 fetchPriority="high"
                 decoding="async"
-                className="aspect-[4/5] w-full object-cover sm:aspect-square"
+                className="aspect-[4/5] w-full object-contain sm:aspect-square"
               />
               {off > 0 && <Badge tone="sale" className="absolute left-4 top-4">{off}% off</Badge>}
               <button

@@ -159,7 +159,8 @@ export const CAMPAIGNS = [
         cta: { label: 'Shop all products', to: '/shop' }
       },
       SLIDE_EXCHANGE,
-      ...SCENE_SLIDES,
+      // Coming-soon scenes are left out of the hero so the first screen shows only what
+      // is in stock; those items still show as "Coming soon" in the grid and categories.
     ]
   }
 ];
