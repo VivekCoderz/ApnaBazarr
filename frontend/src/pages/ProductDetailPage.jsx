@@ -17,6 +17,7 @@ import HeartIcon from '../components/ui/HeartIcon';
 import PincodeCheck from '../components/PincodeCheck';
 import { startBuyNow } from '../utils/buyNow';
 import { track } from '../utils/analytics';
+import { recordInterest } from '../utils/personalize';
 
 // Pre-filled WhatsApp order message. Plain text only: the name goes through displayName()
 // (drops emojis, which break on WhatsApp Web) and prices use "Rs".
@@ -104,7 +105,11 @@ export default function ProductDetailPage({
   const productId = product?.id;
   // Anonymous visitor analytics: which products people open
   useEffect(() => {
-    if (productId) track('product', { productId });
+    if (!productId) return;
+    track('product', { productId });
+    recordInterest(product, 'view');
+    // once per product opened, not on every background refresh of the same product
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productId]);
   useEffect(() => {
     if (!product) return;

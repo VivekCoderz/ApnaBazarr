@@ -31,7 +31,9 @@ router.post('/event', limiters.analytics, async (req, res) => {
       productId: mongoose.isValidObjectId(b.productId) ? String(b.productId) : '',
       source: clean(String(b.source || 'direct').toLowerCase(), 60) || 'direct',
       device: /mobile|android|iphone|ipad/i.test(ua) ? 'mobile' : 'desktop',
-      newVisitor: b.newVisitor === true
+      newVisitor: b.newVisitor === true,
+      pincode: /^\d{6}$/.test(String(b.pincode || '')) ? String(b.pincode) : '',
+      orderId: b.type === 'order' ? clean(b.orderId, 30) : ''
     });
     res.status(204).end();
   } catch (err) {
@@ -51,7 +53,7 @@ router.get('/summary', auth, adminOnly, async (req, res) => {
     const now = new Date();
     // From the start of the first day (IST)
     const startIst = new Date(dayKey(new Date(now.getTime() - (days - 1) * 864e5)) + 'T00:00:00+05:30');
-    const rows = await Visit.find({ at: { $gte: startIst } }).select('vid sid type path productId source device newVisitor at').lean();
+    const rows = await Visit.find({ at: { $gte: startIst } }).select('vid sid type path productId source device newVisitor pincode orderId at').lean();
 
     const uniq = (arr) => new Set(arr).size;
     const visitors = uniq(rows.map(r => r.vid));
@@ -113,10 +115,71 @@ router.get('/summary', auth, adminOnly, async (req, res) => {
     const devices = { mobile: uniq(rows.filter(r => r.device === 'mobile').map(r => r.vid)), desktop: uniq(rows.filter(r => r.device === 'desktop').map(r => r.vid)) };
     const returning = uniq(rows.map(r => r.vid)) - uniq(rows.filter(r => r.newVisitor).map(r => r.vid));
 
-    res.json({ success: true, days, visitors, sessions, live, pageViews, returning: Math.max(0, returning), daily, products, sources, pages, funnel, devices });
+    // Each visitor: how often they came, from where, what they looked at, whether they ordered
+    const ppl = {};
+    [...rows].sort((a, b) => a.at - b.at).forEach(r => {
+      const p = ppl[r.vid] || (ppl[r.vid] = { vid: r.vid, sessions: new Set(), first: r.at, last: r.at, source: r.source, device: r.device, pincode: '', viewed: new Set(), carted: new Set(), orders: [], pages: 0 });
+      p.sessions.add(r.sid); p.last = r.at;
+      if (r.pincode) p.pincode = r.pincode;
+      if (r.type === 'page') p.pages++;
+      if (r.type === 'product' && r.productId) p.viewed.add(r.productId);
+      if (r.type === 'add_to_cart' && r.productId) p.carted.add(r.productId);
+      if (r.type === 'order' && r.orderId) p.orders.push(r.orderId);
+    });
+    const allPeople = Object.values(ppl);
+    // First visit ever (may be before this date range)
+    const firstEver = allPeople.length ? await Visit.aggregate([
+      { $match: { vid: { $in: allPeople.map(p => p.vid) } } },
+      { $group: { _id: '$vid', first: { $min: '$at' } } }
+    ]) : [];
+    const firstById = Object.fromEntries(firstEver.map(f => [f._id, f.first]));
+    const prodName = async (ids) => {
+      const missing = ids.filter(id => !byId[id] && mongoose.isValidObjectId(id));
+      if (missing.length) (await Product.find({ _id: { $in: missing } }).select('name image price').lean()).forEach(n => { byId[String(n._id)] = n; });
+      return ids.map(id => byId[id]?.name || 'Removed product');
+    };
+    const people = [];
+    for (const p of allPeople.sort((a, b) => b.last - a.last).slice(0, 100)) {
+      people.push({
+        id: p.vid.slice(0, 6).toUpperCase(),
+        vid: p.vid,
+        visits: p.sessions.size,
+        pages: p.pages,
+        firstSeen: firstById[p.vid] || p.first,
+        lastSeen: p.last,
+        source: (p.source || 'direct').split('/')[0].trim() || 'direct',
+        device: p.device,
+        pincode: p.pincode,
+        area: !p.pincode ? 'unknown' : /^1321\d\d$/.test(p.pincode) ? 'panipat' : 'outside',
+        viewed: await prodName([...p.viewed]),
+        carted: await prodName([...p.carted]),
+        orders: p.orders
+      });
+    }
+    const areas = { panipat: 0, outside: 0, unknown: 0 };
+    allPeople.forEach(p => { areas[!p.pincode ? 'unknown' : /^1321\d\d$/.test(p.pincode) ? 'panipat' : 'outside']++; });
+
+    res.json({ success: true, days, visitors, sessions, live, pageViews, returning: Math.max(0, returning), daily, products, sources, pages, funnel, devices, areas, people });
   } catch (err) {
     console.error('Analytics summary error:', err);
     res.status(500).json({ success: false, message: 'Could not load visitor numbers.' });
+  }
+});
+
+// One visitor's journey (latest 300 events), for the admin's visitor detail view
+router.get('/visitor/:vid', auth, adminOnly, async (req, res) => {
+  try {
+    if (!ID.test(req.params.vid)) return res.status(404).json({ success: false, message: 'Visitor not found.' });
+    const rows = await Visit.find({ vid: req.params.vid }).sort({ at: -1 }).limit(300).lean();
+    const ids = [...new Set(rows.map(r => r.productId).filter(Boolean))];
+    const names = ids.length ? await Product.find({ _id: { $in: ids } }).select('name').lean() : [];
+    const nameOf = Object.fromEntries(names.map(n => [String(n._id), n.name]));
+    res.json({
+      success: true,
+      events: rows.map(r => ({ at: r.at, type: r.type, path: r.path, product: r.productId ? (nameOf[r.productId] || 'Removed product') : '', source: r.source, pincode: r.pincode, orderId: r.orderId, visit: r.sid.slice(0, 4) }))
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Could not load this visitor.' });
   }
 });
 

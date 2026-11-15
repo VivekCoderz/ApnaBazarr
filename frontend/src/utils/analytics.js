@@ -2,6 +2,7 @@
 // page, product, add_to_cart, checkout, order. No name, phone or email is ever sent:
 // `vid` is a random id kept in this browser, `sid` a random id for this visit (30 min idle = new visit).
 import { getSource } from './source';
+import { getSavedPincode } from './location';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const VID_KEY = 'dhagaro_vid';
@@ -50,7 +51,9 @@ export function track(type, data = {}) {
       path,
       productId: data.productId ? String(data.productId) : '',
       source: getSource(),
-      newVisitor: isNew
+      newVisitor: isNew,
+      pincode: (() => { try { return getSavedPincode() || ''; } catch { return ''; } })(),
+      orderId: data.orderId ? String(data.orderId) : ''
     });
     fetch(`${BASE_URL}/analytics/event`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, keepalive: true }).catch(() => {});
   } catch {

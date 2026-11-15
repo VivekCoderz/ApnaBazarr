@@ -14,6 +14,60 @@ const SOURCE_NAMES = {
 const PAGE_NAMES = { '/': 'Home', '/shop': 'Shop', '/cart': 'Cart', '/checkout': 'Checkout', '/recycle': 'Exchange page', '/track': 'Track order' };
 const pageName = (p) => PAGE_NAMES[p] || (p.startsWith('/product/') ? 'A product page' : p.startsWith('/trace/') ? 'QR page (scanned)' : p);
 
+const TYPE_LABEL = { page: 'Opened', product: 'Looked at', add_to_cart: 'Added to cart', checkout: 'Reached checkout', order: 'Placed order' };
+const AREA = { panipat: { text: 'Panipat', cls: 'bg-emerald-50 text-emerald-700' }, outside: { text: 'Outside Panipat', cls: 'bg-blue-50 text-brand-navy' }, unknown: { text: 'Area unknown', cls: 'bg-slate-100 text-slate-600' } };
+const when = (d) => new Date(d).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
+
+// One visitor's full journey, newest first
+function Journey({ vid }) {
+  const [state, setState] = useState({ vid: '', events: null, error: '' });
+  useEffect(() => {
+    let alive = true;
+    fetch(`${BASE_URL}/analytics/visitor/${encodeURIComponent(vid)}`, { headers: adminHeaders(), credentials: 'include' })
+      .then(r => r.json())
+      .then(j => { if (alive) setState({ vid, events: j.success ? j.events : [], error: j.success ? '' : (j.message || 'Could not load.') }); })
+      .catch(() => { if (alive) setState({ vid, events: [], error: 'Could not load.' }); });
+    return () => { alive = false; };
+  }, [vid]);
+  if (state.vid !== vid) return <p className="py-2 text-xs text-slate-500">Loading journey…</p>;
+  if (state.error) return <p className="py-2 text-xs text-red-700">{state.error}</p>;
+  return (
+    <ol className="mt-2 max-h-72 space-y-1 overflow-y-auto border-l-2 border-line pl-3 text-xs">
+      {state.events.map((e, i) => (
+        <li key={i} className="text-slate-600">
+          <span className="tabular-nums text-slate-400">{when(e.at)}</span> · <span className="font-medium text-ink">{TYPE_LABEL[e.type] || e.type}</span>{' '}
+          {e.product ? e.product : pageName(e.path)}{e.orderId ? ` (${e.orderId})` : ''}
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+function PersonRow({ p }) {
+  const [open, setOpen] = useState(false);
+  const area = AREA[p.area] || AREA.unknown;
+  return (
+    <li className="py-2.5">
+      <button type="button" onClick={() => setOpen(o => !o)} className="w-full text-left cursor-pointer">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <span className="font-semibold text-ink">Visitor {p.id}</span>
+          <span className={`rounded px-1.5 py-0.5 text-[11px] font-semibold ${area.cls}`}>{area.text}{p.pincode ? ` · ${p.pincode}` : ''}</span>
+          {p.orders.length > 0 && <span className="rounded bg-emerald-600 px-1.5 py-0.5 text-[11px] font-semibold text-white">Ordered ✓</span>}
+          {p.orders.length === 0 && p.carted.length > 0 && <span className="rounded bg-amber-50 px-1.5 py-0.5 text-[11px] font-semibold text-amber-800">Added to cart, no order</span>}
+          <span className="ml-auto text-xs text-slate-500">{open ? 'Hide' : 'Journey ›'}</span>
+        </div>
+        <p className="mt-0.5 text-xs text-slate-600">
+          Came <b>{p.visits}×</b> · {p.pages} pages · from {SOURCE_NAMES[p.source] || p.source} · {p.device} · first {when(p.firstSeen)} · last {when(p.lastSeen)}
+        </p>
+        {p.viewed.length > 0 && <p className="mt-0.5 text-xs text-slate-600">Looked at: {p.viewed.join(', ')}</p>}
+        {p.carted.length > 0 && <p className="text-xs text-slate-600">Cart: {p.carted.join(', ')}</p>}
+        {p.orders.length > 0 && <p className="text-xs text-emerald-700">Orders: {p.orders.join(', ')}</p>}
+      </button>
+      {open && <Journey vid={p.vid} />}
+    </li>
+  );
+}
+
 function Bar({ value, max, tone = 'bg-brand-navy' }) {
   const w = max > 0 ? Math.max(3, Math.round((value / max) * 100)) : 0;
   return <div className="h-2 w-full rounded bg-slate-100"><div className={`h-2 rounded ${tone}`} style={{ width: `${w}%` }} /></div>;
@@ -66,6 +120,14 @@ export default function VisitorsPanel() {
             <StatTile label="Page views" value={data.pageViews} sub={`${data.sessions} visits`} />
             <StatTile label="Phone / Computer" value={`${data.devices.mobile} / ${data.devices.desktop}`} sub="visitors" />
           </div>
+
+          {data.areas && (
+            <div className="grid grid-cols-3 gap-3">
+              <StatTile label="From Panipat" value={data.areas.panipat} sub="entered a 1321xx pincode" />
+              <StatTile label="Outside Panipat" value={data.areas.outside} sub="other pincode" />
+              <StatTile label="Area unknown" value={data.areas.unknown} sub="no pincode entered" />
+            </div>
+          )}
 
           {data.visitors === 0 && (
             <Card className="p-4 text-sm text-slate-600">
@@ -147,6 +209,14 @@ export default function VisitorsPanel() {
               )}
             </Card>
           </div>
+
+          <Card className="p-4">
+            <h3 className="text-sm font-semibold text-ink">People ({data.people?.length || 0})</h3>
+            <p className="mb-1 text-xs text-slate-500">Newest first. Tap a visitor to see every step they took. Visitors are anonymous; the pincode shows only if they typed one.</p>
+            {!data.people?.length ? <EmptyState>No visitors yet.</EmptyState> : (
+              <ul className="divide-y divide-line">{data.people.map(p => <PersonRow key={p.vid} p={p} />)}</ul>
+            )}
+          </Card>
         </>
       )}
     </div>

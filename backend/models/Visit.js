@@ -12,10 +12,15 @@ const visitSchema = new mongoose.Schema({
   source: { type: String, default: 'direct' },
   device: { type: String, enum: ['mobile', 'desktop'], default: 'mobile' },
   newVisitor: { type: Boolean, default: false },
+  // Delivery pincode the shopper typed on the site ("Deliver to" / checkout), if any
+  pincode: { type: String, default: '' },
+  // On an 'order' event: the order it created
+  orderId: { type: String, default: '' },
   at: { type: Date, default: Date.now }
 });
 
 visitSchema.index({ at: 1 }, { expireAfterSeconds: 180 * 24 * 3600 });
 visitSchema.index({ type: 1, at: -1 });
+visitSchema.index({ vid: 1, at: -1 });
 
 module.exports = mongoose.model('Visit', visitSchema);

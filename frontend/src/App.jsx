@@ -49,6 +49,7 @@ function PageFallback() {
 import { captureReferral } from './utils/referral';
 import { captureSource } from './utils/source';
 import { track } from './utils/analytics';
+import { recordInterest } from './utils/personalize';
 import { prefersReducedMotion } from './components/ui/motion';
 
 import { Check, ShieldCheck } from 'lucide-react';
@@ -524,6 +525,7 @@ function AppContent() {
   // Cart Handler: works for guests too (no login needed to buy)
   const handleAddToCart = (product, quantityToAdd = 1, customizationOptions = {}) => {
     track('add_to_cart', { productId: product?.id });
+    recordInterest(product, 'cart');
     const defaultSize = product.sizes && product.sizes.length > 0 ? product.sizes[0] : '';
     const defaultColor = product.colors && product.colors.length > 0 ? product.colors[0] : '';
     const { 
@@ -621,7 +623,7 @@ function AppContent() {
 
   // Order Handler
   const handleOrderComplete = (newOrder) => {
-    track('order');
+    track('order', { orderId: newOrder?.orderId });
     setOrders(prev => [newOrder, ...prev]);
     // A "Buy Now" order only clears the buy-now item, never the shopper's cart
     if (isBuyNowCheckout) clearBuyNow();

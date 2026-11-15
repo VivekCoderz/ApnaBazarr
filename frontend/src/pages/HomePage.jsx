@@ -19,6 +19,7 @@ import Button from '../components/ui/Button';
 import TiltCard from '../components/ui/TiltCard';
 import { whatsappUrl, PHONE_DISPLAY, EMAIL } from '../config/store';
 import { getActiveCampaign, sortForHomeGrid } from '../config/campaign';
+import { rankForVisitor } from '../utils/personalize';
 
 const PAGE_SIZE = 12;
 // Below this many live products the homepage also shows the "new stock" WhatsApp waitlist
@@ -95,7 +96,8 @@ function ProductsSection({ products, loading, onAddToCart, onQuickView, onToggle
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const campaign = getActiveCampaign();
   const gridTitle = campaign.gridTitle || 'All Products';
-  const gridProducts = sortForHomeGrid(campaign, products);
+  // Products this shopper opened or added to cart (and their category) come first
+  const { list: gridProducts, personalized } = rankForVisitor(sortForHomeGrid(campaign, products));
 
   if (loading && products.length === 0) {
     return (
@@ -124,8 +126,8 @@ function ProductsSection({ products, loading, onAddToCart, onQuickView, onToggle
       <Section tone="cream" aria-labelledby="home-grid-title">
         <SectionHeader
           id="home-grid-title"
-          eyebrow="Featured"
-          title={gridTitle}
+          eyebrow={personalized ? 'Picked for you' : 'Featured'}
+          title={personalized ? 'Based on what you looked at' : gridTitle}
           description="Hand-picked in Panipat and ready to ship."
           action={{ label: 'View all products', to: '/shop' }}
         />
@@ -150,8 +152,8 @@ function ProductsSection({ products, loading, onAddToCart, onQuickView, onToggle
     <Section tone="cream" aria-labelledby="home-grid-title">
       <SectionHeader
         id="home-grid-title"
-        eyebrow={`${gridProducts.length} products`}
-        title={gridTitle}
+        eyebrow={personalized ? 'Picked for you' : `${gridProducts.length} products`}
+        title={personalized ? 'Based on what you looked at' : gridTitle}
         action={{ label: 'View all', to: '/shop' }}
       />
       <div className={GRID_CLASS}>

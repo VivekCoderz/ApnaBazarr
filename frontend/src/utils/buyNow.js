@@ -1,11 +1,13 @@
 // "Buy Now" checks out just that one product (like Amazon/Flipkart) and leaves the cart
 // untouched. The item lives in sessionStorage so a refresh on /checkout keeps it.
 import { track } from './analytics';
+import { recordInterest } from './personalize';
 const KEY = 'dhagaro_buynow';
 export const BUY_NOW_PATH = '/checkout?mode=buynow';
 
 export function startBuyNow(product, quantity = 1, opts = {}) {
   track('add_to_cart', { productId: product?.id });
+  recordInterest(product, 'cart');
   const line = {
     ...product,
     quantity,
