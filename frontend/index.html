@@ -2,8 +2,12 @@
 <html lang="en-IN">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <!-- Google shows the site icon next to search results: it needs a square icon of 48px or a multiple of 48 -->
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon-180.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- Start connections early: API (Render) and product photos (Cloudinary) -->
@@ -24,6 +28,9 @@
     <meta property="og:title" content="Dhagaro | Straight from Panipat to your home" />
     <meta property="og:description" content="Bath mats from ₹129, straight from Panipat. Cash on delivery and 7-day easy returns." />
     <meta property="og:image" content="https://dhagaro.vercel.app/og-share.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Dhagaro: bath mats from ₹129, straight from Panipat" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Dhagaro | Straight from Panipat to your home" />
     <meta name="twitter:description" content="Bath mats from ₹129, straight from Panipat. Cash on delivery and 7-day easy returns." />
@@ -37,7 +44,8 @@
             "@id": "https://dhagaro.vercel.app/#org",
             "name": "Dhagaro",
             "url": "https://dhagaro.vercel.app/",
-            "logo": "https://dhagaro.vercel.app/favicon-192.png",
+            "logo": { "@type": "ImageObject", "url": "https://dhagaro.vercel.app/logo.png", "width": 512, "height": 512 },
+            "image": "https://dhagaro.vercel.app/og-share.png",
             "description": "Home textiles straight from Panipat makers: bath mats with cash on delivery and 7-day easy returns.",
             "address": { "@type": "PostalAddress", "addressLocality": "Panipat", "addressRegion": "Haryana", "postalCode": "132103", "addressCountry": "IN" },
             "areaServed": "IN",
