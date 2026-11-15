@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import {
   LayoutDashboard, ShoppingBag, Package, TrendingUp, MessageSquare, Star, Store, Settings,
-  MoreHorizontal, Users, ExternalLink, LogOut, ChevronRight
+  MoreHorizontal, Users, ExternalLink, LogOut, ChevronRight, Eye
 } from 'lucide-react';
 import { SELLER_MARKETPLACE_ENABLED } from '../config/store';
 import { BASE_URL, adminHeaders } from './admin/adminApi';
@@ -15,6 +15,7 @@ import ProfitPanel from './admin/ProfitPanel';
 import FeedbackPanel from './admin/FeedbackPanel';
 import SettingsPanel from './admin/SettingsPanel';
 import SellersPanel from './admin/SellersPanel';
+import VisitorsPanel from './admin/VisitorsPanel';
 
 // Hooks live in the inner component so the early return never changes the hook order
 export default function AdminDashboardModal(props) {
@@ -22,7 +23,7 @@ export default function AdminDashboardModal(props) {
   return <AdminDashboardContent {...props} />;
 }
 
-const MOBILE_TABS = ['overview', 'orders', 'products', 'more'];
+const MOBILE_TABS = ['overview', 'orders', 'visitors', 'products', 'more'];
 
 function AdminDashboardContent({
   onClose, products, orders, onAddProduct, onUpdateProduct, onDeleteProduct, onUpdateOrderStatus,
@@ -109,6 +110,7 @@ function AdminDashboardContent({
   const NAV = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
     { id: 'orders', label: 'Orders', icon: ShoppingBag, badge: newOrders },
+    { id: 'visitors', label: 'Visitors', icon: Eye },
     { id: 'products', label: 'Products', icon: Package },
     { id: 'profit', label: 'Profit', icon: TrendingUp },
     { id: 'feedbacks', label: 'Feedback', icon: MessageSquare, count: feedbacks.length },
@@ -181,6 +183,9 @@ function AdminDashboardContent({
           onCancel={() => { setEditingProduct(null); go('products'); }}
         />
       );
+      break;
+    case 'visitors':
+      content = <VisitorsPanel />;
       break;
     case 'profit':
       content = <ProfitPanel orders={orders} products={products} />;
@@ -278,7 +283,7 @@ function AdminDashboardContent({
 
       {/* Mobile bottom navigation */}
       <nav
-        className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-line bg-white pb-[env(safe-area-inset-bottom)] md:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-line bg-white pb-[env(safe-area-inset-bottom)] md:hidden"
         aria-label="Admin"
       >
         {MOBILE_TABS.map(id => {

@@ -16,6 +16,7 @@ import CategoryGlyph from '../components/ui/CategoryGlyph';
 import HeartIcon from '../components/ui/HeartIcon';
 import PincodeCheck from '../components/PincodeCheck';
 import { startBuyNow } from '../utils/buyNow';
+import { track } from '../utils/analytics';
 
 // Pre-filled WhatsApp order message. Plain text only: the name goes through displayName()
 // (drops emojis, which break on WhatsApp Web) and prices use "Rs".
@@ -101,6 +102,10 @@ export default function ProductDetailPage({
   // component is reused, so a stale photo index / quantity / personalisation would carry over.
   // Keyed on the id, not the object, so a background product refresh doesn't wipe choices.
   const productId = product?.id;
+  // Anonymous visitor analytics: which products people open
+  useEffect(() => {
+    if (productId) track('product', { productId });
+  }, [productId]);
   useEffect(() => {
     if (!product) return;
     setSelectedSize(initialSize(product));

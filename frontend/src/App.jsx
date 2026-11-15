@@ -48,6 +48,7 @@ function PageFallback() {
 }
 import { captureReferral } from './utils/referral';
 import { captureSource } from './utils/source';
+import { track } from './utils/analytics';
 import { prefersReducedMotion } from './components/ui/motion';
 
 import { Check, ShieldCheck } from 'lucide-react';
@@ -163,6 +164,11 @@ function AppContent() {
     captureReferral(search);
     captureSource(search);
   }, [search]);
+
+  // Anonymous visitor analytics (admin → Visitors): one page view per page opened
+  useEffect(() => {
+    track('page');
+  }, [pathname]);
 
   // New page: start at the top. Back/forward: return to where the visitor was
   // (e.g. the same spot in the shop grid) instead of jumping to the top.
@@ -517,6 +523,7 @@ function AppContent() {
 
   // Cart Handler: works for guests too (no login needed to buy)
   const handleAddToCart = (product, quantityToAdd = 1, customizationOptions = {}) => {
+    track('add_to_cart', { productId: product?.id });
     const defaultSize = product.sizes && product.sizes.length > 0 ? product.sizes[0] : '';
     const defaultColor = product.colors && product.colors.length > 0 ? product.colors[0] : '';
     const { 
@@ -614,6 +621,7 @@ function AppContent() {
 
   // Order Handler
   const handleOrderComplete = (newOrder) => {
+    track('order');
     setOrders(prev => [newOrder, ...prev]);
     // A "Buy Now" order only clears the buy-now item, never the shopper's cart
     if (isBuyNowCheckout) clearBuyNow();

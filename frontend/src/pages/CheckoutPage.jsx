@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { track } from '../utils/analytics';
 import { ArrowRight, ArrowLeft, Check, Banknote, CreditCard, Loader2, MessageCircle } from 'lucide-react';
 
 import { getReferral } from '../utils/referral';
@@ -118,6 +119,12 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser, 
   const userKey = currentUser ? String(currentUser._id || currentUser.id || currentUser.email || 'me') : '';
   const userName = currentUser?.name || '';
   const userPhone = currentUser?.phone || '';
+
+  // Anonymous visitor analytics: reached checkout with something to buy (once per visit to the page)
+  const hasItems = cartItems.length > 0;
+  useEffect(() => {
+    if (hasItems) track('checkout');
+  }, [hasItems]);
 
   // Logged in (also when the session is restored after this page opened): load the
   // account's saved addresses

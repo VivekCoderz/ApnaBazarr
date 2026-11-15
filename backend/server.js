@@ -22,6 +22,7 @@ const feedbackRoute = require('./routes/feedback.js');
 const reviewRoute = require('./routes/review.js');
 const settingRoute = require('./routes/setting.js');
 const resellerRoute = require('./routes/reseller.js');
+const analyticsRoute = require('./routes/analytics.js');
 
 const app = express();
 app.set('trust proxy', 1);
@@ -52,6 +53,7 @@ app.use('/feedbacks', feedbackRoute);
 app.use('/reviews', reviewRoute);
 app.use('/settings', settingRoute);
 app.use('/reseller', resellerRoute);
+app.use('/analytics', analyticsRoute);
 
 app.get('/api/health', (req, res) => {
   res.json({
