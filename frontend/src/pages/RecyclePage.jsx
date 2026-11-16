@@ -70,7 +70,22 @@ export default function RecyclePage() {
               </div>
             </div>
           )}
-          <div className="pt-2"><Button to="/shop" size="lg">Shop mats</Button></div>
+          <div className="flex flex-wrap justify-center gap-2 pt-2">
+            <Button to="/shop" size="lg">Shop mats</Button>
+            <Button href="#rules" variant="secondary" size="lg">See the rules</Button>
+          </div>
+          {/* 25-second story: old clothes → "Main hoon na!" → how it works (Hindi voice) */}
+          <video
+            className="mx-auto mt-4 w-full max-w-[300px] rounded-2xl shadow-lift ring-1 ring-line"
+            src="/videos/exchange-story.mp4"
+            poster="/videos/exchange-story.jpg"
+            controls
+            playsInline
+            preload="none"
+            width="300"
+            height="533"
+            aria-label="Video: give your old clothes to Dhagaro and get ₹40 off"
+          />
         </div>
       </Section>
 
