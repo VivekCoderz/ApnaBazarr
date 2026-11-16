@@ -6,6 +6,7 @@ import Button from '../components/ui/Button';
 import { formatPrice } from '../utils/format';
 import { EXCHANGE_CREDIT, EXCHANGE_MIN_ORDER } from '../config/store';
 import { useSeo } from '../utils/seo';
+import ExchangeRules from '../components/ExchangeRules';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -85,6 +86,8 @@ export default function RecyclePage() {
           ))}
         </ol>
       </Section>
+
+      <ExchangeRules />
 
       <Section tone="peach">
         <div className="grid gap-4 sm:grid-cols-2">

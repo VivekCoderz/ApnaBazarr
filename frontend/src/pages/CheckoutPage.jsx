@@ -651,7 +651,7 @@ export default function CheckoutPage({ cartItems, onOrderComplete, currentUser, 
                   <input type="checkbox" className="mt-0.5 h-4 w-4 accent-emerald-700" checked={exchangeOptIn} onChange={(e) => setExchangeOptIn(e.target.checked)} />
                   <span>
                     <span className="block font-semibold text-emerald-900">♻ I'll hand over old clothes or an old mat at delivery</span>
-                    <span className="block text-emerald-900/80">At least 1 kg. We send them for recycling in Panipat, and you get {formatPrice(EXCHANGE_CREDIT)} off your next order of {formatPrice(EXCHANGE_MIN_ORDER)}+. <Link to="/recycle" className="font-semibold underline">How it works</Link></span>
+                    <span className="block text-emerald-900/80">At least 1 kg. We send them for recycling in Panipat, and you get {formatPrice(EXCHANGE_CREDIT)} off your next order of {formatPrice(EXCHANGE_MIN_ORDER)}+. <Link to="/recycle#rules" className="font-semibold underline">Rules</Link></span>
                   </span>
                 </label>
               )}

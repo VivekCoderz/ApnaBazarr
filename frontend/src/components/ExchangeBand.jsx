@@ -9,7 +9,7 @@ export default function ExchangeBand() {
   return (
     <div className="border-b border-emerald-200 bg-emerald-50">
       <Container className="py-3">
-        <Link to="/recycle" className="group flex items-center gap-3 sm:gap-4">
+        <Link to="/recycle#rules" className="group flex items-center gap-3 sm:gap-4">
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-700 text-white">
             <Recycle className="h-6 w-6" aria-hidden="true" />
           </span>
