@@ -15,7 +15,7 @@ export default function FounderNote() {
             Hi, I'm Vivek, a student from Panipat.
           </h2>
           <p className="text-[15px] leading-relaxed text-slate-700">
-            I started Dhagaro with three college friends to bring Panipat's home textiles straight to your home,
+            We are four college friends from Geeta University, and we started Dhagaro to bring Panipat's home textiles straight to your home,
             without the middlemen. I check and pack every mat myself before it leaves Panipat. Pay only when it arrives, and
             if anything is wrong, we take it back within 7 days.
           </p>
