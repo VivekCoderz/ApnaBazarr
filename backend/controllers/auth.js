@@ -173,13 +173,21 @@ module.exports.googleLogin = async (req, res) => {
 
     const email = normaliseEmail(info.email).toLowerCase();
     let user = await findUserByEmail(email);
+    // Signup does not verify emails, so someone else may have registered this address
+    // with a password they know. The first Google sign-in proves the owner: reset that
+    // password so only Google (or a fresh password the owner sets) can log in.
+    if (user && !user.googleLinked) {
+      const freshHash = await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 10);
+      user = await User.findByIdAndUpdate(user._id, { password: freshHash, googleLinked: true }, { new: true });
+    }
     if (!user) {
       const passwordHash = await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 10);
       user = await User.create({
         name: (typeof info.name === 'string' && info.name.trim()) || email.split('@')[0],
         email,
         phone: '',
-        password: passwordHash
+        password: passwordHash,
+        googleLinked: true
       });
     }
 
@@ -349,7 +357,7 @@ module.exports.registerSeller = async (req, res) => {
 
 module.exports.getSellersForAdmin = async (req, res) => {
   try {
-    if (req.user.role !== 'admin' && req.user.email !== 'admin@apnabazarr.com') {
+    if (req.user.role !== 'admin') {
       return res.status(403).json({ success: false, message: 'Forbidden. Admin access required.' });
     }
 
@@ -484,7 +492,7 @@ module.exports.updateSellerProfile = async (req, res) => {
 
 module.exports.updateSellerStatus = async (req, res) => {
   try {
-    if (req.user.role !== 'admin' && req.user.email !== 'admin@apnabazarr.com') {
+    if (req.user.role !== 'admin') {
       return res.status(403).json({ success: false, message: 'Forbidden. Admin access required.' });
     }
 
@@ -530,6 +538,6 @@ module.exports.adminLogin = async (req, res) => {
 
   // 7 days to match the admin panel's apna_admin_token cookie (the panel has no
   // "session expired" handling, so a shorter token would break it mid-week)
-  const token = jwt.sign({ admin: true, email: adminEmail }, JWT_SECRET, { expiresIn: '7d' });
+  const token = jwt.sign({ admin: true, email: adminEmail }, JWT_SECRET, { expiresIn: '1d' });
   res.json({ success: true, admin: { email: adminEmail, role: 'admin', token } });
 };

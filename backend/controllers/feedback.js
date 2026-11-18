@@ -44,6 +44,7 @@ exports.getAllFeedbacks = async (req, res) => {
   try {
     const user = await optionalUser(req);
     if (!user) return res.json({ success: true, feedbacks: [] });
+    if (user.role !== 'admin' && /@apnabazarr\.com$/i.test(user.email || '')) return res.json({ success: true, feedbacks: [] });
     const filter = user.role === 'admin' ? {} : { email: user.email };
     const feedbacks = await Feedback.find(filter).sort({ createdAt: -1 });
     res.json({ success: true, feedbacks });

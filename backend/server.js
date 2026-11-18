@@ -36,12 +36,20 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
   crossOriginOpenerPolicy: false,
 }));
-app.use(cors({ origin: ['https://dhagaro.vercel.app','https://apnabazarr.vercel.app','http://localhost:5173','http://localhost:5174','http://localhost:5175'], credentials: true }));
+const ALLOWED_ORIGINS = ['https://dhagaro.vercel.app', 'https://apnabazarr.vercel.app', 'http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'];
+app.use(cors({ origin: ALLOWED_ORIGINS, credentials: true }));
+// CSRF guard: a browser always sends Origin on cross-site POST/PUT/DELETE. Refuse those
+// from any other website, so a page elsewhere can't act with a shopper's login cookie.
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (['GET', 'HEAD', 'OPTIONS'].includes(req.method) || !origin || ALLOWED_ORIGINS.includes(origin)) return next();
+  return res.status(403).json({ success: false, message: 'Request blocked.' });
+});
 app.use(limiters.global);
 
 // JSON bodies are small (cart, address, product form); files go through multipart uploads
 app.use(express.json({ limit: '1mb' }));
-app.use(express.urlencoded({ extended: true, limit: '100kb' }));
+// No form-encoded bodies: the shop only sends JSON (blocks cross-site form posts)
 app.use(sanitizeBody);
 app.use(cookieParser());
 

@@ -26,7 +26,7 @@ export default function AdminLoginPage({ onAdminLogin }) {
       const result = await res.json();
       if (result.success) {
         const adminData = result.admin;
-        document.cookie = "apna_admin_token=" + adminData.token + "; path=/; max-age=604800; SameSite=Lax";
+        document.cookie = "apna_admin_token=" + adminData.token + "; path=/; max-age=86400; SameSite=Lax; Secure";
         onAdminLogin(adminData);
         navigate('/admin');
       } else {

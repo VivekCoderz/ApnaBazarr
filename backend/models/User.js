@@ -17,6 +17,8 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   phone: { type: String },
   password: { type: String, required: true },
+  // true once the owner signed in with Google (see googleLogin)
+  googleLinked: { type: Boolean, default: false },
   role: { type: String, enum: ['user', 'seller', 'admin'], default: 'user' },
   sellerProfile: {
     shopName: { type: String },
