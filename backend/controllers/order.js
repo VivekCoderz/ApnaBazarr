@@ -62,6 +62,9 @@ function rememberAddressForViewer(req, shippingAddress) {
 }
 
 const MAX_QTY_PER_LINE = 50;
+// A real cart never has more lines than this; more is an attack (each line costs DB lookups)
+const MAX_LINES = 30;
+const TOO_MANY = { success: false, message: 'Too many different items in one order. Please split it.' };
 const ADDRESS_FIELDS = ['fullName', 'phone', 'pincode', 'flatNo', 'area', 'city', 'state'];
 
 // Whole-number quantity between 1 and MAX_QTY_PER_LINE, or null (negative, fractional
@@ -197,6 +200,7 @@ module.exports.createOrder = async (req, res) => {
     if (!Array.isArray(items) || items.length === 0 || !shippingAddress) {
       return res.status(400).json({ success: false, message: 'Invalid order details provided.' });
     }
+    if (items.length > MAX_LINES) return res.status(400).json(TOO_MANY);
     const addrError = addressError(shippingAddress);
     if (addrError) {
       return res.status(400).json({ success: false, message: addrError });
@@ -257,7 +261,7 @@ module.exports.createOrder = async (req, res) => {
       return res.status(400).json({ success: false, message: codError });
     }
 
-    const resellerFields = await resolveResellerForOrder(resellerCode, owner.userEmail, formattedItems);
+    const resellerFields = await resolveResellerForOrder(resellerCode, owner.userEmail, formattedItems, shippingAddress.phone);
 
     const newOrder = await Order.create({
       orderId,
@@ -340,6 +344,7 @@ module.exports.createRazorpayOrder = async (req, res) => {
     if (!Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ success: false, message: 'Your cart is empty.' });
     }
+    if (items.length > MAX_LINES) return res.status(400).json(TOO_MANY);
     const soldOut = await unavailableItems(items);
     if (soldOut.length) {
       return res.status(400).json({ success: false, message: `Not available right now: ${soldOut.join(', ')}. Please remove it from your cart.` });
@@ -420,6 +425,7 @@ module.exports.verifyRazorpayPayment = async (req, res) => {
     if (hash !== razorpay_signature) {
       return res.status(400).json({ success: false, message: 'Payment signature verification failed.' });
     }
+    if (Array.isArray(items) && items.length > MAX_LINES) return res.status(400).json(TOO_MANY);
     if (!Array.isArray(items) || items.length === 0 || addressError(shippingAddress)) {
       return res.status(400).json({ success: false, message: `Your payment was received but the order details were incomplete. Please WhatsApp us at +91 93068 10726 with payment ID ${razorpay_payment_id}.` });
     }
@@ -478,11 +484,11 @@ module.exports.verifyRazorpayPayment = async (req, res) => {
     }
 
     const owner = await orderOwner(req, email);
-    const resellerFields = await resolveResellerForOrder(resellerCode, owner.userEmail, formattedItems);
+    const resellerFields = await resolveResellerForOrder(resellerCode, owner.userEmail, formattedItems, shippingAddress.phone);
     const orderId = await newOrderId();
     const usedExchange = voucherDiscount > 0 && notedExchange;
     // Already paid with the credit: mark it used (if it was used meanwhile, the order still saves)
-    if (usedExchange) await claimExchangeCredit(notes.voucherSource, orderId);
+    const claimed = usedExchange ? await claimExchangeCredit(notes.voucherSource, orderId) : true;
 
     const newOrder = await Order.create({
       orderId,
@@ -496,12 +502,16 @@ module.exports.verifyRazorpayPayment = async (req, res) => {
       orderStatus: 'Order Placed',
       totalAmount: amountDue, // what the customer paid (items + shipping - voucher - onlineDiscount)
       onlineDiscount: discount,
-      voucherCode: voucherDiscount > 0 ? (usedExchange ? EXCHANGE_CODE : PANIPAT_VOUCHER_CODE) : '',
+      voucherCode: voucherDiscount > 0 ? (usedExchange ? (claimed ? EXCHANGE_CODE : `${EXCHANGE_CODE}-DUP`) : PANIPAT_VOUCHER_CODE) : '',
       voucherDiscount,
       exchange: { optedIn: exchangeOptIn(req.body, shippingAddress.pincode) },
       estimatedDelivery: estimatedDeliveryStr,
       paymentId: razorpay_payment_id,
       razorpayOrderId: razorpay_order_id
+    }).catch(async (e) => {
+      if (usedExchange && claimed) await releaseExchangeCredit(notes.voucherSource, orderId);
+      if (e && e.code === 11000) { const dup = new Error('duplicate payment'); dup.status = 409; throw dup; }
+      throw e;
     });
     notifyNewOrder(newOrder);
     rememberAddressForViewer(req, shippingAddress);
@@ -512,6 +522,9 @@ module.exports.verifyRazorpayPayment = async (req, res) => {
       order: newOrder
     });
   } catch (error) {
+    if (error && error.status === 409) {
+      return res.status(409).json({ success: false, message: 'This payment has already been used for an order.' });
+    }
     console.error('Razorpay verification error:', error);
     res.status(500).json({ success: false, message: 'Server error verifying Razorpay payment.' });
   }
@@ -528,6 +541,10 @@ exports.updateOrderStatus = async (req, res) => {
     }
 
     if (req.user.role !== 'admin') {
+      // Only sellers the admin approved may touch orders
+      if (req.user.role !== 'seller' || (req.user.sellerProfile?.status || 'approved') !== 'approved') {
+        return res.status(403).json({ success: false, message: 'Not allowed to update this order.' });
+      }
       const sellerProducts = await Product.find({ seller: req.user._id }).select('_id');
       const productIds = sellerProducts.map(p => String(p._id));
       const owns = await Order.exists({ orderId, 'items.productId': { $in: productIds } });
@@ -597,6 +614,7 @@ module.exports.getShippingCalculation = async (req, res) => {
     if (!Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ success: false, message: 'Items list is required.' });
     }
+    if (items.length > MAX_LINES) return res.status(400).json(TOO_MANY);
 
     const formattedItems = await processOrderItems(items, deliveryPincode);
     const totalShipping = formattedItems.reduce((acc, item) => acc + item.shippingCharges, 0);
@@ -644,8 +662,8 @@ module.exports.createOfflineOrder = async (req, res) => {
     const { items, shippingAddress, packagingCost, shippingCost, packagingCharge, shippingCharge, paymentMethod, userEmail } = req.body;
 
     // Only sellers (for their own products) and the admin record offline sales
-    if (req.user.role !== 'admin' && req.user.role !== 'seller') {
-      return res.status(403).json({ success: false, message: 'Only sellers and the admin can record offline orders.' });
+    if (req.user.role !== 'admin' && (req.user.role !== 'seller' || (req.user.sellerProfile?.status || 'approved') !== 'approved')) {
+      return res.status(403).json({ success: false, message: 'Only approved sellers and the admin can record offline orders.' });
     }
     if (!Array.isArray(items) || items.length === 0 || !shippingAddress) {
       return res.status(400).json({ success: false, message: 'Invalid offline order details provided.' });

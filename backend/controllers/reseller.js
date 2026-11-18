@@ -14,10 +14,14 @@ function makeCode(name) {
 
 // Works out the reseller commission for an order. Returns {} when the code is invalid
 // or the buyer is the reseller themself, so the order is saved without a reseller.
-module.exports.resolveResellerForOrder = async (resellerCode, buyerEmail, items) => {
+const last10 = (v) => String(v || '').replace(/\D/g, '').slice(-10);
+
+module.exports.resolveResellerForOrder = async (resellerCode, buyerEmail, items, buyerPhone = '') => {
   if (!resellerCode) return {};
   const reseller = await User.findOne({ 'resellerProfile.code': String(resellerCode).toUpperCase() });
-  if (!reseller || reseller.email === buyerEmail) return {};
+  // No commission on the reseller's own orders (same account email, or same phone as their profile)
+  const ownPhone = last10(reseller && reseller.resellerProfile && reseller.resellerProfile.phone);
+  if (!reseller || reseller.email === buyerEmail || (ownPhone.length === 10 && ownPhone === last10(buyerPhone))) return {};
 
   const percent = await getCommissionPercent();
   const itemsTotal = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
@@ -66,7 +70,8 @@ module.exports.getMyDashboard = async (req, res) => {
     }
 
     const orders = await Order.find({ resellerId: req.user._id }).sort({ createdAt: -1 });
-    const live = orders.filter(o => o.orderStatus !== 'Cancelled');
+    // Commission is earned only on delivered orders (a refused COD parcel earns nothing)
+    const live = orders.filter(o => o.orderStatus === 'Delivered');
     const earned = live.reduce((acc, o) => acc + o.resellerCommission, 0);
     const paid = live.filter(o => o.resellerPayoutStatus === 'paid').reduce((acc, o) => acc + o.resellerCommission, 0);
 
@@ -105,7 +110,7 @@ module.exports.adminListResellers = async (req, res) => {
     const orders = await Order.find({ resellerId: { $exists: true } }).sort({ createdAt: -1 });
 
     const result = resellers.map(r => {
-      const own = orders.filter(o => String(o.resellerId) === String(r._id) && o.orderStatus !== 'Cancelled');
+      const own = orders.filter(o => String(o.resellerId) === String(r._id) && o.orderStatus === 'Delivered');
       const earned = own.reduce((acc, o) => acc + o.resellerCommission, 0);
       const paid = own.filter(o => o.resellerPayoutStatus === 'paid').reduce((acc, o) => acc + o.resellerCommission, 0);
       return {
@@ -138,12 +143,12 @@ module.exports.adminMarkPaid = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Forbidden.' });
     }
     const order = await Order.findOneAndUpdate(
-      { orderId: req.params.orderId, resellerId: { $exists: true } },
+      { orderId: req.params.orderId, resellerId: { $exists: true }, orderStatus: 'Delivered' },
       { resellerPayoutStatus: 'paid' },
       { returnDocument: 'after' }
     );
     if (!order) {
-      return res.status(404).json({ success: false, message: 'Reseller order not found.' });
+      return res.status(404).json({ success: false, message: 'Reseller order not found, or not delivered yet.' });
     }
     res.json({ success: true });
   } catch (error) {

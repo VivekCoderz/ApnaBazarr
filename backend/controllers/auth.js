@@ -330,7 +330,7 @@ module.exports.registerSeller = async (req, res) => {
           'sellerProfile.shopDescription': shopDescription || '',
           'sellerProfile.shopAddress': shopAddress,
           'sellerProfile.phone': phone,
-          'sellerProfile.status': alreadySeller ? req.user.sellerProfile.status : 'approved'
+          'sellerProfile.status': alreadySeller ? req.user.sellerProfile.status : 'pending'
         }
       },
       { new: true }

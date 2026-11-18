@@ -92,7 +92,8 @@ router.get('/', async (req, res) => {
     // Filter out products from rejected/suspended sellers
     const approvedProducts = products.filter(p => {
       if (!p.seller) return true; // General store products
-      return p.seller.sellerProfile?.status !== 'rejected';
+      // Only products of sellers the admin approved are shown (pending/rejected/suspended are hidden)
+      return (p.seller.sellerProfile?.status || 'approved') === 'approved';
     });
 
     const allReviews = await Review.find();
@@ -282,8 +283,8 @@ router.get('/:id', async (req, res) => {
 // POST /products - add new product to MongoDB
 router.post('/', auth, async (req, res) => {
   try {
-    if (req.user.role !== 'seller' && req.user.role !== 'admin') {
-      return res.status(403).json({ success: false, message: 'Forbidden. Only sellers and admins can add products.' });
+    if (req.user.role !== 'admin' && (req.user.role !== 'seller' || (req.user.sellerProfile?.status || 'approved') !== 'approved')) {
+      return res.status(403).json({ success: false, message: 'Forbidden. Only approved sellers and admins can add products.' });
     }
     const { name, category, gender, price, originalPrice, costPrice, discount, badge, stock, image, description, tags, isCustomizable, customizationType, customizationPrompt, sizes, colors, colorImages, images, isActive } = req.body;
     const badPrice = priceError({ price }, true);
@@ -341,7 +342,10 @@ router.put('/:id', auth, async (req, res) => {
     if (!product) {
       return res.status(404).json({ success: false, message: 'Product not found' });
     }
-    // Check permission: only admin or product owner (seller)
+    // Check permission: only admin or product owner (an approved seller)
+    if (req.user.role !== 'admin' && (req.user.sellerProfile?.status || 'approved') !== 'approved') {
+      return res.status(403).json({ success: false, message: 'Your seller account is not approved.' });
+    }
     if (req.user.role !== 'admin' && String(product.seller) !== String(req.user._id)) {
       return res.status(403).json({ success: false, message: 'Forbidden. You do not own this product.' });
     }
@@ -396,7 +400,10 @@ router.delete('/:id', auth, async (req, res) => {
     if (!product) {
       return res.status(404).json({ success: false, message: 'Product not found' });
     }
-    // Check permission: only admin or product owner (seller)
+    // Check permission: only admin or product owner (an approved seller)
+    if (req.user.role !== 'admin' && (req.user.sellerProfile?.status || 'approved') !== 'approved') {
+      return res.status(403).json({ success: false, message: 'Your seller account is not approved.' });
+    }
     if (req.user.role !== 'admin' && String(product.seller) !== String(req.user._id)) {
       return res.status(403).json({ success: false, message: 'Forbidden. You do not own this product.' });
     }

@@ -68,7 +68,8 @@ const orderSchema = new mongoose.Schema({
   },
   estimatedDelivery: { type: String },
   paymentId: { type: String },
-  razorpayOrderId: { type: String },
+  // unique: one Razorpay payment can never become two orders (even with parallel /verify calls)
+  razorpayOrderId: { type: String, unique: true, sparse: true },
   isOffline: { type: Boolean, default: false },
   resellerCode: { type: String },
   // Marketing channel the customer came from (utm_source / facebook / instagram / google / direct)

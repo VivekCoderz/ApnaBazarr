@@ -53,7 +53,8 @@ router.get('/summary', auth, adminOnly, async (req, res) => {
     const now = new Date();
     // From the start of the first day (IST)
     const startIst = new Date(dayKey(new Date(now.getTime() - (days - 1) * 864e5)) + 'T00:00:00+05:30');
-    const rows = await Visit.find({ at: { $gte: startIst } }).select('vid sid type path productId source device newVisitor pincode orderId at').lean();
+    // Bounded: a flood of fake events can't exhaust the server's memory
+    const rows = await Visit.find({ at: { $gte: startIst } }).sort({ at: -1 }).limit(150000).select('vid sid type path productId source device newVisitor pincode orderId at').lean();
 
     const uniq = (arr) => new Set(arr).size;
     const visitors = uniq(rows.map(r => r.vid));
