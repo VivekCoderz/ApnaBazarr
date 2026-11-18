@@ -24,9 +24,13 @@ function sendError(res, err) {
 const ACTIVE_FILTER = { isActive: { $ne: false } };
 
 // Average of real reviews, or null when there are none (never show a fake 5 stars)
-const averageRating = (reviews) => reviews.length > 0
-  ? Number((reviews.reduce((sum, r) => sum + (r.rating || 5), 0) / reviews.length).toFixed(1))
-  : null;
+// Only verified-buyer reviews count: anyone can post an unverified one
+const averageRating = (all) => {
+  const reviews = all.filter(r => r.verified);
+  return reviews.length > 0
+    ? Number((reviews.reduce((sum, r) => sum + (r.rating || 5), 0) / reviews.length).toFixed(1))
+    : null;
+};
 
 // True when the request carries a valid admin token. Used so the admin panel can
 // still see (and un-hide) hidden products; never blocks the public request.
@@ -113,7 +117,7 @@ router.get('/', async (req, res) => {
     // Public response: never include costPrice/margin, only the derived delivery hint
     const formatted = approvedProducts.map(p => {
       const prodReviews = allReviews.filter(r => String(r.productId) === String(p._id));
-      const reviewsCount = prodReviews.length;
+      const reviewsCount = prodReviews.filter(r => r.verified).length;
       const rating = averageRating(prodReviews);
 
       return {
@@ -222,7 +226,7 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ success: false, message: 'This product is not available right now.' });
     }
     const prodReviews = await Review.find({ productId: String(product._id) });
-    const reviewsCount = prodReviews.length;
+    const reviewsCount = prodReviews.filter(r => r.verified).length;
     const rating = averageRating(prodReviews);
 
     const allItemOrders = await Order.find({ "items.productId": String(product._id) });

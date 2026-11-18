@@ -6,7 +6,8 @@ function cleanMediaUrl(value) {
   if (typeof value !== 'string' || !value) return '';
   try {
     const url = new URL(value);
-    return url.protocol === 'https:' && url.hostname === 'res.cloudinary.com' ? url.href.slice(0, 500) : '';
+    const cloud = process.env.CLOUDINARY_CLOUD_NAME || 'dnqvijzxj';
+    return url.protocol === 'https:' && url.hostname === 'res.cloudinary.com' && url.pathname.startsWith(`/${cloud}/`) ? url.href.slice(0, 500) : '';
   } catch {
     return '';
   }
@@ -20,7 +21,11 @@ exports.createFeedback = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Name and message are required.' });
     }
     const stars = Number(rating);
-    const typedEmail = typeof email === 'string' && email.trim() ? email.trim().slice(0, 200) : 'anonymous@apnabazarr.com';
+    // Logged in: filed under the account. Guest: the typed address is kept for replies but
+    // prefixed, so it never shows up in the inbox of the account that owns that email.
+    const viewer = await optionalUser(req);
+    const typed = typeof email === 'string' && email.trim() ? email.trim().slice(0, 200) : '';
+    const typedEmail = viewer && viewer.role !== 'admin' && viewer.email ? viewer.email : (typed ? `guest:${typed}` : 'anonymous@apnabazarr.com');
     const feedback = await Feedback.create({
       name: name.trim().slice(0, 100),
       email: typedEmail,

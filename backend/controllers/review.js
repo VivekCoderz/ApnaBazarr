@@ -19,7 +19,8 @@ function cleanMediaUrl(value) {
   if (typeof value !== 'string' || !value) return '';
   try {
     const url = new URL(value);
-    return url.protocol === 'https:' && url.hostname === 'res.cloudinary.com' ? url.href.slice(0, 500) : '';
+    const cloud = process.env.CLOUDINARY_CLOUD_NAME || 'dnqvijzxj';
+    return url.protocol === 'https:' && url.hostname === 'res.cloudinary.com' && url.pathname.startsWith(`/${cloud}/`) ? url.href.slice(0, 500) : '';
   } catch {
     return '';
   }

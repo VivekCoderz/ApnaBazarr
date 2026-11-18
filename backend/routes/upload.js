@@ -107,10 +107,13 @@ router.post('/review-video', auth, ...video(uploadReviewVideo),
  */
 router.delete('/:publicId', auth, async (req, res) => {
   try {
-    if (req.user.role !== 'admin' && req.user.role !== 'seller') {
+    if (req.user.role !== 'admin') {
       return res.status(403).json({ success: false, error: 'Forbidden.' });
     }
     const { publicId } = req.params;
+    if (!/^apna-bazarr\/[\w/-]{1,200}$/.test(String(publicId))) {
+      return res.status(400).json({ success: false, error: 'Invalid file id.' });
+    }
     const result = await cloudinary.uploader.destroy(publicId);
     res.json({ success: true, result });
   } catch (err) {
