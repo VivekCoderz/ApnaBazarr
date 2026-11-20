@@ -19,7 +19,7 @@ router.get("/addresses", limiters.addresses, addressController.listAddresses);
 router.post("/addresses", limiters.addresses, addressController.addAddress);
 router.put("/addresses/:addressId", limiters.addresses, addressController.updateAddress);
 router.delete("/addresses/:addressId", limiters.addresses, addressController.deleteAddress);
-router.post("/register-seller", auth, authController.registerSeller);
+router.post("/register-seller", limiters.signup, auth, authController.registerSeller);
 router.get("/admin/sellers", auth, authController.getSellersForAdmin);
 router.put("/seller/profile", auth, authController.updateSellerProfile);
 router.put("/admin/sellers/:sellerId/status", auth, authController.updateSellerStatus);

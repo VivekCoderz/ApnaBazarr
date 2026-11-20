@@ -12,7 +12,7 @@ const adminOnly = (req, res, next) => {
 
 router.post('/', limiters.order, orderController.createOrder);
 router.post('/razorpay', limiters.order, orderController.createRazorpayOrder);
-router.post('/verify', orderController.verifyRazorpayPayment);
+router.post('/verify', limiters.voucherCheck, orderController.verifyRazorpayPayment);
 // Quotes with a phone run the PANIPAT30 first-order check, so those are rate-limited
 const limitVoucherCheck = (req, res, next) => (req.body && req.body.phone ? limiters.voucherCheck(req, res, next) : next());
 router.post('/calculate-shipping', limitVoucherCheck, orderController.getShippingCalculation);

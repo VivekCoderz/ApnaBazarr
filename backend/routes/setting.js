@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const { verifyCodCode, getSettings, updateSettings } = require('../controllers/setting');
 const auth = require('../middlewares/auth');
+const { limiters } = require('../middlewares/security');
 
 const adminOnly = (req, res, next) => {
   if (req.user?.role !== 'admin') {
@@ -10,7 +11,7 @@ const adminOnly = (req, res, next) => {
 };
 
 // COD is open to everyone now; the secret-code check is kept so it can be re-enabled if fraud appears
-router.post('/verify-cod', verifyCodCode);
+router.post('/verify-cod', limiters.voucherCheck, verifyCodCode); // no guessing the code
 router.get('/', getSettings);
 router.put('/', auth, adminOnly, updateSettings);
 
