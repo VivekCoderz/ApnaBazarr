@@ -19,6 +19,10 @@ export default function FounderNote() {
             without the middlemen. I check and pack every mat myself before it leaves Panipat. Pay only when it arrives, and
             if anything is wrong, we take it back within 7 days.
           </p>
+          <p className="text-[15px] leading-relaxed text-slate-700">
+            <span className="font-medium text-ink">Why "Dhagaro"?</span> It comes from <em>dhaga</em>, the Hindi word for thread.
+            Every mat starts as thread, and with our exchange program your old clothes go back to thread too.
+          </p>
           <p className="flex items-center gap-1.5 text-sm text-slate-600">
             <BadgeCheck className="h-4 w-4 text-emerald-700" aria-hidden="true" />
             MSME (Udyam) registered business · Geeta University student startup
