@@ -402,7 +402,6 @@ module.exports.getSellersForAdmin = async (req, res) => {
         const sellerIdStr = productSellerMap[prodIdStr];
         if (sellerIdStr) {
           if (!sellerSales[sellerIdStr]) sellerSales[sellerIdStr] = 0;
-          if (!sellerItems[sellerIdStr]) sellerItems[sellerItems] = 0; // Fix: use sellerItems keys correctly
           if (!sellerItems[sellerIdStr]) sellerItems[sellerIdStr] = 0;
           sellerSales[sellerIdStr] += item.price * item.quantity;
           sellerItems[sellerIdStr] += item.quantity;
@@ -500,6 +499,9 @@ module.exports.updateSellerStatus = async (req, res) => {
     if (!['approved', 'rejected', 'pending'].includes(status)) {
       return res.status(400).json({ success: false, message: 'Invalid status value.' });
     }
+    if (!require('mongoose').isValidObjectId(req.params.sellerId)) {
+      return res.status(404).json({ success: false, message: 'Seller not found.' });
+    }
 
     const updatedUser = await User.findByIdAndUpdate(
       req.params.sellerId,
@@ -536,8 +538,8 @@ module.exports.adminLogin = async (req, res) => {
     return res.status(401).json({ success: false, message: 'Invalid Admin Email or Password!' });
   }
 
-  // 7 days to match the admin panel's apna_admin_token cookie (the panel has no
-  // "session expired" handling, so a shorter token would break it mid-week)
+  // 1 day, matching the admin panel's apna_admin_token cookie (max-age=86400 in
+  // AdminLoginPage.jsx), so the cookie and the token expire together
   const token = jwt.sign({ admin: true, email: adminEmail }, JWT_SECRET, { expiresIn: '1d' });
   res.json({ success: true, admin: { email: adminEmail, role: 'admin', token } });
 };
