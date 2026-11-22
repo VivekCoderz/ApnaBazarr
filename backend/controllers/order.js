@@ -131,8 +131,10 @@ async function processOrderItems(items, deliveryPincode) {
     const quantity = cleanQuantity(rawItem.quantity);
     if (!quantity || !mongoose.isValidObjectId(prodId)) continue;
     const dbProduct = await Product.findById(prodId).populate('seller');
-    // Hidden (isActive: false) products can no longer be ordered
-    if (dbProduct && dbProduct.isActive !== false) {
+    // Hidden (isActive: false) products can no longer be ordered, and neither can products
+    // of sellers the admin hasn't approved (same rule the shop uses to hide them)
+    const sellerApproved = !dbProduct?.seller || (dbProduct.seller.sellerProfile?.status || 'approved') === 'approved';
+    if (dbProduct && dbProduct.isActive !== false && sellerApproved) {
       const item = { ...rawItem, quantity };
       dbProducts.push({ item, dbProduct });
       subtotal += dbProduct.price * quantity;
