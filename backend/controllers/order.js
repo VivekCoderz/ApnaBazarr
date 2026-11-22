@@ -422,7 +422,10 @@ module.exports.verifyRazorpayPayment = async (req, res) => {
       .update(`${razorpay_order_id}|${razorpay_payment_id}`)
       .digest('hex');
 
-    if (hash !== razorpay_signature) {
+    // Constant-time comparison (a plain !== can leak how many leading characters matched)
+    const expectedSig = Buffer.from(hash, 'utf8');
+    const givenSig = Buffer.from(String(razorpay_signature), 'utf8');
+    if (givenSig.length !== expectedSig.length || !crypto.timingSafeEqual(givenSig, expectedSig)) {
       return res.status(400).json({ success: false, message: 'Payment signature verification failed.' });
     }
     if (Array.isArray(items) && items.length > MAX_LINES) return res.status(400).json(TOO_MANY);
