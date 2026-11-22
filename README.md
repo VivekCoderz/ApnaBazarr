@@ -23,7 +23,7 @@
 | Frontend | React, Vite, Tailwind CSS, React Router, Lucide icons |
 | Backend | Node.js, Express, MongoDB (Mongoose), JWT, bcrypt |
 | Payments & media | Razorpay, Cloudinary (Multer) |
-| Hosting | Vercel |
+| Hosting | Vercel (storefront), Render (API) |
 
 ## Project structure
 
@@ -39,13 +39,15 @@ frontend/   React + Vite storefront
 cd backend
 cp .env.example .env   # fill in MongoDB, JWT, Razorpay and Cloudinary values
 npm install
-npm start
+npm start              # API on http://localhost:5000
 
 # Storefront
 cd ../frontend
 npm install
-npm run dev
+npm run dev            # http://localhost:5173, calls the API at http://localhost:5000
 ```
+
+Set `VITE_API_URL` in `frontend/.env` to point the storefront at a different API.
 
 ## About
 

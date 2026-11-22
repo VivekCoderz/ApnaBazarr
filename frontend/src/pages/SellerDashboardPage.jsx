@@ -1,14 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Store, Package, ShoppingBag, Plus, Trash2, CheckCircle, 
-  Tag, Upload, Loader2, DollarSign, MapPin, Phone, 
-  FileText, LogOut, ArrowRight, ArrowLeft, Eye, RefreshCw, X, AlertCircle, Menu, Settings, Image, Star, CreditCard, Landmark, LifeBuoy, AlertTriangle,
+  Tag, Upload, Loader2, DollarSign, Phone, 
+  LogOut, ArrowRight, ArrowLeft, X, Menu, Settings, Star, CreditCard, LifeBuoy, AlertTriangle,
   Search, Bell, HelpCircle, ChevronDown, TrendingUp
 } from 'lucide-react';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-const getToken = () => '';
 const STANDARD_CATEGORIES = ["Clothing", "Footwear", "Accessories", "Electronics", "Home Decor", "Gifts & Hampers"];
 
 async function uploadToCloudinary(file, endpoint) {
@@ -38,7 +37,7 @@ export default function SellerDashboardPage({ currentUser, authReady = true, onL
   const [orders, setOrders] = useState([]);
   const [reviewsData, setReviewsData] = useState({ reviews: [], averageSellerRating: 5 });
   const [myTickets, setMyTickets] = useState([]);
-  const [ticketsLoading, setTicketsLoading] = useState(false);
+  const [, setTicketsLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [toast, setToast] = useState('');
@@ -580,7 +579,7 @@ export default function SellerDashboardPage({ currentUser, authReady = true, onL
       } else {
         alert(result.message || "Failed to delete product.");
       }
-    } catch (err) {
+    } catch {
       alert("Error deleting product.");
     } finally {
       setActionLoading(false);
@@ -625,7 +624,6 @@ export default function SellerDashboardPage({ currentUser, authReady = true, onL
   let shippingVal = 0;
   let payoutVal = 0;
   let pendingPayoutVal = 0;
-  let paidPayoutVal = 0;
   let totalOfflinePackagingCost = 0;
   let totalOfflineShippingCost = 0;
   let totalCostOfItemsSold = 0;
@@ -650,9 +648,7 @@ export default function SellerDashboardPage({ currentUser, authReady = true, onL
       shippingVal += item.shippingCharges || 0;
       payoutVal += item.sellerPayout || 0;
 
-      if (item.payoutStatus === 'paid') {
-        paidPayoutVal += item.sellerPayout || 0;
-      } else {
+      if (item.payoutStatus !== 'paid') {
         pendingPayoutVal += item.sellerPayout || 0;
       }
 

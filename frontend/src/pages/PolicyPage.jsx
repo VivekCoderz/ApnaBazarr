@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Shield, FileText, Truck, RefreshCw, Mail, Phone, MapPin, CheckCircle, Send } from 'lucide-react';
 import { useSeo } from '../utils/seo';
 

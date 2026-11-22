@@ -1,4 +1,3 @@
-import React from 'react';
 import { Loader2, LogIn } from 'lucide-react';
 
 // Shown on account pages: a short wait while the saved session is checked, then a

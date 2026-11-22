@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Search, Heart, ShoppingBag, User, Menu, Package, Settings, LogOut, ChevronDown, X, LogIn, ShieldCheck, MessageCircle } from 'lucide-react';
 import { formatPrice, cloudinaryImage, displayName } from '../utils/format';
@@ -58,7 +58,6 @@ export default function Header({
   currentUser,
   isAdminAuthenticated,
   onOpenCart,
-  onOpenWishlist,
   onOpenMobileMenu,
   onOpenAuth,
   onLogout
