@@ -4,3 +4,7 @@ node_modules
 !.env.example
 dist
 *.exe
+
+# Private business documents: keep them local, never push
+business plan/
+automation/
