@@ -98,7 +98,7 @@ app.use((err, req, res, next) => {
   res.status(status).json({ success: false, message, error: message });
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Dhagaro Backend running`);
 });
