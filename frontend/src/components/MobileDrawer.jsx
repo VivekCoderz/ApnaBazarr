@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { X, Search, Heart, ShoppingBag, Phone, Mail, ChevronRight } from 'lucide-react';
 import { CATEGORIES, CORE_CATEGORIES, categoryHref, SELLER_MARKETPLACE_ENABLED } from '../config/store';

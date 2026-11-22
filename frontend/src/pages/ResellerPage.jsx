@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { IndianRupee, Share2, Copy, Check, Wallet, Package, TrendingUp, Clock, Loader2, AlertCircle, Users, Truck, Sparkles } from 'lucide-react';
 import { whatsappShareUrl, productShareLink } from '../utils/referral';

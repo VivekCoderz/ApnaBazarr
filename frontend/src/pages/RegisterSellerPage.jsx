@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Store, ArrowRight, ShieldCheck, Phone, MapPin, AlignLeft, AlertCircle, ShoppingBag, Landmark } from 'lucide-react';
 

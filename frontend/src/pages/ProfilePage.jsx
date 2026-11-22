@@ -1,4 +1,3 @@
-import React from 'react';
 import { User, Mail, Phone, MapPin } from 'lucide-react';
 import SignInPrompt from '../components/SignInPrompt';
 import SavedAddresses from '../components/account/SavedAddresses';

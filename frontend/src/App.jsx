@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect, useCallback, useMemo, useRef, lazy, Suspense } from 'react';
+import { useState, useEffect, useLayoutEffect, useCallback, useMemo, useRef, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Link, Navigate, useNavigate, useLocation, useNavigationType } from 'react-router-dom';
 import { SELLER_MARKETPLACE_ENABLED } from './config/store';
 
@@ -806,7 +806,7 @@ function AppContent() {
     }
   };
 
-  const handleAdminLogin = (adminData) => {
+  const handleAdminLogin = () => {
     setIsAdminAuthenticated(true);
     showToast("Admin session authenticated!");
   };

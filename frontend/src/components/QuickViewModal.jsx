@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { X, Star, ShoppingBag, Shield, Truck, Check } from 'lucide-react';
 import HeartIcon from './ui/HeartIcon';
 import { formatPrice, displayName, cloudinaryImage } from '../utils/format';

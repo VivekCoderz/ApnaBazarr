@@ -1,4 +1,3 @@
-import React from 'react';
 import { Settings, Lock, MessageCircle } from 'lucide-react';
 import SignInPrompt from '../components/SignInPrompt';
 import { whatsappUrl, PHONE_DISPLAY } from '../config/store';

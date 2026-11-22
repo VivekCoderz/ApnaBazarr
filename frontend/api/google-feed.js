@@ -6,7 +6,6 @@
 // availability_date for preorder items (we don't have one), and listing items nobody can
 // buy only spends ad budget and risks "landing page doesn't allow purchase" disapprovals.
 // They appear in the feed automatically once the admin puts them in stock.
-/* global process */
 const BACKEND_URL = process.env.VITE_API_URL || 'https://apnabazarr-backend.onrender.com';
 const SITE_URL = 'https://dhagaro.vercel.app';
 const BRAND = 'Dhagaro';

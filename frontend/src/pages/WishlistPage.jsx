@@ -1,6 +1,5 @@
-import React from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Heart, ShoppingBag, Trash2, ArrowLeft, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Heart, ArrowLeft, ArrowRight } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
 
 export default function WishlistPage({ wishlistItems, onAddToCart, onToggleWishlist, cartItems }) {
