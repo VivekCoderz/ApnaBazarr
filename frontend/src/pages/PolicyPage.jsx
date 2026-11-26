@@ -29,7 +29,7 @@ export default function PolicyPage({ type }) {
               <FileText className="w-8 h-8 text-brand-navy" />
               <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Terms & Conditions</h1>
             </div>
-            <p className="text-xs text-slate-400">Last updated: August 13, 2026</p>
+            <p className="text-xs text-slate-400">Last updated: November 26, 2026</p>
             <div className="space-y-4 text-xs sm:text-sm text-slate-600 leading-relaxed font-semibold">
               <p>Welcome to Dhagaro. These terms and conditions outline the rules and regulations for the use of Dhagaro's Website.</p>
               <h3 className="text-base font-black text-slate-900 pt-2">1. Intellectual Property Rights</h3>
@@ -55,6 +55,8 @@ export default function PolicyPage({ type }) {
               <p>The personal information that you are asked to provide, and the reasons why you are asked to provide it, will be made clear to you at the point we ask you to provide your personal information.</p>
               <h3 className="text-base font-black text-slate-900 pt-2">How We Use Your Information</h3>
               <p>We use the information we collect in various ways, including to: Provide, operate, and maintain our website; Improve, personalize, and expand our website; Understand and analyze how you use our website; Develop new products, services, features, and functionality.</p>
+              <h3 className="text-base font-black text-slate-900 pt-2">Cookies and site analytics</h3>
+              <p>We count visits anonymously (which pages are opened, from which channel, on phone or laptop) to improve the store. If you tap "Allow" on the cookie banner, we also use Microsoft Clarity, which records how pages are scrolled and clicked so we can see where shoppers get stuck. Clarity hides everything you type, such as your name, phone number, address and passwords. If you tap "No thanks", Clarity is never loaded. To change your choice, clear this site's data in your browser.</p>
             </div>
           </div>
         );

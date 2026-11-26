@@ -10,6 +10,7 @@ import AuthModal from './components/AuthModal';
 import ProtectedAdminRoute from './components/ProtectedAdminRoute';
 import FeedbackForm from './components/FeedbackForm';
 import Footer from './components/Footer';
+import ConsentBanner from './components/ConsentBanner';
 import WhatsAppFab from './components/WhatsAppFab';
 
 // Pages: the shopping path (home, shop, product, cart) ships in the main bundle;
@@ -1115,6 +1116,7 @@ function AppContent() {
 
       {/* Footer */}
       {!isNoNavRoute && <Footer products={products} />}
+      <ConsentBanner hidden={isNoNavRoute} />
 
       {/* Floating WhatsApp help (hidden on checkout/admin inside the component) */}
       {!isNoNavRoute && <WhatsAppFab products={products} />}
