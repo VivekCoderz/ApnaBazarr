@@ -41,8 +41,8 @@ function useImpact() {
 export default function RecyclePage() {
   const impact = useImpact();
   useSeo({
-    title: 'Old Clothes Exchange in Panipat: Get ₹40 Off | Dhagaro',
-    description: 'Hand over 1 kg+ of old clothes when we deliver in Panipat. We send them for recycling and your next ₹199+ order is ₹40 off.',
+    title: 'Old Clothes Recycling in Panipat: Get ₹40 Off | Dhagaro',
+    description: 'Textile recycling made easy in Panipat: hand over 1 kg+ of old clothes when we deliver. Panipat recyclers turn them back into yarn, and your next ₹199+ order is ₹40 off.',
     path: '/recycle'
   });
 

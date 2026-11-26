@@ -1,4 +1,20 @@
 import { useEffect, useState } from 'react';
+
+// FAQPage structured data for the questions shown on the home page
+function useFaqSchema(faqs) {
+  useEffect(() => {
+    const el = document.createElement('script');
+    el.type = 'application/ld+json';
+    el.id = 'faq-schema';
+    el.text = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: faqs.map(({ q, a }) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } }))
+    });
+    document.head.appendChild(el);
+    return () => el.remove();
+  }, [faqs]);
+}
 import {
   ChevronDown, MessageCircle, Factory, PackageCheck, ClipboardCheck, ShoppingBag, Home as HomeIcon,
   UserPlus, Share2, Wallet, Phone, Mail, ArrowRight
@@ -62,7 +78,23 @@ const FAQS = [
   },
   {
     q: 'When is delivery free?',
-    a: 'On orders of ₹499 or more. Below that, delivery is ₹49.'
+    a: 'Always in Panipat: our own team delivers there. Elsewhere in India, on orders of ₹499 or more; below that, delivery is ₹49.'
+  },
+  {
+    q: 'Where can I buy bath mats in Panipat?',
+    a: 'Right here. Dhagaro is a Panipat brand: order online or on WhatsApp, pay cash on delivery, and our team delivers to your door in Panipat for free, usually within 2 days.'
+  },
+  {
+    q: 'Which bath mat is best for a bathroom?',
+    a: 'Pick one that soaks up water fast and has an anti-slip back. Our 3D pebble mats (₹199) dry quickly and grip wet floors; the microfiber pack of 2 (₹249) is the softest under your feet.'
+  },
+  {
+    q: 'How do I wash a bath mat?',
+    a: 'Wash it every week in cold or lukewarm water with mild detergent. Do not use bleach or a hot dryer, which damage the anti-slip back. Dry it flat in the shade.'
+  },
+  {
+    q: 'Where can I give old clothes for recycling in Panipat?',
+    a: 'Give them to us. When we deliver your order in Panipat, hand over 1 kg or more of old clothes and get ₹40 off your next order. We pass them to Panipat textile recyclers, who turn them back into yarn.'
   },
   {
     q: 'Who are you?',
@@ -183,8 +215,9 @@ export default function HomePage({
   cartItems = []
 }) {
   const isTabletUp = useMinWidth(768);
+  useFaqSchema(FAQS);
   useSeo({
-    title: 'Dhagaro | Bath Mats Online from Panipat, ₹129 · Cash on Delivery',
+    title: 'Dhagaro | Bath Mats in Panipat & Online from ₹129 · Cash on Delivery',
     description: 'Soft, absorbent bath mats straight from Panipat makers, from ₹129. Cash on delivery, free delivery in Panipat, ₹499+ free delivery across India and 7-day easy returns.',
     path: '/'
   });
