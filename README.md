@@ -2,7 +2,9 @@
 
 **Home textiles straight from Panipat factories to your door.** Dhagaro is my ecommerce startup: customers order directly, products ship from partner factories, and no stock is held.
 
-🔗 **Live:** [dhagaro.vercel.app](https://dhagaro.vercel.app)
+🔗 **Live:** [dhagaro.vercel.app](https://dhagaro.vercel.app) · [Instagram](https://www.instagram.com/dhagaro.in/) · [Facebook](https://www.facebook.com/dhagaro) · [LinkedIn](https://www.linkedin.com/company/dhagaro/)
+
+🏛️ **MSME (Udyam) registered** micro enterprise: `UDYAM-HR-14-0100594` · Panipat, Haryana · in business since August 2026
 
 ## Features
 
